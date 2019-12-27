@@ -1,0 +1,43 @@
+usage: lorem [-h] [-v] [-t] [--cols COLS] [--words N] [--sentences S]
+             [--lines L] [--chars C] [--lorem] [--decamerone] [--faust]
+             [--fleurs] [--strindberg] [--spook] [--poe] [--strandberg]
+             [--bible] [--walden] [--stdin] [-q Q] [--lower] [--upper]
+             [--randomize]
+
+lorem - Create more or less random lorem ipsum text.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  -t                    run self-tests and exit
+  --cols COLS           override line width - default 80 (set to 0 for no line
+                        returns)
+
+output format (mutually exclusive):
+  --words N, -n N       number of words
+  --sentences S, -s S   number of sentences
+  --lines L, -l L       number of lines
+  --chars C, -c C       number of characters (excl. final newline)
+
+qoute selection:
+  --lorem, --cicero     "Lorem ipsum dolor sit amet..."
+  --decamerone, --boccaccio
+                        "Ser Cepperello con una falsa confessione..."
+  --faust, --goethe     "Ihr naht euch wieder..."
+  --fleurs, --beaudelaire
+                        "Lorsque, par un décret..."
+  --strindberg, --hemsöborna
+                        "Han kom som ett yrväder en aprilafton..."
+  --spook, --emacs      "Asset csystems BATF Blowpipe Soviet..."
+  --poe, --raven        "Once upon a midnight dreary, while I pondered, weak
+                        and weary,..."
+  --strandberg, --foo   "Foo. Foo hoo? Foo bar. Foo bar, baz..."
+  --bible, --genesis    "At first, God created the sky, and..."
+  --walden, --thoreau   "I went to the woods..."
+  --stdin               use stdin as the source text
+  -q Q, --quote Q       select source by index instead, q = 1, 2, ...
+
+options for sentences:
+  --lower               all lower case (default false)
+  --upper               all upper case (default false)
+  --randomize           randomize order (default false)
