@@ -1,0 +1,60 @@
+# {% if schema.title %}{{ schema.title }}{% else %}{{ schema.name }}{% endif %}
+
+Schema Name: {{ schema.name }}
+
+URI: {{ schema.id }}
+
+{{ schema.description }}
+
+The diagram below illustrates the class inheritance structure and
+the relationships between the classes within the schema.
+
+![Crystalia Data Model](Crystalia-datamodel.svg)
+
+The diagram below illustrates the entity relationship diagram for the schema without
+the inheritance structure.
+
+
+```kroki-mermaid
+@from_file:erd.mermaid
+```
+
+## Classes
+
+| Class | Description |
+| --- | --- |
+{% for c in gen.all_class_objects()|sort(attribute=sort_by) -%}
+| {{gen.link(c)}} | {{c.description}} |
+{% endfor %}
+
+## Slots
+
+| Slot | Description |
+| --- | --- |
+{% for s in gen.all_slot_objects()|sort(attribute=sort_by) -%}
+| {{gen.link(s)}} | {{s.description|enshorten}} |
+{% endfor %}
+
+## Enumerations
+
+| Enumeration | Description |
+| --- | --- |
+{% for e in gen.all_enum_objects()|sort(attribute=sort_by) -%}
+| {{gen.link(e)}} | {{e.description|enshorten}} |
+{% endfor %}
+
+## Types
+
+| Type | Description |
+| --- | --- |
+{% for t in gen.all_type_objects()|sort(attribute=sort_by) -%}
+| {{gen.link(t)}} | {{t.description|enshorten}} |
+{% endfor %}
+
+## Subsets
+
+| Subset | Description |
+| --- | --- |
+{% for ss in schemaview.all_subsets().values()|sort(attribute='name') -%}
+| {{gen.link(ss)}} | {{ss.description|enshorten}} |
+{% endfor %}

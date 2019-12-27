@@ -1,0 +1,11 @@
+config:
+  aws-native:region: us-east-1
+  aws:defaultTags:
+    tags:
+      Department: Infrastructure
+      Environment: Production
+      Lifecycle: Temporary
+      ManagedBy: pulumi
+      Product: Crystalia Collector Batch
+      Stack: pulumi:crystalia-collector-batch-infra
+  aws:region: us-east-1

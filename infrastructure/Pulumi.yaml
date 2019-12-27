@@ -1,0 +1,12 @@
+name: crystalia-collector-batch-infra
+runtime:
+  name: python
+  options:
+    toolchain: poetry
+description: AWS Python Pulumi stack for managing Crystalia Collector Batch Infrastructure
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-python
+      pulumi:stack: crystalia-collector-batch-infra
+  

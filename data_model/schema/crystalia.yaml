@@ -1,0 +1,178 @@
+---
+id: https://w3id.org/crystalia
+name: crystalia-datamodel
+title: Crystalia Data Model
+description: |-
+  Data model for the Crystalia dataset annotation model
+license: MIT
+see_also:
+  - https://vladistan.github.com/crystalia-collector
+
+prefixes:
+  crys: https://w3id.org/crystalia/
+  linkml: https://w3id.org/linkml/
+  cryd: https://crystalia.link/data/
+
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  xml: http://www.w3.org/XML/1998/namespace
+  xsd: http://www.w3.org/2001/XMLSchema#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  dct: http://purl.org/dc/terms/
+  dcmi: http://purl.org/dc/dcmitype/
+  qudt: http://qudt.org/schema/qudt/
+  unit: http://qudt.org/vocab/unit/
+
+
+default_prefix: crys
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Thing:
+    description: "Anything that has an id"
+    slots:
+      - id
+
+  DescribableThing:
+    is_a: Thing
+    description: An item that can be described by one or more descriptors. Could be an item(file) or another descriptor
+    slots:
+      - hasDescriptor
+
+  Item:
+    is_a: DescribableThing
+    description: An individual item for example a file
+    slots:
+      - label
+      - isPartOf
+
+  Descriptor:
+    is_a: DescribableThing
+    description: A descriptor for the whole or part of an item or another descriptor
+    attributes:
+      - label:
+          slot_uri: rdfs:label
+          required: false
+          description: A human-readable label 
+    slots:
+      - hasType
+      - value
+      - offset
+      - length
+      - coverage
+
+  DescriptorType:
+    is_a: Thing
+    description: Details about a descriptor type
+    slots:
+      - label
+      - usesMethod
+      - max_block_size
+
+  Method:
+    is_a: Thing
+    description: A method used to generate a descriptor
+    slots:
+      - label
+      - comment
+      - robustness
+
+slots:
+  id:
+    description: >-
+      A unique identifier
+    identifier: true
+    required: true
+    range: uriorcurie
+
+  label:
+    description: A human-readable label for the item, most often the filename
+    range: string
+    required: true
+    slot_uri: rdfs:label
+
+  comment:
+    description: A description of the item
+    range: string
+    required: false
+    slot_uri: rdfs:comment
+
+  isPartOf:
+    description: >-
+      The items in the dataset such as files
+    multivalued: false
+    required: true
+    range: uriorcurie
+    slot_uri: dct:isPartOf
+
+
+  hasDescriptor:
+    description: The descriptors associated with an item
+    multivalued: true
+    range: Descriptor
+
+  max_block_size:
+    description: The maximum size of the block of data described by the descriptor
+    range: integer
+    required: false
+
+  hasType:
+    description: The type of the descriptor
+    range: DescriptorType
+    required: true
+    multivalued: false
+
+  value:
+    description: The value of the descriptor
+    range: string
+    required: true
+    multivalued: false
+
+  offset:
+    description: The starting offset for partial file descriptors
+    range: integer
+    unit:
+      ucum_code: byte
+    required: true
+    multivalued: false
+
+  length:
+    description: The length of the data described by the descriptor
+    range: integer
+    unit:
+      ucum_code: byte
+    required: false
+    multivalued: false
+
+  robustness:
+    description: The robustness category of the descriptor type
+    range: descriptor_robustness
+    required: true
+    multivalued: false
+
+  coverage:
+    description: The coverage of the descriptor (0.0 to 1.0)
+    range: float
+    required: true 
+    multivalued: false
+
+  usesMethod:
+    description: The method used to generate the descriptor
+    range: Method
+    required: true
+    multivalued: false
+
+
+enums:
+  descriptor_robustness:
+    description: "Degree of resilience of the descriptor to changes in the item"
+    enum_uri: crys:DescriptorRobustness
+    permissible_values:
+      EXTREMELY_HIGH: "Descriptor is extremely resilient to changes (e.g., SHA512 sum)"
+      VERY_HIGH: "Descriptor is very resilient to changes (e.g., MD5 sum)"
+      HIGH: "Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)"
+      MODERATE: "Descriptor is moderately resilient to changes (e.g., CRC sum)"
+      LOW: "Descriptor has low resilience to changes (e.g., length + date + name together)"
+      VERY_LOW: "Descriptor has very low resilience to changes (e.g., length, date or name individually)"

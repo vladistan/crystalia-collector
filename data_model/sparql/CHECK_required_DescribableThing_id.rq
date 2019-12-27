@@ -1,0 +1,37 @@
+PREFIX crys: <https://w3id.org/crystalia/>
+PREFIX linkml: <https://w3id.org/linkml/>
+PREFIX cryd: <https://crystalia.link/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX dcmi: <http://purl.org/dc/dcmitype/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+PREFIX unit: <http://qudt.org/vocab/unit/>
+
+SELECT
+  ?check
+  ?graph
+  ?subject
+  ?predicate WHERE {
+ GRAPH ?graph {
+  ?subject rdf:type crys:DescribableThing .
+  FILTER NOT EXISTS { ?subject  crys:id ?o  }
+ }
+ VALUES ?check { linkml:required }
+ VALUES ?predicate { crys:id }
+ 
+}  
+
+
+
+
+
+## -- End of checks for DescribableThing
+
+
+## --
+## Checks for Item
+## --
+

@@ -1,0 +1,9 @@
+/.python-version
+/crystalia_simple_collector.egg-info
+/convAll.sh
+/pipelines/work
+/pipelines/.nextflow*
+/src/crystalia_collector.egg-info
+/data_model/proj
+.nextflow.log.*
+/pipelines/reports
