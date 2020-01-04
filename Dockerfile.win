@@ -5,4 +5,4 @@ ADD . /pkg
 WORKDIR /pkg
 RUN pip install -e .
 
-ENTRYPOINT "C:\Windows\SysWOW64\cmd.exe"
+ENTRYPOINT "collect_ds_metrics"
