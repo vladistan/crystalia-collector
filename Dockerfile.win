@@ -1,6 +1,8 @@
-FROM python:3.8.1-windowsservercore-ltsc2016
+FROM python:3.8.1-windowsservercore-1809
 
 RUN mkdir -p /pkg
 ADD . /pkg
 WORKDIR /pkg
 RUN pip install -e .
+
+ENTRYPOINT "C:\Windows\SysWOW64\cmd.exe"
