@@ -45,6 +45,7 @@ setup(
     entry_points={  # Optional
         'console_scripts': [
             'collect_ds_metrics=cmd_tool:collect_metrics',
+            'convert_to_n3=cmd_tool:convert_to_n3',
         ],
     },
 )
