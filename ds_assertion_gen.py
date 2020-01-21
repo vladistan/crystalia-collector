@@ -4,6 +4,10 @@ from readers import obfuscate_filename
 
 
 def get_assertions_from_brace_triples(braces_stream, ds):
+
+    yield (ds, 'a', crys.DATASET)
+    yield (ds, crys.RDF_TYPE, crys.DATASET)
+
     for t in braces_stream:
         yield from brace_to_rdf_triple(t, ds)
 
@@ -60,7 +64,8 @@ def brace_to_rdf_triple(bt, ds):
     else:
         obj_id = name_idx[fname]
 
-    yield (obj_id, 'a', '"file"')
+    yield (obj_id, 'a', crys.FILE_ARTIFACT)
+    yield (obj_id, crys.RDF_TYPE, crys.FILE_ARTIFACT)
     yield (obj_id, crys.FILE_NAME, q(fname))
     yield (obj_id, crys.NAME_HASH, q(obfuscate_filename(fname)))
     yield (ds, crys.HAS_OBJECT, obj_id)
@@ -72,6 +77,9 @@ def brace_to_rdf_triple(bt, ds):
     if method == 'len':
 
         yield (obj_id, crys.HAS_ASSERTION, st_id)
+        yield (obj_id, 'a', crys.ASSERTION)
+        yield (obj_id, crys.RDF_TYPE, crys.ASSERTION)
+
         yield (st_id, crys.HAS_METHOD, crys.METHOD_LEN)
         yield (st_id, crys.HAS_VALUE, int(bt[2]))
         yield (st_id, crys.HAS_ARGUMENT, q('nil'))
@@ -80,6 +88,9 @@ def brace_to_rdf_triple(bt, ds):
     elif method == 'md5':
 
         yield (obj_id, crys.HAS_ASSERTION, st_id)
+        yield (obj_id, 'a', crys.ASSERTION)
+        yield (obj_id, crys.RDF_TYPE, crys.ASSERTION)
+
         yield (st_id, crys.HAS_METHOD, crys.METHOD_FULL_MD5)
         yield (st_id, crys.HAS_VALUE, q(bt[2]))
         yield (st_id, crys.HAS_ARGUMENT, q('nil'))
