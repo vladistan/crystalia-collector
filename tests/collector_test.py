@@ -1,8 +1,8 @@
 import os
 
-from collector import filename_collector
-from checksum import md5_checksum
-from simple import file_len, collect_dataset_metrics
+from src.collector import filename_collector
+from src.checksum import md5_checksum
+from src.simple import file_len, collect_dataset_metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 ds_path = os.path.join(dir_path, 'test_fixtures/simple_ds1')

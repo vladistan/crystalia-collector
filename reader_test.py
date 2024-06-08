@@ -1,8 +1,8 @@
 import os
 
-from ds_assertion_gen import get_assertions_from_brace_triples, index_ds_assertions, brace_to_rdf_triple, dereify_method
-from readers import braces_reader, obfuscate_filename
-import crystalia_ns as crys
+from src.ds_assertion_gen import get_assertions_from_brace_triples, index_ds_assertions, brace_to_rdf_triple, dereify_method
+from src.readers import braces_reader, obfuscate_filename
+from src import crystalia_ns as crys
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 fixtures_path = os.path.join(dir_path, 'test_fixtures')
@@ -98,14 +98,14 @@ def test_index_by_predicate_obj_all_singular():
 def test_brace_to_rdf_converts_name_correctly():
     brace_triples = ('f1.data', 'len', '11878400')
 
-    rdf = brace_to_rdf_triple(brace_triples, 'urn:crystalia:unit-test-01')
+    rdf = brace_to_rdf_triple(brace_triples, 'urn:crystalia:unit-tests-01')
     po_index = index_ds_assertions(rdf)
 
     assert ('po', crys.FILE_NAME, '"f1.data"') in po_index
 
 
 def test_rdf_triples():
-    ds = 'urn:crystalia:obj:unit-test-rdf-01'
+    ds = 'urn:crystalia:obj:unit-tests-rdf-01'
 
     with open(fixture_file_name, 'r') as stream:
         braces_stream = braces_reader(stream)

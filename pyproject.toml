@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "crystalia-collector"
+version = "0.1.0"
+description = "Collect CRYA assertions about datasets"
+authors = ["Vlad Korolev <vlad@v-lad.org>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://"
+documentation = ""
+classifiers = [
+]
+packages = [{include = "crystalia_collector"}]
+
+[tool.poetry.dependencies]
+python = "^3.8, < 3.12"
+
+[tool.poetry.group.nox.dependencies]
+nox-poetry = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.2"
+
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs-material = "*"
+mkdocs-htmlproofer-plugin = "*"
+mkdocstrings = { version = "*", extras = ["python"] }
+## Autodoc.
+mkdocs-gen-files = "*"
+mkdocs-literate-nav = "*"
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+branch = true

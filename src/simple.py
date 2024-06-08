@@ -1,7 +1,7 @@
 import os
 
-from checksum import md5_checksum
-from collector import filename_collector
+from src.checksum import md5_checksum
+from src.collector import filename_collector
 
 
 def file_len(name):

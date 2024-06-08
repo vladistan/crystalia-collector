@@ -1,5 +1,5 @@
 import uuid as uuid
-import crystalia_ns as crys
+from src import crystalia_ns as crys
 from readers import obfuscate_filename
 
 

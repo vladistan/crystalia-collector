@@ -39,7 +39,7 @@ setup(
 
     extras_require={  # Optional
         'dev': ['check-manifest'],
-        'test': ['coverage'],
+        'tests': ['coverage'],
     },
 
     entry_points={  # Optional
