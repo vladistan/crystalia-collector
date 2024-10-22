@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "crystalia-collector-batch-infra"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pulumi = "^3.107.0"
+pydantic = "^2.6.3"
+boto3 = "^1.34.61"
+pulumi-aws = "^6.29.1"
+pulumi-aws-native = "^0.101.0"
+pulumi-terraform = "^5.13.4"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.2.2"
+pytest = "^8.0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint.per-file-ignores]
+# 4. Ignore `E402` (import violations) in all test since pulumi requires mocking first and then importing
+"**/{test}/*" = ["E402"]
