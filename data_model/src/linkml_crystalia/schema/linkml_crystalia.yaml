@@ -1,0 +1,90 @@
+---
+id: https://pokemonkg.org/ontology
+name: linkml-pokemon
+title: linkml-pokemon
+description: |-
+  Ontology covering the Pokémon world as it is presented in games and anime television series
+license: MIT
+see_also:
+  - https://vladistan.github.io/linkml-pokemon
+
+prefixes:
+  linkml_pokemon: https://w3id.org/vladistan/linkml-pokemon/
+  linkml: https://w3id.org/linkml/
+  schema: http://schema.org/
+  PATO: http://purl.obolibrary.org/obo/PATO_
+  example: https://example.org/
+  owl: http://www.w3.org/2002/07/owl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  xml: http://www.w3.org/XML/1998/namespace
+  xsd: http://www.w3.org/2001/XMLSchema#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  pokemon: https://pokemonkg.org/ontology#
+
+default_prefix: pokemon
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Ability:
+    annotations:
+      rdfs:comment: Abilities were introduced in Generation III as an all new game mechanic. Each and every Pokemon has an ability, and can only have one at a time. Some abilities are exclusive to certain Pokemon and Evolution lines, while others are known by many Pokemon.
+
+  Type:
+    annotations:
+      rdfs:comment: All Pokemon creatures and their moves are assigned certain types. Each type has several strengths and weaknesses in both attack and defense.
+
+slots:
+  containsPlace:
+    slot_uri: pokemon:contains_place
+    range: Place
+    domain: Place
+    transitive: true
+    asymmetric: true
+    inverse: locatedIn
+    multivalued: true
+    required: false
+    annotations:
+      rdfs:comment: A place is contained to some extent in this place.
+ 
+  describedInPokedex:
+    slot_uri: pokemon:describedInPokedex
+    range: PokedexEntry
+    domain: Species
+    inverse: describesPokemon
+    multivalued: true
+    required: false
+    description:
+      - "A Pokedex entry is described in a Pokedex@en"
+      - "Ein Pokedex-Eintrag ist in einem Pokedex beschrieben@de"
+
+  describesPokemon:
+    slot_uri: pokemon:describesPokemon
+    range: Species
+    domain: PokedexEntry
+    multivalued: true
+    required: false
+    annotations:
+      rdfs:comment: A Pokemon that is described by this Pokedex entry.
+
+  hasGenus:
+    range: string
+    domain: Species
+
+  maxPowerPoints:
+    range: integer
+    domain: Move
+
+  minLevelToLearn:
+    range: integer
+
+  smoothness:
+    range: integer
+    domain: Food
+
+
+
+
+enums:
