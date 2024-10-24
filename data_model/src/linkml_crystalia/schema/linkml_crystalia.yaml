@@ -3,7 +3,7 @@ id: https://crystalia.v-lad.org/ontology
 name: linkml-crystalia
 title: linkml-crystalia
 description: |-
-    Ontology for the Crystalia dataset annotation model
+  Ontology for the Crystalia dataset annotation model
 license: MIT
 see_also:
   - https://vladistan.github.com/crystalia-collector
@@ -13,7 +13,6 @@ prefixes:
   linkml: https://w3id.org/linkml/
   schema: http://schema.org/
   PATO: http://purl.obolibrary.org/obo/PATO_
-  example: https://example.org/
   owl: http://www.w3.org/2002/07/owl#
   rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
   xml: http://www.w3.org/XML/1998/namespace
@@ -27,6 +26,9 @@ imports:
   - linkml:types
 
 classes:
+  Thing:
+    slots:
+      - id
 
   Dataset:
     is_a: Thing
@@ -34,14 +36,18 @@ classes:
     slots:
       - containsItem
 
-  Item:
+  DescribableEntity:
     is_a: Thing
+    description: Something that can be described by a descriptop
+
+  Item:
+    is_a: DescribableEntity
     description: An individual item (e.g., file) in the dataset
     slots:
       - hasDescriptor
 
   Descriptor:
-    is_a: Thing
+    is_a: DescribableEntity
     description: A descriptor for an aspect of an item or another descriptor
     slots:
       - hasType
@@ -58,13 +64,17 @@ classes:
       - hasQuality
       - hasCoverage
 
-
 slots:
+  id:
+    identifier: true
+    required: true
+    description: >-
+      A unique identifier
 
   containsItem:
-    description: The items in the dataset
+    description: >-
+      The items in the dataset such as file
     multivalued: true
-    inverse: isContainedIn
     range: Item
     domain: Dataset
 
@@ -75,7 +85,7 @@ slots:
 
   hasType:
     description: The type of the descriptor
-    # We are using a string to represent the descriptor type, 
+    # We are using a string to represent the descriptor type,
     # because we want to keep this open for future extension
     range: string
 
@@ -105,10 +115,9 @@ slots:
 
   describes:
     description: The item or descriptor that this descriptor describes
-    range: DescribableEntity
+    range: Thing
 
 enums:
-
   descriptor_quality:
     permissible_values:
       EXTREMELY_LOW: "Extremely low quality"
@@ -119,5 +128,3 @@ enums:
       MEDIUM_HIGH: "Medium-high quality"
       HIGH: "High quality"
       VERY_HIGH: "Very high quality"
-
-

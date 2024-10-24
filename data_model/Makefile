@@ -21,19 +21,14 @@ SOURCE_SCHEMA_DIR = $(dir $(SOURCE_SCHEMA_PATH))
 SRC = src
 DEST = project
 PYMODEL = $(SRC)/$(SCHEMA_NAME)/datamodel
+PYPROJ = python/$(subst -,_,$(SCHEMA_NAME))
+PYTHON_DATACLASS = $(PYPROJ)/dataclass.py
 DOCDIR = docs
 DOCTEMPLATES = $(SRC)/docs/templates
-EXAMPLEDIR = examples
-SHEET_MODULE = personinfo_enums
-SHEET_ID = $(LINKML_SCHEMA_GOOGLE_SHEET_ID)
-SHEET_TABS = $(LINKML_SCHEMA_GOOGLE_SHEET_TABS)
-SHEET_MODULE_PATH = $(SOURCE_SCHEMA_DIR)/$(SHEET_MODULE).yaml
+EXAMPLEDIR = data/examples/
 
-# Use += to append variables from the variables file
-CONFIG_YAML =
-ifdef LINKML_GENERATORS_CONFIG_YAML
-CONFIG_YAML += ${LINKML_GENERATORS_CONFIG_YAML}
-endif
+CONFIG_YAML = --config-file config.yaml
+
 
 GEN_DOC_ARGS =
 ifdef LINKML_GENERATORS_DOC_ARGS
@@ -77,55 +72,66 @@ help: status
 status: check-config
 	@echo "Project: $(SCHEMA_NAME)"
 	@echo "Source: $(SOURCE_SCHEMA_PATH)"
+	@echo "Python DC  : $(PYTHON_DATACLASS)"
 
-# generate products and add everything to github
-setup: check-config install gen-project gen-examples gendoc 
 
 # install any dependencies required for building
 install:
 	poetry install
 .PHONY: install
 
-# ---
-# Project Synchronization
-# ---
-#
-# check we are up to date
-check: cruft-check
-cruft-check:
-	cruft check
-cruft-diff:
-	cruft diff
 
-update: update-template update-linkml
-update-template:
-	cruft update
-
-# todo: consider pinning to template
-update-linkml:
-	poetry add -D linkml@latest
 
 # EXPERIMENTAL
-create-data-harmonizer:
-	npm init data-harmonizer $(SOURCE_SCHEMA_PATH)
+#create-data-harmonizer:
+#	npm init data-harmonizer $(SOURCE_SCHEMA_PATH)
 
 all: site
-site: gen-project gendoc
-%.yaml: gen-project
+site: gen-dist gendoc
+%.yaml: gen-dist
 deploy: all mkd-gh-deploy
 
-compile-sheets:
-	$(RUN) sheets2linkml --gsheet-id $(SHEET_ID) $(SHEET_TABS) > $(SHEET_MODULE_PATH).tmp && mv $(SHEET_MODULE_PATH).tmp $(SHEET_MODULE_PATH)
+$(PYTHON_DATACLASS): $(SCHEMAS)
+	mkdir -p $(PROJ)
+	$(RUN) gen-project ${CONFIG_YAML} -d $(PROJ) $(SOURCE_SCHEMA_PATH) && \
+	echo mv $(PROJ)/$(SCHEMA_NAME).py $(PYTHON_DATACLASS)
+	mv $(PROJ)/$(SCHEMA_NAME).py $(PYTHON_DATACLASS)
+	mv $(PROJ)/graphql/$(SCHEMA_NAME).graphql graphql/
+	mv $(PROJ)/sqlschema/$(SCHEMA_NAME).sql sql/
+	mv $(PROJ)/jsonschema/$(SCHEMA_NAME).schema.json misc/
+	mv $(PROJ)/jsonld/$(SCHEMA_NAME).context.jsonld misc/
+	mv $(PROJ)/jsonld/$(SCHEMA_NAME).jsonld misc/
+	mv $(PROJ)/shacl/$(SCHEMA_NAME).shacl.ttl rdf/
+	mv $(PROJ)/owl/$(SCHEMA_NAME).owl.ttl rdf/
+	mv $(PROJ)/prefixmap/$(SCHEMA_NAME).yaml rdf/$(SCHEMA_NAME).prefixmap.yaml
 
-# In future this will be done by conversion
-gen-examples:
-	cp src/data/examples/* $(EXAMPLEDIR)
+
+
 
 # generates all project files
 
-gen-project: $(PYMODEL)
+gen-dist: $(PYTHON_DATACLASS)
 	$(RUN) gen-project ${CONFIG_YAML} -d $(DEST) $(SOURCE_SCHEMA_PATH) && mv $(DEST)/*.py $(PYMODEL)
+	mkdir -p ${PROJ}/plantuml
+	$(RUN) gen-plantuml $(SOURCE_SCHEMA_PATH) -d ${PROJ}/plantuml/${SCHEMA_NAME}
 
+	mkdir -p ${PROJ}/rdf
+	$(RUN) gen-rdf $(SOURCE_SCHEMA_PATH) > ${PROJ}/rdf/${SCHEMA_NAME}.rdf
+	mv ${PROJ}/rdf/${SCHEMA_NAME}.rdf rdf/${SCHEMA_NAME}.rdf
+
+
+	mkdir -p ${PROJ}/sparql
+	$(RUN) gen-sparql $(SOURCE_SCHEMA_PATH) -d ${PROJ}/sparql/${SCHEMA_NAME}
+	mv ${PROJ}/sparql/${SCHEMA_NAME}/*.rq sparql/
+
+	mkdir -p ${PROJ}/pydantic
+	$(RUN) gen-pydantic $(SOURCE_SCHEMA_PATH) \
+					--extra-fields forbid \
+					> ${PROJ}/model.py
+	mv ${PROJ}/model.py ${PYPROJ}/model.py
+
+	#mkdir -p ${PROJ}/markdown
+	#$(RUN) gen-markdown $(SOURCE_SCHEMA_PATH) -i  -d ${PROJ}/markdown/${SCHEMA_NAME}
 
 # non-empty arg triggers owl (workaround https://github.com/linkml/linkml/issues/1453)
 ifneq ($(strip ${GEN_OWL_ARGS}),)
@@ -160,30 +166,58 @@ else
 	$(info Ok)
 endif
 
-convert-examples-to-%:
-	$(patsubst %, $(RUN) linkml-convert  % -s $(SOURCE_SCHEMA_PATH) -C Person, $(shell ${SHELL} find src/data/examples -name "*.yaml"))
+VALID_YML_FILES := $(wildcard $(EXAMPLEDIR)/valid/*.yml)
+VALID_TTL_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.yml,$(EXAMPLEDIR)/valid/%.ttl,$(VALID_YML_FILES))
+VALID_NT_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.ttl,$(EXAMPLEDIR)/valid/%.nt,$(VALID_TTL_FILES))
+VALID_JSON_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.yml,$(EXAMPLEDIR)/valid/%.json,$(VALID_YML_FILES))
+VALID_JSON_LD_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.yml,$(EXAMPLEDIR)/valid/%.ld.json,$(VALID_YML_FILES))
 
-examples/%.yaml: src/data/examples/%.yaml
-	$(RUN) linkml-convert -s $(SOURCE_SCHEMA_PATH) -C Person $< -o $@
-examples/%.json: src/data/examples/%.yaml
-	$(RUN) linkml-convert -s $(SOURCE_SCHEMA_PATH) -C Person $< -o $@
-examples/%.ttl: src/data/examples/%.yaml
-	$(RUN) linkml-convert -P EXAMPLE=http://example.org/ -s $(SOURCE_SCHEMA_PATH) -C Person $< -o $@
+$(EXAMPLEDIR)/valid/%.ttl: $(EXAMPLEDIR)/valid/%.yml $(PYTHON_DATACLASS) $(SCHEMAS)
+	$(RUN) linkml-convert -t ttl \
+		   -m $(PYTHON_DATACLASS) \
+		   --target-class-from-path \
+		   -s $(SOURCE_SCHEMA_PATH) \
+		   -o $@ $<
 
-test-examples: examples/output
+$(EXAMPLEDIR)/valid/%.json: $(EXAMPLEDIR)/valid/%.yml
+	$(RUN) linkml-convert -t json \
+		   -m $(PYTHON_DATACLASS) \
+		   --target-class-from-path \
+		   -s $(SOURCE_SCHEMA_PATH) \
+		   -o $@ $<
 
-examples/output: src/linkml_crystalia/schema/linkml_crystalia.yaml
+$(EXAMPLEDIR)/valid/%.ld.json: $(EXAMPLEDIR)/valid/%.yml
+	$(RUN) linkml-convert -t json-ld \
+		   -m $(PYTHON_DATACLASS) \
+		   --target-class-from-path \
+		   -s $(SOURCE_SCHEMA_PATH) \
+		   -o $@ $<
+convert-valid-yml-to-ttl: $(VALID_TTL_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
+convert-valid-yml-to-nt: $(VALID_NT_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
+convert-valid-yml-to-json: $(VALID_JSON_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
+convert-valid-yml-to-json-ld: $(VALID_JSON_LD_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
+
+docs/%.svg: schema/%.yaml
+	$(RUN) gen-plantuml \
+		--kroki-server https://kroki.r4.v-lad.org \
+		-d docs $<
+
+.PHONY: convert-valid-yml-to-ttl convert-valid-yml-to-json convert-valid-yml-to-json-ld
+
+gen-examples: $(VALID_TTL_FILES) $(VALID_JSON_FILES) $(VALID_JSON_LD_FILES)
+
+examples/output:
 	mkdir -p $@
 	$(RUN) linkml-run-examples \
 		--output-formats json \
 		--output-formats yaml \
-		--counter-example-input-directory src/data/examples/invalid \
-		--input-directory src/data/examples/valid \
+		--counter-example-input-directory data/examples/invalid \
+		--input-directory data/examples/valid \
 		--output-directory $@ \
 		--schema $< > $@/README.md
 
 # Test documentation locally
-serve: mkd-serve
+serve: testdoc
 
 # Python datamodel
 $(PYMODEL):
@@ -193,15 +227,16 @@ $(PYMODEL):
 $(DOCDIR):
 	mkdir -p $@
 
-gendoc: $(DOCDIR)
-	cp -rf $(SRC)/docs/files/* $(DOCDIR) ; \
-	$(RUN) gen-doc ${GEN_DOC_ARGS} -d $(DOCDIR) $(SOURCE_SCHEMA_PATH)
+gendoc:
+	mkdir -p $(DOCDIR)
+	cp -rf templates/docs/* $(DOCDIR) ; \
+	$(RUN) gen-doc \
+		-d $(DOCDIR) \
+		$(SOURCE_SCHEMA_PATH)
 
-testdoc: gendoc serve
+testdoc: gendoc
+	$(RUN) mkdocs serve
 
-MKDOCS = $(RUN) mkdocs
-mkd-%:
-	$(MKDOCS) $*
 
 
 # only necessary if setting up via cookiecutter
@@ -213,6 +248,12 @@ clean:
 	rm -rf $(DEST)
 	rm -rf tmp
 	rm -fr docs/*
+	rm -fr site/*
+	rm -fr sparql/*
+	rm -fr misc/*
+	rm -fr graphql/*
+	rm -fr rdf/*
+	rm -fr sql/*
 	rm -fr $(PYMODEL)/*
 
 include project.Makefile
