@@ -3,3 +3,4 @@
 /convAll.sh
 /pipelines/work
 /pipelines/.nextflow*
+/src/crystalia_collector.egg-info

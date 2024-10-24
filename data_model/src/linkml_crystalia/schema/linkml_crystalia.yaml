@@ -1,15 +1,15 @@
 ---
-id: https://pokemonkg.org/ontology
-name: linkml-pokemon
-title: linkml-pokemon
+id: https://crystalia.v-lad.org/ontology
+name: linkml-crystalia
+title: linkml-crystalia
 description: |-
-  Ontology covering the Pokémon world as it is presented in games and anime television series
+    Ontology for the Crystalia dataset annotation model
 license: MIT
 see_also:
-  - https://vladistan.github.io/linkml-pokemon
+  - https://vladistan.github.com/crystalia-collector
 
 prefixes:
-  linkml_pokemon: https://w3id.org/vladistan/linkml-pokemon/
+  crys: https://w3id.org/crystalia/
   linkml: https://w3id.org/linkml/
   schema: http://schema.org/
   PATO: http://purl.obolibrary.org/obo/PATO_
@@ -19,72 +19,105 @@ prefixes:
   xml: http://www.w3.org/XML/1998/namespace
   xsd: http://www.w3.org/2001/XMLSchema#
   rdfs: http://www.w3.org/2000/01/rdf-schema#
-  pokemon: https://pokemonkg.org/ontology#
 
-default_prefix: pokemon
+default_prefix: crys
 default_range: string
 
 imports:
   - linkml:types
 
 classes:
-  Ability:
-    annotations:
-      rdfs:comment: Abilities were introduced in Generation III as an all new game mechanic. Each and every Pokemon has an ability, and can only have one at a time. Some abilities are exclusive to certain Pokemon and Evolution lines, while others are known by many Pokemon.
 
-  Type:
-    annotations:
-      rdfs:comment: All Pokemon creatures and their moves are assigned certain types. Each type has several strengths and weaknesses in both attack and defense.
+  Dataset:
+    is_a: Thing
+    description: A collection of items (e.g., files) with associated metadata
+    slots:
+      - containsItem
+
+  Item:
+    is_a: Thing
+    description: An individual item (e.g., file) in the dataset
+    slots:
+      - hasDescriptor
+
+  Descriptor:
+    is_a: Thing
+    description: A descriptor for an aspect of an item or another descriptor
+    slots:
+      - hasType
+      - hasValue
+      - hasStartOffset
+      - hasLength
+      - describes
+
+  DescriptorType:
+    is_a: Thing
+    description: The type of a descriptor, including its quality and coverage
+    slots:
+      - hasName
+      - hasQuality
+      - hasCoverage
+
 
 slots:
-  containsPlace:
-    slot_uri: pokemon:contains_place
-    range: Place
-    domain: Place
-    transitive: true
-    asymmetric: true
-    inverse: locatedIn
-    multivalued: true
-    required: false
-    annotations:
-      rdfs:comment: A place is contained to some extent in this place.
- 
-  describedInPokedex:
-    slot_uri: pokemon:describedInPokedex
-    range: PokedexEntry
-    domain: Species
-    inverse: describesPokemon
-    multivalued: true
-    required: false
-    description:
-      - "A Pokedex entry is described in a Pokedex@en"
-      - "Ein Pokedex-Eintrag ist in einem Pokedex beschrieben@de"
 
-  describesPokemon:
-    slot_uri: pokemon:describesPokemon
-    range: Species
-    domain: PokedexEntry
+  containsItem:
+    description: The items in the dataset
     multivalued: true
-    required: false
-    annotations:
-      rdfs:comment: A Pokemon that is described by this Pokedex entry.
+    inverse: isContainedIn
+    range: Item
+    domain: Dataset
 
-  hasGenus:
+  hasDescriptor:
+    description: The descriptors associated with an item
+    multivalued: true
+    range: Descriptor
+
+  hasType:
+    description: The type of the descriptor
+    # We are using a string to represent the descriptor type, 
+    # because we want to keep this open for future extension
     range: string
-    domain: Species
 
-  maxPowerPoints:
+  hasValue:
+    description: The value of the descriptor
+    range: string
+
+  hasStartOffset:
+    description: The starting offset for partial file descriptors
     range: integer
-    domain: Move
 
-  minLevelToLearn:
+  hasLength:
+    description: The length of the data described by the descriptor
     range: integer
 
-  smoothness:
-    range: integer
-    domain: Food
+  hasName:
+    description: The name of the descriptor type
+    range: string
 
+  hasQuality:
+    description: The quality category of the descriptor type
+    range: descriptor_quality
 
+  hasCoverage:
+    description: The coverage of the descriptor type (0.0 to 1.0)
+    range: float
 
+  describes:
+    description: The item or descriptor that this descriptor describes
+    range: DescribableEntity
 
 enums:
+
+  descriptor_quality:
+    permissible_values:
+      EXTREMELY_LOW: "Extremely low quality"
+      VERY_LOW: "Very low quality"
+      LOW: "Low quality"
+      MEDIUM_LOW: "Medium-low quality"
+      MEDIUM: "Medium quality"
+      MEDIUM_HIGH: "Medium-high quality"
+      HIGH: "High quality"
+      VERY_HIGH: "Very high quality"
+
+
