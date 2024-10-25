@@ -5,7 +5,7 @@ description = "Crystalia Ontology expressed as LinkML"
 authors = ["Vlad Korolev <vlad@v-lad.org>"]
 license = "MIT"
 readme = "README.md"
-include = ["README.md", "src/linkml_crystalia/schema", "project"]
+include = ["README.md", "src"]
 
 [tool.poetry.dependencies]
 python = "^3.9"

@@ -1,0 +1,117 @@
+# metamodel_version: 1.7.0
+BASE <https://crystalia.link/ontology/1.0/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX linkml: <https://w3id.org/linkml/>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+
+linkml:String xsd:string
+
+linkml:Integer xsd:integer
+
+linkml:Boolean xsd:boolean
+
+linkml:Float xsd:float
+
+linkml:Double xsd:double
+
+linkml:Decimal xsd:decimal
+
+linkml:Time xsd:time
+
+linkml:Date xsd:date
+
+linkml:Datetime xsd:dateTime
+
+linkml:DateOrDatetime linkml:DateOrDatetime
+
+linkml:Uriorcurie IRI
+
+linkml:Curie xsd:string
+
+linkml:Uri IRI
+
+linkml:Ncname xsd:string
+
+linkml:Objectidentifier IRI
+
+linkml:Nodeidentifier NONLITERAL
+
+linkml:Jsonpointer xsd:string
+
+linkml:Jsonpath xsd:string
+
+linkml:Sparqlpath xsd:string
+
+<DescribableThing>  (
+    CLOSED {
+       (  $<DescribableThing_tes> (  &<Thing_tes> ;
+             rdf:type [ <Thing> ] ? ;
+             <hasDescriptor> @<Descriptor> *
+          ) ;
+          rdf:type [ <DescribableThing> ]
+       )
+    } OR @<Descriptor> OR @<Item>
+)
+
+<Descriptor> CLOSED {
+    (  $<Descriptor_tes> (  &<DescribableThing_tes> ;
+          rdf:type [ <DescribableThing> ] ? ;
+          <hasType> @<DescriptorType> ;
+          <value> @linkml:String ;
+          <offset> @linkml:Integer ;
+          <length> @linkml:Integer ? ;
+          <coverage> @linkml:Float ;
+          rdfs:label @linkml:String ?
+       ) ;
+       rdf:type [ <Descriptor> ]
+    )
+}
+
+<DescriptorType> CLOSED {
+    (  $<DescriptorType_tes> (  &<Thing_tes> ;
+          rdf:type [ <Thing> ] ? ;
+          rdfs:label @linkml:String ;
+          <usesMethod> @<Method> ;
+          <max_block_size> @linkml:Integer ?
+       ) ;
+       rdf:type [ <DescriptorType> ]
+    )
+}
+
+<Item> CLOSED {
+    (  $<Item_tes> (  &<DescribableThing_tes> ;
+          rdf:type [ <DescribableThing> ] ? ;
+          rdfs:label @linkml:String ;
+          dct:isPartOf @linkml:Uriorcurie
+       ) ;
+       rdf:type [ <Item> ]
+    )
+}
+
+<Method> CLOSED {
+    (  $<Method_tes> (  &<Thing_tes> ;
+          rdf:type [ <Thing> ] ? ;
+          rdfs:label @linkml:String ;
+          rdfs:comment @linkml:String ? ;
+          <robustness> [ <https://crystalia.link/ontology/1.0/DescriptorRobustness#EXTREMELY_HIGH>
+             <https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_HIGH>
+             <https://crystalia.link/ontology/1.0/DescriptorRobustness#HIGH>
+             <https://crystalia.link/ontology/1.0/DescriptorRobustness#MODERATE>
+             <https://crystalia.link/ontology/1.0/DescriptorRobustness#LOW>
+             <https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_LOW> ]
+       ) ;
+       rdf:type [ <Method> ]
+    )
+}
+
+<Thing>  (
+    CLOSED {
+       (  $<Thing_tes> rdf:type . * ;
+          rdf:type [ <Thing> ]
+       )
+    } OR @<DescribableThing> OR @<DescriptorType> OR @<Method>
+)
+

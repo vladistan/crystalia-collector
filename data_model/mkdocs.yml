@@ -1,5 +1,5 @@
 ---
-site_name: "linkml-crystalia"
+site_name: "Crystalia"
 theme:
   name: material
   # palette:
@@ -16,8 +16,8 @@ nav:
   # - Home: home.md
   - Index: index.md
   - About: about.md
-site_url: https://vladistan.github.io/linkml-crystalia
-repo_url: https://github.com/vladistan/linkml-crystalia
+site_url: https://vladistan.github.io/crystalia-collector
+repo_url: https://github.com/vladistan/crystalia-collector/tree/mk-ref-pipeline/data_model
 
 # Uncomment this block to enable use of Google Analytics.
 # Replace the property value with your own ID.

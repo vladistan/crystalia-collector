@@ -1,0 +1,48 @@
+# metamodel_version: 1.7.0
+type DescribableThing
+  {
+    id: Uriorcurie!
+    hasDescriptor: [Descriptor]
+  }
+
+type Descriptor
+  {
+    id: Uriorcurie!
+    hasDescriptor: [Descriptor]
+    hasType: DescriptorType!
+    value: String!
+    offset: Integer!
+    length: Integer
+    coverage: Float!
+    label: String
+  }
+
+type DescriptorType
+  {
+    id: Uriorcurie!
+    label: String!
+    usesMethod: Method!
+    maxBlockSize: Integer
+  }
+
+type Item
+  {
+    id: Uriorcurie!
+    hasDescriptor: [Descriptor]
+    label: String!
+    isPartOf: Uriorcurie!
+  }
+
+type Method
+  {
+    id: Uriorcurie!
+    label: String!
+    comment: String
+    robustness: DescriptorRobustness!
+  }
+
+type Thing
+  {
+    id: Uriorcurie!
+  }
+

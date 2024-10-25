@@ -7,12 +7,10 @@
 ###### schema definition variables, used by makefile
 
 # Note: makefile variables should not be quoted, as makefile handles quoting differently than bash
-LINKML_SCHEMA_NAME=linkml_crystalia
+LINKML_SCHEMA_NAME=crystalia
 LINKML_SCHEMA_AUTHOR=Vlad Korolev <vlad@v-lad.org>
 LINKML_SCHEMA_DESCRIPTION=Crystalia Ontology expressed as LinkML
-LINKML_SCHEMA_SOURCE_PATH=src/linkml_crystalia/schema/linkml_crystalia.yaml
-LINKML_SCHEMA_GOOGLE_SHEET_ID=1wVoaiFg47aT9YWNeRfTZ8tYHN8s8PAuDx5i2HUcDpvQ
-LINKML_SCHEMA_GOOGLE_SHEET_TABS=personinfo enums
+LINKML_SCHEMA_SOURCE_PATH=schema/crystalia.yaml
 
 ###### linkml generator variables, used by makefile
 

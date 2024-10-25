@@ -1,0 +1,35 @@
+PREFIX crys: <https://w3id.org/crystalia/>
+PREFIX linkml: <https://w3id.org/linkml/>
+PREFIX schema: <http://schema.org/>
+PREFIX PATO: <http://purl.obolibrary.org/obo/PATO_>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT
+  ?check
+  ?graph
+  ?subject
+  ?predicate WHERE {
+ GRAPH ?graph {
+  ?subject rdf:type crys:DescribableEntity .
+  FILTER NOT EXISTS { ?subject  crys:id ?o  }
+ }
+ VALUES ?check { linkml:required }
+ VALUES ?predicate { crys:id }
+ 
+}  
+
+
+
+
+
+## -- End of checks for DescribableEntity
+
+
+## --
+## Checks for Item
+## --
+

@@ -21,10 +21,11 @@ SOURCE_SCHEMA_DIR = $(dir $(SOURCE_SCHEMA_PATH))
 SRC = src
 DEST = project
 PYMODEL = $(SRC)/$(SCHEMA_NAME)/datamodel
+PROJ = proj
 PYPROJ = python/$(subst -,_,$(SCHEMA_NAME))
 PYTHON_DATACLASS = $(PYPROJ)/dataclass.py
 DOCDIR = docs
-DOCTEMPLATES = $(SRC)/docs/templates
+DOCTEMPLATES = templates
 EXAMPLEDIR = data/examples/
 
 CONFIG_YAML = --config-file config.yaml
@@ -81,10 +82,9 @@ install:
 .PHONY: install
 
 
-
 # EXPERIMENTAL
-#create-data-harmonizer:
-#	npm init data-harmonizer $(SOURCE_SCHEMA_PATH)
+# create-data-harmonizer:
+# 	npm init data-harmonizer $(SOURCE_SCHEMA_PATH)
 
 all: site
 site: gen-dist gendoc
@@ -96,8 +96,6 @@ $(PYTHON_DATACLASS): $(SCHEMAS)
 	$(RUN) gen-project ${CONFIG_YAML} -d $(PROJ) $(SOURCE_SCHEMA_PATH) && \
 	echo mv $(PROJ)/$(SCHEMA_NAME).py $(PYTHON_DATACLASS)
 	mv $(PROJ)/$(SCHEMA_NAME).py $(PYTHON_DATACLASS)
-	mv $(PROJ)/graphql/$(SCHEMA_NAME).graphql graphql/
-	mv $(PROJ)/sqlschema/$(SCHEMA_NAME).sql sql/
 	mv $(PROJ)/jsonschema/$(SCHEMA_NAME).schema.json misc/
 	mv $(PROJ)/jsonld/$(SCHEMA_NAME).context.jsonld misc/
 	mv $(PROJ)/jsonld/$(SCHEMA_NAME).jsonld misc/
@@ -105,11 +103,7 @@ $(PYTHON_DATACLASS): $(SCHEMAS)
 	mv $(PROJ)/owl/$(SCHEMA_NAME).owl.ttl rdf/
 	mv $(PROJ)/prefixmap/$(SCHEMA_NAME).yaml rdf/$(SCHEMA_NAME).prefixmap.yaml
 
-
-
-
 # generates all project files
-
 gen-dist: $(PYTHON_DATACLASS)
 	$(RUN) gen-project ${CONFIG_YAML} -d $(DEST) $(SOURCE_SCHEMA_PATH) && mv $(DEST)/*.py $(PYMODEL)
 	mkdir -p ${PROJ}/plantuml
@@ -148,13 +142,11 @@ ifneq ($(strip ${GEN_TS_ARGS}),)
 	$(RUN) gen-typescript ${GEN_TS_ARGS} $(SOURCE_SCHEMA_PATH) >${DEST}/typescript/${SCHEMA_NAME}.ts
 endif
 
-test: test-schema test-python test-examples
+test: test-python
 
-test-schema:
-	$(RUN) gen-project ${CONFIG_YAML} -d tmp $(SOURCE_SCHEMA_PATH)
+test-python: gen-examples
+	$(RUN) pytest
 
-test-python:
-	$(RUN) python -m unittest discover
 
 lint:
 	$(RUN) linkml-lint $(SOURCE_SCHEMA_PATH)
@@ -192,6 +184,8 @@ $(EXAMPLEDIR)/valid/%.ld.json: $(EXAMPLEDIR)/valid/%.yml
 		   --target-class-from-path \
 		   -s $(SOURCE_SCHEMA_PATH) \
 		   -o $@ $<
+
+
 convert-valid-yml-to-ttl: $(VALID_TTL_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
 convert-valid-yml-to-nt: $(VALID_NT_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
 convert-valid-yml-to-json: $(VALID_JSON_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
@@ -201,6 +195,11 @@ docs/%.svg: schema/%.yaml
 	$(RUN) gen-plantuml \
 		--kroki-server https://kroki.r4.v-lad.org \
 		-d docs $<
+
+docs/erd.mermaid: schema/$(SCHEMA_NAME).yaml
+	$(RUN) gen-erdiagram \
+			$<  > $@
+		# --exclude-attributes \
 
 .PHONY: convert-valid-yml-to-ttl convert-valid-yml-to-json convert-valid-yml-to-json-ld
 
@@ -232,6 +231,7 @@ gendoc:
 	cp -rf templates/docs/* $(DOCDIR) ; \
 	$(RUN) gen-doc \
 		-d $(DOCDIR) \
+		--template-directory templates/docgen-templates \
 		$(SOURCE_SCHEMA_PATH)
 
 testdoc: gendoc
@@ -251,7 +251,6 @@ clean:
 	rm -fr site/*
 	rm -fr sparql/*
 	rm -fr misc/*
-	rm -fr graphql/*
 	rm -fr rdf/*
 	rm -fr sql/*
 	rm -fr $(PYMODEL)/*

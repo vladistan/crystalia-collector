@@ -1,0 +1,535 @@
+@prefix dcmitype: <http://purl.org/dc/dcmitype/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix linkml: <https://w3id.org/linkml/> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema1: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix shex: <http://www.w3.org/ns/shex#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://crystalia.link/ontology/1.0/crystalia-datamodel> a linkml:SchemaDefinition ;
+    dcterms:license "MIT" ;
+    dcterms:title "Crystalia Data Model" ;
+    rdfs:seeAlso <https://vladistan.github.com/crystalia-collector> ;
+    skos:definition "Data model for the Crystalia dataset annotation model" ;
+    sh:declare [ sh:namespace linkml: ;
+            sh:prefix "linkml" ],
+        [ sh:namespace qudt: ;
+            sh:prefix "qudt" ],
+        [ sh:namespace rdfs: ;
+            sh:prefix "rdfs" ],
+        [ sh:namespace dcterms: ;
+            sh:prefix "dct" ],
+        [ sh:namespace xsd: ;
+            sh:prefix "xsd" ],
+        [ sh:namespace dcmitype: ;
+            sh:prefix "dcmi" ],
+        [ sh:namespace rdf: ;
+            sh:prefix "rdf" ],
+        [ sh:namespace xml: ;
+            sh:prefix "xml" ],
+        [ sh:namespace <http://qudt.org/vocab/unit/> ;
+            sh:prefix "unit" ],
+        [ sh:namespace <https://crystalia.link/ontology/1.0/> ;
+            sh:prefix "crys" ] ;
+    linkml:classes <https://crystalia.link/ontology/1.0/DescribableThing>,
+        <https://crystalia.link/ontology/1.0/Descriptor>,
+        <https://crystalia.link/ontology/1.0/DescriptorType>,
+        <https://crystalia.link/ontology/1.0/Item>,
+        <https://crystalia.link/ontology/1.0/Method>,
+        <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:default_prefix "crys" ;
+    linkml:default_range <https://crystalia.link/ontology/1.0/string> ;
+    linkml:enums <https://crystalia.link/ontology/1.0/descriptor_robustness> ;
+    linkml:generation_date "2024-10-25T08:36:43"^^xsd:dateTime ;
+    linkml:id <https://crystalia.link/ontology> ;
+    linkml:imports linkml:types ;
+    linkml:metamodel_version "1.7.0" ;
+    linkml:slots <https://crystalia.link/ontology/1.0/comment>,
+        <https://crystalia.link/ontology/1.0/coverage>,
+        <https://crystalia.link/ontology/1.0/descriptor__label>,
+        <https://crystalia.link/ontology/1.0/hasDescriptor>,
+        <https://crystalia.link/ontology/1.0/hasType>,
+        <https://crystalia.link/ontology/1.0/id>,
+        <https://crystalia.link/ontology/1.0/isPartOf>,
+        <https://crystalia.link/ontology/1.0/label>,
+        <https://crystalia.link/ontology/1.0/length>,
+        <https://crystalia.link/ontology/1.0/max_block_size>,
+        <https://crystalia.link/ontology/1.0/offset>,
+        <https://crystalia.link/ontology/1.0/robustness>,
+        <https://crystalia.link/ontology/1.0/usesMethod>,
+        <https://crystalia.link/ontology/1.0/value> ;
+    linkml:source_file "crystalia.yaml" ;
+    linkml:source_file_date "2024-10-25T08:29:04"^^xsd:dateTime ;
+    linkml:source_file_size 4234 ;
+    linkml:types <https://crystalia.link/ontology/1.0/boolean>,
+        <https://crystalia.link/ontology/1.0/curie>,
+        <https://crystalia.link/ontology/1.0/date>,
+        <https://crystalia.link/ontology/1.0/date_or_datetime>,
+        <https://crystalia.link/ontology/1.0/datetime>,
+        <https://crystalia.link/ontology/1.0/decimal>,
+        <https://crystalia.link/ontology/1.0/double>,
+        <https://crystalia.link/ontology/1.0/float>,
+        <https://crystalia.link/ontology/1.0/integer>,
+        <https://crystalia.link/ontology/1.0/jsonpath>,
+        <https://crystalia.link/ontology/1.0/jsonpointer>,
+        <https://crystalia.link/ontology/1.0/ncname>,
+        <https://crystalia.link/ontology/1.0/nodeidentifier>,
+        <https://crystalia.link/ontology/1.0/objectidentifier>,
+        <https://crystalia.link/ontology/1.0/sparqlpath>,
+        <https://crystalia.link/ontology/1.0/string>,
+        <https://crystalia.link/ontology/1.0/time>,
+        <https://crystalia.link/ontology/1.0/uri>,
+        <https://crystalia.link/ontology/1.0/uriorcurie> .
+
+<https://crystalia.link/ontology/1.0/EXTREMELY_HIGH> skos:definition "Descriptor is extremely resilient to changes (e.g., SHA512 sum)" .
+
+<https://crystalia.link/ontology/1.0/HIGH> skos:definition "Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)" .
+
+<https://crystalia.link/ontology/1.0/LOW> skos:definition "Descriptor has low resilience to changes (e.g., length + date + name together)" .
+
+<https://crystalia.link/ontology/1.0/MODERATE> skos:definition "Descriptor is moderately resilient to changes (e.g., CRC sum)" .
+
+<https://crystalia.link/ontology/1.0/VERY_HIGH> skos:definition "Descriptor is very resilient to changes (e.g., MD5 sum)" .
+
+<https://crystalia.link/ontology/1.0/VERY_LOW> skos:definition "Descriptor has very low resilience to changes (e.g., length, date or name individually)" .
+
+<https://crystalia.link/ontology/1.0/boolean> a linkml:TypeDefinition ;
+    skos:definition "A binary (true or false) value" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"boolean\"." ;
+    skos:exactMatch schema1:Boolean ;
+    skos:inScheme linkml:types ;
+    linkml:base "Bool" ;
+    linkml:definition_uri linkml:Boolean ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "bool" ;
+    linkml:uri xsd:boolean .
+
+<https://crystalia.link/ontology/1.0/curie> a linkml:TypeDefinition ;
+    dcterms:conformsTo "https://www.w3.org/TR/curie/" ;
+    skos:definition "a compact URI" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"curie\"." ;
+    skos:inScheme linkml:types ;
+    skos:note "in RDF serializations this MUST be expanded to a URI",
+        "in non-RDF serializations MAY be serialized as the compact representation" ;
+    linkml:base "Curie" ;
+    linkml:definition_uri linkml:Curie ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:string .
+
+<https://crystalia.link/ontology/1.0/date> a linkml:TypeDefinition ;
+    skos:definition "a date (year, month and day) in an idealized calendar" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"date\".",
+        "URI is dateTime because OWL reasoners don't work with straight date or time" ;
+    skos:exactMatch schema1:Date ;
+    skos:inScheme linkml:types ;
+    linkml:base "XSDDate" ;
+    linkml:definition_uri linkml:Date ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:date .
+
+<https://crystalia.link/ontology/1.0/date_or_datetime> a linkml:TypeDefinition ;
+    skos:definition "Either a date or a datetime" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"date_or_datetime\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "str" ;
+    linkml:definition_uri linkml:DateOrDatetime ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri linkml:DateOrDatetime .
+
+<https://crystalia.link/ontology/1.0/datetime> a linkml:TypeDefinition ;
+    skos:definition "The combination of a date and time" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"datetime\"." ;
+    skos:exactMatch schema1:DateTime ;
+    skos:inScheme linkml:types ;
+    linkml:base "XSDDateTime" ;
+    linkml:definition_uri linkml:Datetime ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:dateTime .
+
+<https://crystalia.link/ontology/1.0/decimal> a linkml:TypeDefinition ;
+    skos:broadMatch schema1:Number ;
+    skos:definition "A real number with arbitrary precision that conforms to the xsd:decimal specification" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"decimal\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "Decimal" ;
+    linkml:definition_uri linkml:Decimal ;
+    linkml:imported_from "linkml:types" ;
+    linkml:uri xsd:decimal .
+
+<https://crystalia.link/ontology/1.0/double> a linkml:TypeDefinition ;
+    skos:closeMatch schema1:Float ;
+    skos:definition "A real number that conforms to the xsd:double specification" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"double\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "float" ;
+    linkml:definition_uri linkml:Double ;
+    linkml:imported_from "linkml:types" ;
+    linkml:uri xsd:double .
+
+<https://crystalia.link/ontology/1.0/jsonpath> a linkml:TypeDefinition ;
+    dcterms:conformsTo "https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html" ;
+    skos:definition "A string encoding a JSON Path. The value of the string MUST conform to JSON Point syntax and SHOULD dereference to zero or more valid objects within the current instance document when encoded in tree form." ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"jsonpath\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "str" ;
+    linkml:definition_uri linkml:Jsonpath ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:string .
+
+<https://crystalia.link/ontology/1.0/jsonpointer> a linkml:TypeDefinition ;
+    dcterms:conformsTo "https://datatracker.ietf.org/doc/html/rfc6901" ;
+    skos:definition "A string encoding a JSON Pointer. The value of the string MUST conform to JSON Point syntax and SHOULD dereference to a valid object within the current instance document when encoded in tree form." ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"jsonpointer\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "str" ;
+    linkml:definition_uri linkml:Jsonpointer ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:string .
+
+<https://crystalia.link/ontology/1.0/ncname> a linkml:TypeDefinition ;
+    skos:definition "Prefix part of CURIE" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"ncname\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "NCName" ;
+    linkml:definition_uri linkml:Ncname ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:string .
+
+<https://crystalia.link/ontology/1.0/nodeidentifier> a linkml:TypeDefinition ;
+    skos:definition "A URI, CURIE or BNODE that represents a node in a model." ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"nodeidentifier\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "NodeIdentifier" ;
+    linkml:definition_uri linkml:Nodeidentifier ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri shex:nonLiteral .
+
+<https://crystalia.link/ontology/1.0/objectidentifier> a linkml:TypeDefinition ;
+    skos:definition "A URI or CURIE that represents an object in the model." ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"objectidentifier\"." ;
+    skos:inScheme linkml:types ;
+    skos:note "Used for inheritance and type checking" ;
+    linkml:base "ElementIdentifier" ;
+    linkml:definition_uri linkml:Objectidentifier ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri shex:iri .
+
+<https://crystalia.link/ontology/1.0/sparqlpath> a linkml:TypeDefinition ;
+    dcterms:conformsTo "https://www.w3.org/TR/sparql11-query/#propertypaths" ;
+    skos:definition "A string encoding a SPARQL Property Path. The value of the string MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects within the current instance document when encoded as RDF." ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"sparqlpath\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "str" ;
+    linkml:definition_uri linkml:Sparqlpath ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:string .
+
+<https://crystalia.link/ontology/1.0/time> a linkml:TypeDefinition ;
+    skos:definition "A time object represents a (local) time of day, independent of any particular day" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"time\".",
+        "URI is dateTime because OWL reasoners do not work with straight date or time" ;
+    skos:exactMatch schema1:Time ;
+    skos:inScheme linkml:types ;
+    linkml:base "XSDTime" ;
+    linkml:definition_uri linkml:Time ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:time .
+
+<https://crystalia.link/ontology/1.0/uri> a linkml:TypeDefinition ;
+    dcterms:conformsTo "https://www.ietf.org/rfc/rfc3987.txt" ;
+    skos:closeMatch schema1:URL ;
+    skos:definition "a complete URI" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"uri\"." ;
+    skos:inScheme linkml:types ;
+    skos:note "in RDF serializations a slot with range of uri is treated as a literal or type xsd:anyURI unless it is an identifier or a reference to an identifier, in which case it is translated directly to a node" ;
+    linkml:base "URI" ;
+    linkml:definition_uri linkml:Uri ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:anyURI .
+
+<https://crystalia.link/ontology/1.0/descriptor__label> a linkml:SlotDefinition ;
+    skos:definition "A human-readable label" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    skos:mappingRelation rdfs:label ;
+    skos:prefLabel "label" ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:range <https://crystalia.link/ontology/1.0/string> ;
+    linkml:slot_uri rdfs:label .
+
+<https://crystalia.link/ontology/1.0/descriptor_robustness> skos:definition "Degree of resilience of the descriptor to changes in the item" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/DescriptorRobustness> ;
+    linkml:permissible_values <https://crystalia.link/ontology/1.0/EXTREMELY_HIGH>,
+        <https://crystalia.link/ontology/1.0/HIGH>,
+        <https://crystalia.link/ontology/1.0/LOW>,
+        <https://crystalia.link/ontology/1.0/MODERATE>,
+        <https://crystalia.link/ontology/1.0/VERY_HIGH>,
+        <https://crystalia.link/ontology/1.0/VERY_LOW> .
+
+<https://crystalia.link/ontology/1.0/float> a linkml:TypeDefinition ;
+    skos:definition "A real number that conforms to the xsd:float specification" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"float\"." ;
+    skos:exactMatch schema1:Float ;
+    skos:inScheme linkml:types ;
+    linkml:base "float" ;
+    linkml:definition_uri linkml:Float ;
+    linkml:imported_from "linkml:types" ;
+    linkml:uri xsd:float .
+
+<https://crystalia.link/ontology/1.0/comment> a linkml:SlotDefinition ;
+    skos:definition "A description of the item" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    skos:mappingRelation rdfs:comment ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/comment> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:range <https://crystalia.link/ontology/1.0/string> ;
+    linkml:slot_uri rdfs:comment .
+
+<https://crystalia.link/ontology/1.0/isPartOf> a linkml:SlotDefinition ;
+    skos:definition "The items in the dataset such as files" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    skos:mappingRelation dcterms:isPartOf ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/isPartOf> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Item> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Item> ;
+    linkml:range <https://crystalia.link/ontology/1.0/uriorcurie> ;
+    linkml:required true ;
+    linkml:slot_uri dcterms:isPartOf .
+
+<https://crystalia.link/ontology/1.0/uriorcurie> a linkml:TypeDefinition ;
+    skos:definition "a URI or a CURIE" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"uriorcurie\"." ;
+    skos:inScheme linkml:types ;
+    linkml:base "URIorCURIE" ;
+    linkml:definition_uri linkml:Uriorcurie ;
+    linkml:imported_from "linkml:types" ;
+    linkml:repr "str" ;
+    linkml:uri xsd:anyURI .
+
+<https://crystalia.link/ontology/1.0/coverage> a linkml:SlotDefinition ;
+    skos:definition "The coverage of the descriptor (0.0 to 1.0)" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/coverage> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:range <https://crystalia.link/ontology/1.0/float> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/coverage> .
+
+<https://crystalia.link/ontology/1.0/hasType> a linkml:SlotDefinition ;
+    skos:definition "The type of the descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/hasType> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:range <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/hasType> .
+
+<https://crystalia.link/ontology/1.0/integer> a linkml:TypeDefinition ;
+    skos:definition "An integer" ;
+    skos:editorialNote "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"integer\"." ;
+    skos:exactMatch schema1:Integer ;
+    skos:inScheme linkml:types ;
+    linkml:base "int" ;
+    linkml:definition_uri linkml:Integer ;
+    linkml:imported_from "linkml:types" ;
+    linkml:uri xsd:integer .
+
+<https://crystalia.link/ontology/1.0/length> a linkml:SlotDefinition ;
+    qudt:unit [ a qudt:Unit ;
+            qudt:ucumCode "byte" ] ;
+    skos:definition "The length of the data described by the descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/length> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:range <https://crystalia.link/ontology/1.0/integer> ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/length> .
+
+<https://crystalia.link/ontology/1.0/max_block_size> a linkml:SlotDefinition ;
+    skos:definition "The maximum size of the block of data described by the descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/max_block_size> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:range <https://crystalia.link/ontology/1.0/integer> ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/max_block_size> .
+
+<https://crystalia.link/ontology/1.0/offset> a linkml:SlotDefinition ;
+    qudt:unit [ a qudt:Unit ;
+            qudt:ucumCode "byte" ] ;
+    skos:definition "The starting offset for partial file descriptors" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/offset> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:range <https://crystalia.link/ontology/1.0/integer> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/offset> .
+
+<https://crystalia.link/ontology/1.0/robustness> a linkml:SlotDefinition ;
+    skos:definition "The robustness category of the descriptor type" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/robustness> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:range <https://crystalia.link/ontology/1.0/descriptor_robustness> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/robustness> .
+
+<https://crystalia.link/ontology/1.0/usesMethod> a linkml:SlotDefinition ;
+    skos:definition "The method used to generate the descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/usesMethod> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:range <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/usesMethod> .
+
+<https://crystalia.link/ontology/1.0/value> a linkml:SlotDefinition ;
+    skos:definition "The value of the descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/value> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:range <https://crystalia.link/ontology/1.0/string> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/value> .
+
+<https://crystalia.link/ontology/1.0/Item> a linkml:ClassDefinition ;
+    skos:definition "An individual item for example a file" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:class_uri <https://crystalia.link/ontology/1.0/Item> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/Item> ;
+    linkml:is_a <https://crystalia.link/ontology/1.0/DescribableThing> ;
+    linkml:slot_usage [ ] ;
+    linkml:slots <https://crystalia.link/ontology/1.0/hasDescriptor>,
+        <https://crystalia.link/ontology/1.0/id>,
+        <https://crystalia.link/ontology/1.0/isPartOf>,
+        <https://crystalia.link/ontology/1.0/label> .
+
+<https://crystalia.link/ontology/1.0/hasDescriptor> a linkml:SlotDefinition ;
+    skos:definition "The descriptors associated with an item" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/hasDescriptor> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/DescribableThing> ;
+    linkml:multivalued true ;
+    linkml:owner <https://crystalia.link/ontology/1.0/DescribableThing> ;
+    linkml:range <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/hasDescriptor> .
+
+<https://crystalia.link/ontology/1.0/label> a linkml:SlotDefinition ;
+    skos:definition "A human-readable label",
+        "A human-readable label for the item, most often the filename" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    skos:mappingRelation rdfs:label ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/label> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/DescriptorType>,
+        <https://crystalia.link/ontology/1.0/Item>,
+        <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:range <https://crystalia.link/ontology/1.0/string> ;
+    linkml:required true ;
+    linkml:slot_uri rdfs:label .
+
+<https://crystalia.link/ontology/1.0/string> a linkml:TypeDefinition ;
+    skos:definition "A character string" ;
+    skos:editorialNote "In RDF serializations, a slot with range of string is treated as a literal or type xsd:string.   If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"string\"." ;
+    skos:exactMatch schema1:Text ;
+    skos:inScheme linkml:types ;
+    linkml:base "str" ;
+    linkml:definition_uri linkml:String ;
+    linkml:imported_from "linkml:types" ;
+    linkml:uri xsd:string .
+
+<https://crystalia.link/ontology/1.0/DescribableThing> a linkml:ClassDefinition ;
+    skos:definition "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:class_uri <https://crystalia.link/ontology/1.0/DescribableThing> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/DescribableThing> ;
+    linkml:is_a <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:slot_usage [ ] ;
+    linkml:slots <https://crystalia.link/ontology/1.0/hasDescriptor>,
+        <https://crystalia.link/ontology/1.0/id> .
+
+<https://crystalia.link/ontology/1.0/Thing> a linkml:ClassDefinition ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:class_uri <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:slot_usage [ ] ;
+    linkml:slots <https://crystalia.link/ontology/1.0/id> .
+
+<https://crystalia.link/ontology/1.0/DescriptorType> a linkml:ClassDefinition ;
+    skos:definition "Details about a descriptor type" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:class_uri <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/DescriptorType> ;
+    linkml:is_a <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:slot_usage [ ] ;
+    linkml:slots <https://crystalia.link/ontology/1.0/id>,
+        <https://crystalia.link/ontology/1.0/label>,
+        <https://crystalia.link/ontology/1.0/max_block_size>,
+        <https://crystalia.link/ontology/1.0/usesMethod> .
+
+<https://crystalia.link/ontology/1.0/id> a linkml:SlotDefinition ;
+    skos:definition "A unique identifier" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/id> ;
+    linkml:domain_of <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:identifier true ;
+    linkml:owner <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:range <https://crystalia.link/ontology/1.0/uriorcurie> ;
+    linkml:required true ;
+    linkml:slot_uri <https://crystalia.link/ontology/1.0/id> .
+
+<https://crystalia.link/ontology/1.0/Method> a linkml:ClassDefinition ;
+    skos:definition "A method used to generate a descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:class_uri <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/Method> ;
+    linkml:is_a <https://crystalia.link/ontology/1.0/Thing> ;
+    linkml:slot_usage [ ] ;
+    linkml:slots <https://crystalia.link/ontology/1.0/comment>,
+        <https://crystalia.link/ontology/1.0/id>,
+        <https://crystalia.link/ontology/1.0/label>,
+        <https://crystalia.link/ontology/1.0/robustness> .
+
+<https://crystalia.link/ontology/1.0/Descriptor> a linkml:ClassDefinition ;
+    skos:definition "A descriptor for the whole or part of an item or another descriptor" ;
+    skos:inScheme <https://crystalia.link/ontology> ;
+    linkml:attributes <https://crystalia.link/ontology/1.0/label> ;
+    linkml:class_uri <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:definition_uri <https://crystalia.link/ontology/1.0/Descriptor> ;
+    linkml:is_a <https://crystalia.link/ontology/1.0/DescribableThing> ;
+    linkml:slot_usage [ ] ;
+    linkml:slots <https://crystalia.link/ontology/1.0/coverage>,
+        <https://crystalia.link/ontology/1.0/descriptor__label>,
+        <https://crystalia.link/ontology/1.0/hasDescriptor>,
+        <https://crystalia.link/ontology/1.0/hasType>,
+        <https://crystalia.link/ontology/1.0/id>,
+        <https://crystalia.link/ontology/1.0/length>,
+        <https://crystalia.link/ontology/1.0/offset>,
+        <https://crystalia.link/ontology/1.0/value> .
+
+

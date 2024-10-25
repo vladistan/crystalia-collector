@@ -1,0 +1,222 @@
+{
+    "$defs": {
+        "DescribableThing": {
+            "additionalProperties": false,
+            "description": "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor",
+            "properties": {
+                "hasDescriptor": {
+                    "description": "The descriptors associated with an item",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "DescribableThing",
+            "type": "object"
+        },
+        "Descriptor": {
+            "additionalProperties": false,
+            "description": "A descriptor for the whole or part of an item or another descriptor",
+            "properties": {
+                "coverage": {
+                    "description": "The coverage of the descriptor (0.0 to 1.0)",
+                    "type": "number"
+                },
+                "hasDescriptor": {
+                    "description": "The descriptors associated with an item",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "hasType": {
+                    "description": "The type of the descriptor",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "A human-readable label",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "length": {
+                    "description": "The length of the data described by the descriptor",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "offset": {
+                    "description": "The starting offset for partial file descriptors",
+                    "type": "integer"
+                },
+                "value": {
+                    "description": "The value of the descriptor",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "hasType",
+                "value",
+                "offset",
+                "coverage",
+                "id"
+            ],
+            "title": "Descriptor",
+            "type": "object"
+        },
+        "DescriptorRobustness": {
+            "description": "Degree of resilience of the descriptor to changes in the item",
+            "enum": [
+                "EXTREMELY_HIGH",
+                "VERY_HIGH",
+                "HIGH",
+                "MODERATE",
+                "LOW",
+                "VERY_LOW"
+            ],
+            "title": "DescriptorRobustness",
+            "type": "string"
+        },
+        "DescriptorType": {
+            "additionalProperties": false,
+            "description": "Details about a descriptor type",
+            "properties": {
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "A human-readable label for the item, most often the filename",
+                    "type": "string"
+                },
+                "max_block_size": {
+                    "description": "The maximum size of the block of data described by the descriptor",
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "usesMethod": {
+                    "description": "The method used to generate the descriptor",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "label",
+                "usesMethod",
+                "id"
+            ],
+            "title": "DescriptorType",
+            "type": "object"
+        },
+        "Item": {
+            "additionalProperties": false,
+            "description": "An individual item for example a file",
+            "properties": {
+                "hasDescriptor": {
+                    "description": "The descriptors associated with an item",
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "string"
+                },
+                "isPartOf": {
+                    "description": "The items in the dataset such as files",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "A human-readable label for the item, most often the filename",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "label",
+                "isPartOf",
+                "id"
+            ],
+            "title": "Item",
+            "type": "object"
+        },
+        "Method": {
+            "additionalProperties": false,
+            "description": "A method used to generate a descriptor",
+            "properties": {
+                "comment": {
+                    "description": "A description of the item",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "string"
+                },
+                "label": {
+                    "description": "A human-readable label for the item, most often the filename",
+                    "type": "string"
+                },
+                "robustness": {
+                    "$ref": "#/$defs/DescriptorRobustness",
+                    "description": "The robustness category of the descriptor type"
+                }
+            },
+            "required": [
+                "label",
+                "robustness",
+                "id"
+            ],
+            "title": "Method",
+            "type": "object"
+        },
+        "Thing": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "id": {
+                    "description": "A unique identifier",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "title": "Thing",
+            "type": "object"
+        }
+    },
+    "$id": "https://crystalia.link/ontology",
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "additionalProperties": true,
+    "metamodel_version": "1.7.0",
+    "title": "crystalia-datamodel",
+    "type": "object",
+    "version": null
+}

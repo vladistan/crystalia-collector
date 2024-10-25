@@ -1,0 +1,304 @@
+@prefix crys: <https://crystalia.link/ontology/1.0/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix linkml: <https://w3id.org/linkml/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://crystalia.link/ontology.owl.ttl> a owl:Ontology ;
+    rdfs:label "crystalia-datamodel" ;
+    dct:license "MIT" ;
+    dct:title "Crystalia Data Model" ;
+    rdfs:comment "Data model for the Crystalia dataset annotation model" ;
+    rdfs:seeAlso <https://vladistan.github.com/crystalia-collector> .
+
+crys:Item a owl:Class ;
+    rdfs:label "Item" ;
+    rdfs:comment "An individual item for example a file" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:isPartOf ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty crys:isPartOf ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:isPartOf ],
+        crys:DescribableThing ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:DescribableThing a owl:Class ;
+    rdfs:label "DescribableThing" ;
+    rdfs:comment "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty crys:hasDescriptor ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom crys:Descriptor ;
+            owl:onProperty crys:hasDescriptor ],
+        crys:Thing ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:Descriptor a owl:Class ;
+    rdfs:label "Descriptor" ;
+    rdfs:comment "A descriptor for the whole or part of an item or another descriptor" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:float ;
+            owl:onProperty crys:coverage ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:length ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:coverage ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:hasType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom crys:DescriptorType ;
+            owl:onProperty crys:hasType ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty crys:length ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:offset ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:hasType ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:coverage ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty crys:length ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty crys:offset ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:offset ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:value ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:label ],
+        crys:DescribableThing ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+<https://crystalia.link/ontology/1.0/DescriptorRobustness#EXTREMELY_HIGH> a owl:Class ;
+    rdfs:label "EXTREMELY_HIGH" ;
+    rdfs:subClassOf crys:DescriptorRobustness .
+
+<https://crystalia.link/ontology/1.0/DescriptorRobustness#HIGH> a owl:Class ;
+    rdfs:label "HIGH" ;
+    rdfs:subClassOf crys:DescriptorRobustness .
+
+<https://crystalia.link/ontology/1.0/DescriptorRobustness#LOW> a owl:Class ;
+    rdfs:label "LOW" ;
+    rdfs:subClassOf crys:DescriptorRobustness .
+
+<https://crystalia.link/ontology/1.0/DescriptorRobustness#MODERATE> a owl:Class ;
+    rdfs:label "MODERATE" ;
+    rdfs:subClassOf crys:DescriptorRobustness .
+
+<https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_HIGH> a owl:Class ;
+    rdfs:label "VERY_HIGH" ;
+    rdfs:subClassOf crys:DescriptorRobustness .
+
+<https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_LOW> a owl:Class ;
+    rdfs:label "VERY_LOW" ;
+    rdfs:subClassOf crys:DescriptorRobustness .
+
+crys:DescriptorType a owl:Class ;
+    rdfs:label "DescriptorType" ;
+    rdfs:comment "Details about a descriptor type" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom crys:Method ;
+            owl:onProperty crys:usesMethod ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty crys:max_block_size ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:usesMethod ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:usesMethod ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:max_block_size ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty crys:max_block_size ],
+        crys:Thing ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:Method a owl:Class ;
+    rdfs:label "Method" ;
+    rdfs:comment "A method used to generate a descriptor" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:comment ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:comment ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom crys:DescriptorRobustness ;
+            owl:onProperty crys:robustness ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:robustness ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:robustness ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 0 ;
+            owl:onProperty crys:comment ],
+        crys:Thing ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:hasDescriptor a owl:ObjectProperty ;
+    rdfs:label "hasDescriptor" ;
+    rdfs:comment "The descriptors associated with an item" ;
+    rdfs:range crys:Descriptor ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:Thing a owl:Class ;
+    rdfs:label "Thing" ;
+    rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:id ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:anyURI ;
+            owl:onProperty crys:id ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:id ] ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:comment a owl:DatatypeProperty ;
+    rdfs:label "comment" ;
+    rdfs:comment "A description of the item" ;
+    rdfs:range xsd:string ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:coverage a owl:DatatypeProperty ;
+    rdfs:label "coverage" ;
+    rdfs:comment "The coverage of the descriptor (0.0 to 1.0)" ;
+    rdfs:range xsd:float ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:hasType a owl:ObjectProperty ;
+    rdfs:label "hasType" ;
+    rdfs:comment "The type of the descriptor" ;
+    rdfs:range crys:DescriptorType ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:id a owl:DatatypeProperty ;
+    rdfs:label "id" ;
+    rdfs:comment "A unique identifier" ;
+    rdfs:range xsd:anyURI ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:isPartOf a owl:DatatypeProperty ;
+    rdfs:label "isPartOf" ;
+    rdfs:comment "The items in the dataset such as files" ;
+    rdfs:range xsd:anyURI ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:length a owl:DatatypeProperty ;
+    rdfs:label "length" ;
+    rdfs:comment "The length of the data described by the descriptor" ;
+    rdfs:range xsd:integer ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:max_block_size a owl:DatatypeProperty ;
+    rdfs:label "max_block_size" ;
+    rdfs:comment "The maximum size of the block of data described by the descriptor" ;
+    rdfs:range xsd:integer ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:offset a owl:DatatypeProperty ;
+    rdfs:label "offset" ;
+    rdfs:comment "The starting offset for partial file descriptors" ;
+    rdfs:range xsd:integer ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:robustness a owl:ObjectProperty ;
+    rdfs:label "robustness" ;
+    rdfs:comment "The robustness category of the descriptor type" ;
+    rdfs:range crys:DescriptorRobustness ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:usesMethod a owl:ObjectProperty ;
+    rdfs:label "usesMethod" ;
+    rdfs:comment "The method used to generate the descriptor" ;
+    rdfs:range crys:Method ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:value a owl:DatatypeProperty ;
+    rdfs:label "value" ;
+    rdfs:comment "The value of the descriptor" ;
+    rdfs:range xsd:string ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+crys:DescriptorRobustness a owl:Class ;
+    owl:unionOf ( <https://crystalia.link/ontology/1.0/DescriptorRobustness#EXTREMELY_HIGH> <https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_HIGH> <https://crystalia.link/ontology/1.0/DescriptorRobustness#HIGH> <https://crystalia.link/ontology/1.0/DescriptorRobustness#MODERATE> <https://crystalia.link/ontology/1.0/DescriptorRobustness#LOW> <https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_LOW> ) ;
+    linkml:permissible_values <https://crystalia.link/ontology/1.0/DescriptorRobustness#EXTREMELY_HIGH>,
+        <https://crystalia.link/ontology/1.0/DescriptorRobustness#HIGH>,
+        <https://crystalia.link/ontology/1.0/DescriptorRobustness#LOW>,
+        <https://crystalia.link/ontology/1.0/DescriptorRobustness#MODERATE>,
+        <https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_HIGH>,
+        <https://crystalia.link/ontology/1.0/DescriptorRobustness#VERY_LOW> .
+
+crys:label a owl:DatatypeProperty ;
+    rdfs:label "label" ;
+    rdfs:comment "A human-readable label",
+        "A human-readable label for the item, most often the filename" ;
+    rdfs:range xsd:string ;
+    skos:inScheme <https://crystalia.link/ontology> .
+
+

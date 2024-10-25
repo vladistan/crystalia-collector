@@ -1,0 +1,49 @@
+ syntax="proto3";
+ package
+// metamodel_version: 1.7.0
+// An item that can be described by one or more descriptors. Could be an item(file) or another descriptor
+message DescribableThing
+ {
+  uriorcurie id = 0
+ repeated  descriptor hasDescriptor = 0
+ }
+// A descriptor for the whole or part of an item or another descriptor
+message Descriptor
+ {
+  uriorcurie id = 0
+ repeated  descriptor hasDescriptor = 0
+  descriptorType hasType = 0
+  string value = 0
+  integer offset = 0
+  integer length = 0
+  float coverage = 0
+  string label = 0
+ }
+// Details about a descriptor type
+message DescriptorType
+ {
+  uriorcurie id = 0
+  string label = 0
+  method usesMethod = 0
+  integer maxBlockSize = 0
+ }
+// An individual item for example a file
+message Item
+ {
+  uriorcurie id = 0
+ repeated  descriptor hasDescriptor = 0
+  string label = 0
+  uriorcurie isPartOf = 0
+ }
+// A method used to generate a descriptor
+message Method
+ {
+  uriorcurie id = 0
+  string label = 0
+  string comment = 0
+  descriptorRobustness robustness = 0
+ }
+message Thing
+ {
+  uriorcurie id = 0
+ }
