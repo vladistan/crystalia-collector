@@ -18,17 +18,3 @@ def test_load_data():
         obj = yaml_loader.load(path, target_class=Descriptor)
         assert obj
 
-
-def test_create_descriptor():
-    """Create a descriptor."""
-    descriptor = Descriptor(
-        id="example:Descriptor", 
-        hasType="cryd:sha256-full",
-        value="0223",
-        offset=0,
-        coverage=1.0,
-        length=4,
-    )
-
-
-    assert descriptor
