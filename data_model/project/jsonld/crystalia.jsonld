@@ -20,6 +20,10 @@
       "prefix_reference": "https://w3id.org/linkml/"
     },
     {
+      "prefix_prefix": "cryd",
+      "prefix_reference": "https://crystalia.link/data/"
+    },
+    {
       "prefix_prefix": "rdf",
       "prefix_reference": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     },
@@ -370,6 +374,7 @@
       "definition_uri": "https://crystalia.link/ontology/1.0/DescriptorRobustness",
       "description": "Degree of resilience of the descriptor to changes in the item",
       "from_schema": "https://crystalia.link/ontology",
+      "enum_uri": "crys:DescriptorRobustness",
       "permissible_values": [
         {
           "text": "EXTREMELY_HIGH",
@@ -720,9 +725,9 @@
   ],
   "metamodel_version": "1.7.0",
   "source_file": "crystalia.yaml",
-  "source_file_date": "2024-10-25T08:29:04",
-  "source_file_size": 4234,
-  "generation_date": "2024-10-25T08:36:31",
+  "source_file_date": "2024-10-25T19:43:01",
+  "source_file_size": 4310,
+  "generation_date": "2024-10-25T19:43:28",
   "@type": "SchemaDefinition",
   "@context": [
     "project/jsonld/crystalia.context.jsonld",

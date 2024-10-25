@@ -8,7 +8,7 @@
 crys:DescribableThing a sh:NodeShape ;
     sh:closed true ;
     sh:description "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor" ;
-    sh:ignoredProperties ( crys:coverage rdfs:label crys:offset rdf:type dct:isPartOf crys:hasType crys:value crys:length ) ;
+    sh:ignoredProperties ( rdf:type crys:hasType crys:coverage rdfs:label crys:offset crys:value dct:isPartOf crys:length ) ;
     sh:property [ sh:datatype xsd:anyURI ;
             sh:description "A unique identifier" ;
             sh:maxCount 1 ;
@@ -27,37 +27,37 @@ crys:Item a sh:NodeShape ;
     sh:closed true ;
     sh:description "An individual item for example a file" ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:anyURI ;
-            sh:description "A unique identifier" ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path crys:id ],
-        [ sh:datatype xsd:string ;
+    sh:property [ sh:datatype xsd:string ;
             sh:description "A human-readable label for the item, most often the filename" ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
             sh:path rdfs:label ],
-        [ sh:class crys:Descriptor ;
-            sh:description "The descriptors associated with an item" ;
-            sh:nodeKind sh:IRI ;
-            sh:order 2 ;
-            sh:path crys:hasDescriptor ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A unique identifier" ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path crys:id ],
         [ sh:datatype xsd:anyURI ;
             sh:description "The items in the dataset such as files" ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 1 ;
-            sh:path dct:isPartOf ] ;
+            sh:path dct:isPartOf ],
+        [ sh:class crys:Descriptor ;
+            sh:description "The descriptors associated with an item" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path crys:hasDescriptor ] ;
     sh:targetClass crys:Item .
 
 crys:Thing a sh:NodeShape ;
     sh:closed true ;
-    sh:ignoredProperties ( crys:robustness rdfs:comment crys:coverage rdfs:label crys:offset crys:max_block_size crys:usesMethod rdf:type crys:hasDescriptor dct:isPartOf crys:hasType crys:value crys:length ) ;
+    sh:ignoredProperties ( crys:robustness crys:max_block_size crys:usesMethod rdf:type crys:coverage crys:hasType rdfs:label crys:offset crys:value rdfs:comment crys:hasDescriptor dct:isPartOf crys:length ) ;
     sh:property [ sh:datatype xsd:anyURI ;
             sh:description "A unique identifier" ;
             sh:maxCount 1 ;
@@ -71,7 +71,14 @@ crys:DescriptorType a sh:NodeShape ;
     sh:closed true ;
     sh:description "Details about a descriptor type" ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:anyURI ;
+    sh:property [ sh:class crys:Method ;
+            sh:description "The method used to generate the descriptor" ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path crys:usesMethod ],
+        [ sh:datatype xsd:anyURI ;
             sh:description "A unique identifier" ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
@@ -84,13 +91,6 @@ crys:DescriptorType a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 2 ;
             sh:path crys:max_block_size ],
-        [ sh:class crys:Method ;
-            sh:description "The method used to generate the descriptor" ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 1 ;
-            sh:path crys:usesMethod ],
         [ sh:datatype xsd:string ;
             sh:description "A human-readable label for the item, most often the filename" ;
             sh:maxCount 1 ;
@@ -104,7 +104,14 @@ crys:Method a sh:NodeShape ;
     sh:closed true ;
     sh:description "A method used to generate a descriptor" ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:string ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A unique identifier" ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path crys:id ],
+        [ sh:datatype xsd:string ;
             sh:description "A description of the item" ;
             sh:maxCount 1 ;
             sh:nodeKind sh:Literal ;
@@ -122,34 +129,41 @@ crys:Method a sh:NodeShape ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 0 ;
-            sh:path rdfs:label ],
-        [ sh:datatype xsd:anyURI ;
-            sh:description "A unique identifier" ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 3 ;
-            sh:path crys:id ] ;
+            sh:path rdfs:label ] ;
     sh:targetClass crys:Method .
 
 crys:Descriptor a sh:NodeShape ;
     sh:closed true ;
     sh:description "A descriptor for the whole or part of an item or another descriptor" ;
     sh:ignoredProperties ( rdf:type ) ;
-    sh:property [ sh:datatype xsd:float ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The value of the descriptor" ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path crys:value ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A unique identifier" ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path crys:id ],
+        [ sh:datatype xsd:float ;
             sh:description "The coverage of the descriptor (0.0 to 1.0)" ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
             sh:nodeKind sh:Literal ;
             sh:order 4 ;
             sh:path crys:coverage ],
-        [ sh:class crys:DescriptorType ;
-            sh:description "The type of the descriptor" ;
+        [ sh:datatype xsd:integer ;
+            sh:description "The starting offset for partial file descriptors" ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
-            sh:nodeKind sh:IRI ;
-            sh:order 0 ;
-            sh:path crys:hasType ],
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path crys:offset ],
         [ sh:datatype xsd:string ;
             sh:description "A human-readable label" ;
             sh:maxCount 1 ;
@@ -162,31 +176,17 @@ crys:Descriptor a sh:NodeShape ;
             sh:nodeKind sh:Literal ;
             sh:order 3 ;
             sh:path crys:length ],
-        [ sh:datatype xsd:string ;
-            sh:description "The value of the descriptor" ;
+        [ sh:class crys:DescriptorType ;
+            sh:description "The type of the descriptor" ;
             sh:maxCount 1 ;
             sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 1 ;
-            sh:path crys:value ],
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path crys:hasType ],
         [ sh:class crys:Descriptor ;
             sh:description "The descriptors associated with an item" ;
             sh:nodeKind sh:IRI ;
             sh:order 6 ;
-            sh:path crys:hasDescriptor ],
-        [ sh:datatype xsd:integer ;
-            sh:description "The starting offset for partial file descriptors" ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 2 ;
-            sh:path crys:offset ],
-        [ sh:datatype xsd:anyURI ;
-            sh:description "A unique identifier" ;
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ;
-            sh:order 7 ;
-            sh:path crys:id ] ;
+            sh:path crys:hasDescriptor ] ;
     sh:targetClass crys:Descriptor .
 

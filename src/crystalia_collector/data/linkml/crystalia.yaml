@@ -11,7 +11,8 @@ see_also:
 prefixes:
   crys: https://crystalia.link/ontology/1.0/
   linkml: https://w3id.org/linkml/
-  
+  cryd: https://crystalia.link/data/
+
   rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
   xml: http://www.w3.org/XML/1998/namespace
   xsd: http://www.w3.org/2001/XMLSchema#
@@ -20,6 +21,7 @@ prefixes:
   dcmi: http://purl.org/dc/dcmitype/
   qudt: http://qudt.org/schema/qudt/
   unit: http://qudt.org/vocab/unit/
+
 
 default_prefix: crys
 default_range: string
@@ -165,6 +167,7 @@ slots:
 enums:
   descriptor_robustness:
     description: "Degree of resilience of the descriptor to changes in the item"
+    enum_uri: crys:DescriptorRobustness
     permissible_values:
       EXTREMELY_HIGH: "Descriptor is extremely resilient to changes (e.g., SHA512 sum)"
       VERY_HIGH: "Descriptor is very resilient to changes (e.g., MD5 sum)"
