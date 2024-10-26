@@ -16,28 +16,28 @@
     dcterms:title "Crystalia Data Model" ;
     rdfs:seeAlso <https://vladistan.github.com/crystalia-collector> ;
     skos:definition "Data model for the Crystalia dataset annotation model" ;
-    sh:declare [ sh:namespace <http://qudt.org/vocab/unit/> ;
-            sh:prefix "unit" ],
-        [ sh:namespace linkml: ;
-            sh:prefix "linkml" ],
+    sh:declare [ sh:namespace xml: ;
+            sh:prefix "xml" ],
         [ sh:namespace dcmitype: ;
             sh:prefix "dcmi" ],
-        [ sh:namespace rdfs: ;
-            sh:prefix "rdfs" ],
-        [ sh:namespace qudt: ;
-            sh:prefix "qudt" ],
+        [ sh:namespace rdf: ;
+            sh:prefix "rdf" ],
+        [ sh:namespace linkml: ;
+            sh:prefix "linkml" ],
         [ sh:namespace xsd: ;
             sh:prefix "xsd" ],
+        [ sh:namespace <https://crystalia.link/data/> ;
+            sh:prefix "cryd" ],
+        [ sh:namespace rdfs: ;
+            sh:prefix "rdfs" ],
         [ sh:namespace <https://crystalia.link/ontology/1.0/> ;
             sh:prefix "crys" ],
         [ sh:namespace dcterms: ;
             sh:prefix "dct" ],
-        [ sh:namespace rdf: ;
-            sh:prefix "rdf" ],
-        [ sh:namespace <https://crystalia.link/data/> ;
-            sh:prefix "cryd" ],
-        [ sh:namespace xml: ;
-            sh:prefix "xml" ] ;
+        [ sh:namespace <http://qudt.org/vocab/unit/> ;
+            sh:prefix "unit" ],
+        [ sh:namespace qudt: ;
+            sh:prefix "qudt" ] ;
     linkml:classes <https://crystalia.link/ontology/1.0/DescribableThing>,
         <https://crystalia.link/ontology/1.0/Descriptor>,
         <https://crystalia.link/ontology/1.0/DescriptorType>,
@@ -47,7 +47,7 @@
     linkml:default_prefix "crys" ;
     linkml:default_range <https://crystalia.link/ontology/1.0/string> ;
     linkml:enums <https://crystalia.link/ontology/1.0/descriptor_robustness> ;
-    linkml:generation_date "2024-10-25T19:43:41"^^xsd:dateTime ;
+    linkml:generation_date "2024-10-25T20:08:08"^^xsd:dateTime ;
     linkml:id <https://crystalia.link/ontology> ;
     linkml:imports linkml:types ;
     linkml:metamodel_version "1.7.0" ;

@@ -1,5 +1,5 @@
 # Auto generated from crystalia.yaml by pythongen.py version: 0.0.1
-# Generation date: 2024-10-25T08:36:32
+# Generation date: 2024-10-25T20:07:58
 # Schema: crystalia-datamodel
 #
 # id: https://crystalia.link/ontology
@@ -32,6 +32,7 @@ version = None
 dataclasses._init_fn = dataclasses_init_fn_with_kwargs
 
 # Namespaces
+CRYD = CurieNamespace('cryd', 'https://crystalia.link/data/')
 CRYS = CurieNamespace('crys', 'https://crystalia.link/ontology/1.0/')
 DCMI = CurieNamespace('dcmi', 'http://purl.org/dc/dcmitype/')
 DCT = CurieNamespace('dct', 'http://purl.org/dc/terms/')

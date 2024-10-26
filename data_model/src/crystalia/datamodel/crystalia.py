@@ -1,5 +1,5 @@
 # Auto generated from crystalia.yaml by pythongen.py version: 0.0.1
-# Generation date: 2024-10-25T19:43:29
+# Generation date: 2024-10-25T20:07:58
 # Schema: crystalia-datamodel
 #
 # id: https://crystalia.link/ontology

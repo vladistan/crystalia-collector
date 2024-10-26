@@ -12,12 +12,12 @@ def test_dir():
 
 @pytest.fixture()
 def data_dir(test_dir):
-    return Path(test_dir).parent / "sample_data"
+    return Path(test_dir) / "sample_data"
 
 
 @pytest.fixture
-def sample_archive(data_dir):
-    return data_dir / "documents-Tx2023-pmox-000.zip"
+def short_file_single_descriptor(data_dir):
+    return data_dir / "short_file_single_descriptor.ttl"
 
 
 

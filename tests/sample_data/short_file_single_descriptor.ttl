@@ -1,0 +1,28 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://crystalia.link/ontology/1.0/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.com/> .
+@prefix ds: <s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202/samples-cohort/> .
+
+ds:a.txt a crys:Item ;
+    rdfs:label "Short file in the cohort" ;
+    dct:isPartOf "https://registry.opendata.aws/ilmn-dragen-1kgp"^^xsd:anyURI ;
+    crys:hasDescriptor ex:d1 .
+
+<http://example.com/d1> a crys:Descriptor ;
+    crys:coverage "1.0"^^xsd:float ;
+    crys:hasType cryd:sha256_whole_file ;
+    crys:length 4096 ;
+    crys:offset 0 ;
+    crys:value "02342342aaa223" .
+
+cryd:sha256 a crys:Method ;
+    rdfs:label "SHA256" ;
+    crys:robustness "EXTREMELY_HIGH" .
+
+cryd:sha256_whole_file a crys:DescriptorType ;
+    rdfs:label "SHA256 full file checksum" ;
+    crys:usesMethod cryd:sha256 .
+
