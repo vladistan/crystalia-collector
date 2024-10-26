@@ -6,3 +6,4 @@
 /src/crystalia_collector.egg-info
 /data_model/proj
 .nextflow.log.*
+/pipelines/reports

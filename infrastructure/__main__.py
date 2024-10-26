@@ -123,8 +123,18 @@ task_policy = aws.iam.Policy(
         "Statement": [
             {
                 "Effect": "Allow",
-                "Action": "sts:AssumeRole",
-                "Resource": "*"
+                "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject",
+                    "s3:ListBucket"
+                ],
+                "Resource": [
+                    "arn:aws:s3:::*",
+                    "arn:aws:s3:::*/*",
+                    "arn:aws:s3:::1000genomes-dragen-v4.0",
+                    "arn:aws:s3:::1000genomes-dragen-v4.0/*"
+                ]
             },
               {
             "Effect": "Allow",

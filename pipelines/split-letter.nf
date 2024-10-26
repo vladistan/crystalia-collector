@@ -22,5 +22,5 @@ process convertToUpper {
 }
 
 workflow {
-    splitLetters | flatten | convertToUpper | view { it.trim() }
+    splitLetters | convertToUpper | view { it.trim() }
 }

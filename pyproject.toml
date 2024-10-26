@@ -20,8 +20,7 @@ license = {text = "Apache Software License 2.0"}
 dependencies = [
     "typer",  # CLI
     "toml",  # Config parsing
-    "streamlit"  # Web application framework
-
+    "boto3",  # AWS SDK
 ]
 
 [project.optional-dependencies]
@@ -31,6 +30,10 @@ dev = [
     "pytest",  # testing
     "ruff"  # linting
 ]
+
+[project.scripts]
+crystalia-collector = "crystalia_collector.app:app"
+
 
 [project.urls]
 
