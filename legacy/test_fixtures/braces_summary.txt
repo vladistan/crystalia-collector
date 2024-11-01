@@ -1,4 +1,0 @@
-('f1.data', 'len', 11878400)
-('f1.data', 'md5', 'ab2be597331179aba734c0876ee06e63')
-('f2.data', 'len', 1504)
-('f2.data', 'md5', 'c55444be95b813605c9d8b632f2f47d0')
