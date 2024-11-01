@@ -1,5 +1,3 @@
-
-
 from typing import Generator
 
 
@@ -16,6 +14,7 @@ def human_readable_size(size_bytes: int) -> str:
         return f"{size_bytes / (2**10):.1f} KB"
     else:
         return f"{size_bytes}"
+
 
 def stream_offsets(blocksize: int, length: int) -> Generator[int, None, None]:
     for offset in range(0, length, blocksize):

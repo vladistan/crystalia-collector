@@ -7,11 +7,8 @@ from rdflib import Graph, URIRef
 from functools import lru_cache
 from pathlib import Path
 
-from linkml_runtime.utils.curienamespace import CurieNamespace
-
 
 from crystalia.datamodel.crystalia import Thing
-
 
 
 SCHEMA_DIR = Path(__file__).parent / "data" / "linkml"
@@ -27,8 +24,9 @@ def rdf_from_model(thing: Thing) -> Graph:
     return RDFLibDumper().as_rdf_graph(thing, get_schema())
 
 
-def model_from_rdf(rdf: Graph, type_class: Type[Thing], subject: str = None) -> RDFLibLoader:
-
+def model_from_rdf(
+    rdf: Graph, type_class: Type[Thing], subject: str = None
+) -> RDFLibLoader:
     schema = get_schema()
     if subject:
         old_rdf = rdf

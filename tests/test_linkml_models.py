@@ -1,7 +1,12 @@
-
 import pytest
 from linkml_runtime.loaders import yaml_loader
-from crystalia.datamodel.crystalia import Item, Descriptor, Method, DescriptorRobustness, DescriptorType
+from crystalia.datamodel.crystalia import (
+    Item,
+    Descriptor,
+    Method,
+    DescriptorRobustness,
+    DescriptorType,
+)
 from rdflib import Graph
 from crystalia_collector.rdf import model_from_rdf, rdf_from_model
 
@@ -14,6 +19,7 @@ def item():
         label="Short file in the cohort",
     )
 
+
 @pytest.fixture
 def method_sha256():
     return Method(
@@ -22,6 +28,7 @@ def method_sha256():
         robustness=DescriptorRobustness.EXTREMELY_HIGH,
     )
 
+
 @pytest.fixture
 def descriptor_type_sha256_full(method_sha256):
     return DescriptorType(
@@ -29,6 +36,7 @@ def descriptor_type_sha256_full(method_sha256):
         label="SHA256 full file checksum",
         usesMethod=method_sha256.id,
     )
+
 
 @pytest.fixture
 def descriptor_short_file_full_hash(descriptor_type_sha256_full):
@@ -43,6 +51,7 @@ def descriptor_short_file_full_hash(descriptor_type_sha256_full):
 
     return descriptor
 
+
 def test_create_item(item):
     """Create a descriptor."""
 
@@ -50,23 +59,24 @@ def test_create_item(item):
     assert item.isPartOf == "https://registry.opendata.aws/ilmn-dragen-1kgp"
 
 
-
 def test_descriptor_model(item, descriptor_short_file_full_hash):
-
     item.hasDescriptor.append(descriptor_short_file_full_hash)
-    descriptor_short_file_full_hash.hasDescriptor.append(descriptor_short_file_full_hash)
+    descriptor_short_file_full_hash.hasDescriptor.append(
+        descriptor_short_file_full_hash
+    )
+
 
 def test_create_descriptor_type(descriptor_type_sha256_full):
-
     dtype = descriptor_type_sha256_full
     assert dtype.label == "SHA256 full file checksum"
     assert dtype.id == "cryd:sha256_whole_file"
 
 
-def test_rdf_from_model(item, descriptor_type_sha256_full, method_sha256, descriptor_short_file_full_hash):
-
+def test_rdf_from_model(
+    item, descriptor_type_sha256_full, method_sha256, descriptor_short_file_full_hash
+):
     item.hasDescriptor.append(descriptor_short_file_full_hash)
-    item_rdf = rdf_from_model(item, )
+    item_rdf = rdf_from_model(item)
     dtype_rdf = rdf_from_model(descriptor_type_sha256_full)
     method_rdf = rdf_from_model(method_sha256)
     descriptor_rdf = rdf_from_model(descriptor_short_file_full_hash)
@@ -76,12 +86,9 @@ def test_rdf_from_model(item, descriptor_type_sha256_full, method_sha256, descri
     g.serialize(destination="test.ttl", format="ttl")
 
 
-
 def test_model_from_rdf(short_file_single_descriptor):
-
-
     rdf_graph = Graph()
-    rdf_graph.parse(short_file_single_descriptor, format='turtle')
+    rdf_graph.parse(short_file_single_descriptor, format="turtle")
 
     # Use the function to get the data class instance
     item = model_from_rdf(rdf_graph, Item)
@@ -92,12 +99,12 @@ def test_model_from_rdf(short_file_single_descriptor):
 
     assert len(item.hasDescriptor) == 1
 
-
     descriptor = model_from_rdf(rdf_graph, Descriptor, subject=item.hasDescriptor[0])
     assert descriptor.hasType == "cryd:sha256_whole_file"
 
-
-    desc_type = model_from_rdf(rdf_graph, DescriptorType, subject=str(descriptor.hasType))
+    desc_type = model_from_rdf(
+        rdf_graph, DescriptorType, subject=str(descriptor.hasType)
+    )
     assert desc_type.label == "SHA256 full file checksum"
     assert desc_type.usesMethod == "cryd:sha256"
 

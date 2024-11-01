@@ -3,7 +3,7 @@ exclude: pipelines/report-.*
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       # General
       - id: check-added-large-files
@@ -25,3 +25,101 @@ repos:
       - id: pretty-format-json # Checks that all your JSON files are pretty.
         args: ['--indent', '2', '--autofix']
         exclude: \.ipynb
+
+      # Python
+      - id: check-ast # Check whether files parse as valid python.
+      - id: check-builtin-literals # Require literal syntax when initializing empty or zero Python builtin types.
+      - id: check-docstring-first
+      - id: debug-statements # Check for debugger imports and py37+ breakpoint() calls in python source.
+      - id: name-tests-test # Assert that files in tests/ end in _test.py, or optionally test*.py
+        args: [--pytest-test-first]
+      - id: requirements-txt-fixer
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package.lock.json
+  - repo: https://github.com/pryorda/dockerfilelint-precommit-hooks
+    rev: v0.1.0
+    hooks:
+      - id: dockerfilelint
+
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.13.0-beta
+    hooks:
+      - id: hadolint
+
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.14
+    hooks:
+        - id: mdformat
+          additional_dependencies:
+              - mdformat-beautysh
+              - mdformat-black
+              - mdformat-config
+              - mdformat-deflist
+              # - mdformat-frontmatter  # Breaks.
+              - mdformat-footnote
+              - mdformat-gfm
+              - mdformat-shfmt
+              - mdformat-tables
+              - mdformat-toc
+  - repo: https://github.com/ikamensh/flynt/
+    rev: '1.0.1'
+    hooks:
+      - id: flynt
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v3.1.0
+    hooks:
+      - id: add-trailing-comma
+        args:
+          - --py36-plus
+
+  - repo: https://github.com/hadialqattan/pycln
+    rev: v2.4.0 # Possible releases: https://github.com/hadialqattan/pycln/releases
+    hooks:
+      - id: pycln
+
+  - repo: https://github.com/MarcoGorelli/absolufy-imports
+    rev: v0.3.1
+    hooks:
+      - id: absolufy-imports
+
+  - repo: https://gitlab.com/smop/pre-commit-hooks
+    rev: v1.0.0
+    hooks:
+      - id: check-poetry # Validates the structure of the pyproject.toml file.
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 'v0.6.2'
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi] # Run on notebooks too.
+        exclude: ^(tests)/
+      - id: ruff-format
+        types_or: [python, pyi] # Run on notebooks too.
+  # YAML
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint.yml]
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.1
+    hooks:
+      - id: actionlint
+        args: ['--ignore', 'is always evaluated to true']
+
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v8.13.3
+    hooks:
+      - id: cspell

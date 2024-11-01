@@ -1,7 +1,7 @@
 FROM python:3.12
 
 RUN mkdir -p /pkg
-ADD . /pkg
+COPY . /pkg
 WORKDIR /pkg
-RUN pip install -e .
-RUN pip install awscli
+RUN pip install --no-cache-dir -e . && \
+    pip install --no-cache-dir awscli==2.17.37

@@ -7,22 +7,19 @@
 # license: MIT
 
 import dataclasses
-import re
-from jsonasobj2 import JsonObj, as_dict
 from typing import Optional, List, Union, Dict, ClassVar, Any
 from dataclasses import dataclass
-from datetime import date, datetime, time
-from linkml_runtime.linkml_model.meta import EnumDefinition, PermissibleValue, PvFormulaOptions
+from linkml_runtime.linkml_model.meta import EnumDefinition, PermissibleValue
 
 from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.metamodelcore import empty_list, empty_dict, bnode
-from linkml_runtime.utils.yamlutils import YAMLRoot, extended_str, extended_float, extended_int
-from linkml_runtime.utils.dataclass_extensions_376 import dataclasses_init_fn_with_kwargs
-from linkml_runtime.utils.formatutils import camelcase, underscore, sfx
+from linkml_runtime.utils.metamodelcore import empty_list
+from linkml_runtime.utils.yamlutils import YAMLRoot
+from linkml_runtime.utils.dataclass_extensions_376 import (
+    dataclasses_init_fn_with_kwargs,
+)
 from linkml_runtime.utils.enumerations import EnumDefinitionImpl
-from rdflib import Namespace, URIRef
+from rdflib import URIRef
 from linkml_runtime.utils.curienamespace import CurieNamespace
-from linkml_runtime.linkml_model.types import Float, Integer, String, Uriorcurie
 from linkml_runtime.utils.metamodelcore import URIorCURIE
 
 metamodel_version = "1.7.0"
@@ -32,21 +29,22 @@ version = None
 dataclasses._init_fn = dataclasses_init_fn_with_kwargs
 
 # Namespaces
-CRYD = CurieNamespace('cryd', 'https://crystalia.link/data/')
-CRYS = CurieNamespace('crys', 'https://crystalia.link/ontology/1.0/')
-DCMI = CurieNamespace('dcmi', 'http://purl.org/dc/dcmitype/')
-DCT = CurieNamespace('dct', 'http://purl.org/dc/terms/')
-LINKML = CurieNamespace('linkml', 'https://w3id.org/linkml/')
-QUDT = CurieNamespace('qudt', 'http://qudt.org/schema/qudt/')
-RDF = CurieNamespace('rdf', 'http://www.w3.org/1999/02/22-rdf-syntax-ns#')
-RDFS = CurieNamespace('rdfs', 'http://www.w3.org/2000/01/rdf-schema#')
-UNIT = CurieNamespace('unit', 'http://qudt.org/vocab/unit/')
-XML = CurieNamespace('xml', 'http://www.w3.org/XML/1998/namespace')
-XSD = CurieNamespace('xsd', 'http://www.w3.org/2001/XMLSchema#')
+CRYD = CurieNamespace("cryd", "https://crystalia.link/data/")
+CRYS = CurieNamespace("crys", "https://crystalia.link/ontology/1.0/")
+DCMI = CurieNamespace("dcmi", "http://purl.org/dc/dcmitype/")
+DCT = CurieNamespace("dct", "http://purl.org/dc/terms/")
+LINKML = CurieNamespace("linkml", "https://w3id.org/linkml/")
+QUDT = CurieNamespace("qudt", "http://qudt.org/schema/qudt/")
+RDF = CurieNamespace("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
+RDFS = CurieNamespace("rdfs", "http://www.w3.org/2000/01/rdf-schema#")
+UNIT = CurieNamespace("unit", "http://qudt.org/vocab/unit/")
+XML = CurieNamespace("xml", "http://www.w3.org/XML/1998/namespace")
+XSD = CurieNamespace("xsd", "http://www.w3.org/2001/XMLSchema#")
 DEFAULT_ = CRYS
 
 
 # Types
+
 
 # Class references
 class ThingId(URIorCURIE):
@@ -98,6 +96,7 @@ class DescribableThing(Thing):
     """
     An item that can be described by one or more descriptors. Could be an item(file) or another descriptor
     """
+
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["DescribableThing"]
@@ -106,7 +105,9 @@ class DescribableThing(Thing):
     class_model_uri: ClassVar[URIRef] = CRYS.DescribableThing
 
     id: Union[str, DescribableThingId] = None
-    hasDescriptor: Optional[Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]] = empty_list()
+    hasDescriptor: Optional[
+        Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]
+    ] = empty_list()
 
     def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
         if self._is_empty(self.id):
@@ -115,8 +116,13 @@ class DescribableThing(Thing):
             self.id = DescribableThingId(self.id)
 
         if not isinstance(self.hasDescriptor, list):
-            self.hasDescriptor = [self.hasDescriptor] if self.hasDescriptor is not None else []
-        self.hasDescriptor = [v if isinstance(v, DescriptorId) else DescriptorId(v) for v in self.hasDescriptor]
+            self.hasDescriptor = (
+                [self.hasDescriptor] if self.hasDescriptor is not None else []
+            )
+        self.hasDescriptor = [
+            v if isinstance(v, DescriptorId) else DescriptorId(v)
+            for v in self.hasDescriptor
+        ]
 
         super().__post_init__(**kwargs)
 
@@ -126,6 +132,7 @@ class Item(DescribableThing):
     """
     An individual item for example a file
     """
+
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Item"]
@@ -161,6 +168,7 @@ class Descriptor(DescribableThing):
     """
     A descriptor for the whole or part of an item or another descriptor
     """
+
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Descriptor"]
@@ -216,6 +224,7 @@ class DescriptorType(Thing):
     """
     Details about a descriptor type
     """
+
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["DescriptorType"]
@@ -255,6 +264,7 @@ class Method(Thing):
     """
     A method used to generate a descriptor
     """
+
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Method"]
@@ -294,72 +304,165 @@ class DescriptorRobustness(EnumDefinitionImpl):
     """
     Degree of resilience of the descriptor to changes in the item
     """
+
     EXTREMELY_HIGH = PermissibleValue(
         text="EXTREMELY_HIGH",
-        description="Descriptor is extremely resilient to changes (e.g., SHA512 sum)")
+        description="Descriptor is extremely resilient to changes (e.g., SHA512 sum)",
+    )
     VERY_HIGH = PermissibleValue(
         text="VERY_HIGH",
-        description="Descriptor is very resilient to changes (e.g., MD5 sum)")
+        description="Descriptor is very resilient to changes (e.g., MD5 sum)",
+    )
     HIGH = PermissibleValue(
         text="HIGH",
-        description="Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)")
+        description="Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)",
+    )
     MODERATE = PermissibleValue(
         text="MODERATE",
-        description="Descriptor is moderately resilient to changes (e.g., CRC sum)")
+        description="Descriptor is moderately resilient to changes (e.g., CRC sum)",
+    )
     LOW = PermissibleValue(
         text="LOW",
-        description="Descriptor has low resilience to changes (e.g., length + date + name together)")
+        description="Descriptor has low resilience to changes (e.g., length + date + name together)",
+    )
     VERY_LOW = PermissibleValue(
         text="VERY_LOW",
-        description="Descriptor has very low resilience to changes (e.g., length, date or name individually)")
+        description="Descriptor has very low resilience to changes (e.g., length, date or name individually)",
+    )
 
     _defn = EnumDefinition(
         name="DescriptorRobustness",
         description="Degree of resilience of the descriptor to changes in the item",
     )
 
+
 # Slots
 class slots:
     pass
 
-slots.id = Slot(uri=CRYS.id, name="id", curie=CRYS.curie('id'),
-                   model_uri=CRYS.id, domain=None, range=URIRef)
 
-slots.label = Slot(uri=RDFS.label, name="label", curie=RDFS.curie('label'),
-                   model_uri=CRYS.label, domain=None, range=str)
+slots.id = Slot(
+    uri=CRYS.id,
+    name="id",
+    curie=CRYS.curie("id"),
+    model_uri=CRYS.id,
+    domain=None,
+    range=URIRef,
+)
 
-slots.comment = Slot(uri=RDFS.comment, name="comment", curie=RDFS.curie('comment'),
-                   model_uri=CRYS.comment, domain=None, range=Optional[str])
+slots.label = Slot(
+    uri=RDFS.label,
+    name="label",
+    curie=RDFS.curie("label"),
+    model_uri=CRYS.label,
+    domain=None,
+    range=str,
+)
 
-slots.isPartOf = Slot(uri=DCT.isPartOf, name="isPartOf", curie=DCT.curie('isPartOf'),
-                   model_uri=CRYS.isPartOf, domain=None, range=Union[str, URIorCURIE])
+slots.comment = Slot(
+    uri=RDFS.comment,
+    name="comment",
+    curie=RDFS.curie("comment"),
+    model_uri=CRYS.comment,
+    domain=None,
+    range=Optional[str],
+)
 
-slots.hasDescriptor = Slot(uri=CRYS.hasDescriptor, name="hasDescriptor", curie=CRYS.curie('hasDescriptor'),
-                   model_uri=CRYS.hasDescriptor, domain=None, range=Optional[Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]])
+slots.isPartOf = Slot(
+    uri=DCT.isPartOf,
+    name="isPartOf",
+    curie=DCT.curie("isPartOf"),
+    model_uri=CRYS.isPartOf,
+    domain=None,
+    range=Union[str, URIorCURIE],
+)
 
-slots.max_block_size = Slot(uri=CRYS.max_block_size, name="max_block_size", curie=CRYS.curie('max_block_size'),
-                   model_uri=CRYS.max_block_size, domain=None, range=Optional[int])
+slots.hasDescriptor = Slot(
+    uri=CRYS.hasDescriptor,
+    name="hasDescriptor",
+    curie=CRYS.curie("hasDescriptor"),
+    model_uri=CRYS.hasDescriptor,
+    domain=None,
+    range=Optional[Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]],
+)
 
-slots.hasType = Slot(uri=CRYS.hasType, name="hasType", curie=CRYS.curie('hasType'),
-                   model_uri=CRYS.hasType, domain=None, range=Union[str, DescriptorTypeId])
+slots.max_block_size = Slot(
+    uri=CRYS.max_block_size,
+    name="max_block_size",
+    curie=CRYS.curie("max_block_size"),
+    model_uri=CRYS.max_block_size,
+    domain=None,
+    range=Optional[int],
+)
 
-slots.value = Slot(uri=CRYS.value, name="value", curie=CRYS.curie('value'),
-                   model_uri=CRYS.value, domain=None, range=str)
+slots.hasType = Slot(
+    uri=CRYS.hasType,
+    name="hasType",
+    curie=CRYS.curie("hasType"),
+    model_uri=CRYS.hasType,
+    domain=None,
+    range=Union[str, DescriptorTypeId],
+)
 
-slots.offset = Slot(uri=CRYS.offset, name="offset", curie=CRYS.curie('offset'),
-                   model_uri=CRYS.offset, domain=None, range=int)
+slots.value = Slot(
+    uri=CRYS.value,
+    name="value",
+    curie=CRYS.curie("value"),
+    model_uri=CRYS.value,
+    domain=None,
+    range=str,
+)
 
-slots.length = Slot(uri=CRYS.length, name="length", curie=CRYS.curie('length'),
-                   model_uri=CRYS.length, domain=None, range=Optional[int])
+slots.offset = Slot(
+    uri=CRYS.offset,
+    name="offset",
+    curie=CRYS.curie("offset"),
+    model_uri=CRYS.offset,
+    domain=None,
+    range=int,
+)
 
-slots.robustness = Slot(uri=CRYS.robustness, name="robustness", curie=CRYS.curie('robustness'),
-                   model_uri=CRYS.robustness, domain=None, range=Union[str, "DescriptorRobustness"])
+slots.length = Slot(
+    uri=CRYS.length,
+    name="length",
+    curie=CRYS.curie("length"),
+    model_uri=CRYS.length,
+    domain=None,
+    range=Optional[int],
+)
 
-slots.coverage = Slot(uri=CRYS.coverage, name="coverage", curie=CRYS.curie('coverage'),
-                   model_uri=CRYS.coverage, domain=None, range=float)
+slots.robustness = Slot(
+    uri=CRYS.robustness,
+    name="robustness",
+    curie=CRYS.curie("robustness"),
+    model_uri=CRYS.robustness,
+    domain=None,
+    range=Union[str, "DescriptorRobustness"],
+)
 
-slots.usesMethod = Slot(uri=CRYS.usesMethod, name="usesMethod", curie=CRYS.curie('usesMethod'),
-                   model_uri=CRYS.usesMethod, domain=None, range=Union[str, MethodId])
+slots.coverage = Slot(
+    uri=CRYS.coverage,
+    name="coverage",
+    curie=CRYS.curie("coverage"),
+    model_uri=CRYS.coverage,
+    domain=None,
+    range=float,
+)
 
-slots.descriptor__label = Slot(uri=RDFS.label, name="descriptor__label", curie=RDFS.curie('label'),
-                   model_uri=CRYS.descriptor__label, domain=None, range=Optional[str])
+slots.usesMethod = Slot(
+    uri=CRYS.usesMethod,
+    name="usesMethod",
+    curie=CRYS.curie("usesMethod"),
+    model_uri=CRYS.usesMethod,
+    domain=None,
+    range=Union[str, MethodId],
+)
+
+slots.descriptor__label = Slot(
+    uri=RDFS.label,
+    name="descriptor__label",
+    curie=RDFS.curie("label"),
+    model_uri=CRYS.descriptor__label,
+    domain=None,
+    range=Optional[str],
+)

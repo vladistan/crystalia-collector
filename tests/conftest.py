@@ -1,5 +1,4 @@
 import pytest
-import os
 from pathlib import Path
 
 
@@ -10,6 +9,7 @@ from crystalia.datamodel.crystalia import Method, DescriptorRobustness
 def test_dir():
     return Path(__file__).parent
 
+
 @pytest.fixture()
 def data_dir(test_dir):
     return Path(test_dir) / "sample_data"
@@ -18,7 +18,6 @@ def data_dir(test_dir):
 @pytest.fixture
 def short_file_single_descriptor(data_dir):
     return data_dir / "short_file_single_descriptor.ttl"
-
 
 
 @pytest.fixture
