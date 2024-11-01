@@ -1,4 +1,4 @@
-"""Top-level package for Lekhak."""
+"""Top-level package for Crystalia Collector."""
 
 __author__ = """Vlad Korolev"""
 __email__ = "vlad@v-lad.org"

@@ -11,7 +11,7 @@ process listFiles {
 
     script:
     """
-    crystalia-collector list $params.s3Uri --task-dir bob --use-offsets --blocksize 8589934592
+    crystalia-collector list $params.s3Uri --task-dir bob --use-offsets --block-size 8589934592
     """
 }
 process generateRDF {

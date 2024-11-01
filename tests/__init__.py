@@ -1,1 +1,1 @@
-"""Unit test package for txnextgen-backend."""
+"""Unit test package for Crystalia Collector."""

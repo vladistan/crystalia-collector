@@ -9,8 +9,8 @@ import boto3
 config = pulumi.Config()
 
 # Import the Terraform state
-tform_state = state.RemoteStateReference(
-    "tform_tubes_remote_state",
+terraform_state = state.RemoteStateReference(
+    "terraform_tubes_remote_state",
     "s3",
     state.S3BackendArgs(bucket="db-tform-state", key="tubes/v1", region="us-east-1"),
 )
@@ -24,10 +24,10 @@ project_name = "crystalia-collector-batch"
 service_role_arn = f"arn:aws:iam::{account_id}:role/aws-service-role/batch.amazonaws.com/AWSServiceRoleForBatch"
 logs_resource_arn = f"arn:aws:logs:us-east-1:{account_id}:log-group:/aws/batch/job:*"
 
-vpc_id = tform_state.get_output("vpc")
-private_subnet = tform_state.get_output("aws_subnets_private")[0]
-sg_adm_access_linux = tform_state.get_output("sg_adm_access_linux")
-sg_all_outbound = tform_state.get_output("sg_all_outbound")
+vpc_id = terraform_state.get_output("vpc")
+private_subnet = terraform_state.get_output("aws_subnets_private")[0]
+sg_adm_access_linux = terraform_state.get_output("sg_adm_access_linux")
+sg_all_outbound = terraform_state.get_output("sg_all_outbound")
 
 # Create an AWS resource (S3 Bucket)
 bucket = aws.s3.BucketV2("bucket", bucket=f"{project_name}-work-bucket")
@@ -74,7 +74,8 @@ ecs_register_container_instance_policy = aws.iam.RolePolicy(
         ),
     ),
 )
-# Attach the managed policy AmazonEC2ContainerServiceforEC2Role to the task role
+
+# Attach the managed policy the task role
 managed_policy_attachment = aws.iam.RolePolicyAttachment(
     "ecsInstanceRolePolicyAttachment",
     role=task_role.id,

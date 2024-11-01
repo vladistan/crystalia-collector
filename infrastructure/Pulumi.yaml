@@ -1,3 +1,4 @@
+---
 name: crystalia-collector-batch-infra
 runtime:
   name: python

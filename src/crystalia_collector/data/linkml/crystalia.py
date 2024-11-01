@@ -315,7 +315,7 @@ class DescriptorRobustness(EnumDefinitionImpl):
     )
     HIGH = PermissibleValue(
         text="HIGH",
-        description="Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)",
+        description="Descriptor is highly resilient to changes (e.g., FarmHash, Jenkins hash)",
     )
     MODERATE = PermissibleValue(
         text="MODERATE",

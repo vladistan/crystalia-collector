@@ -30,7 +30,7 @@ def main() -> None:
         help="Specify the output file type (default: png)",
     )
     parser.add_argument(
-        "--diagtype",
+        "--diagram-type",
         type=str,
         default="mermaid",
         help="Specify the diagram type (default: mermaid)",
@@ -53,7 +53,7 @@ def main() -> None:
     encoded_data = base64.urlsafe_b64encode(compressed_data).decode("utf-8")
 
     # Construct the URL
-    url = f"{KROKI_SERVER_BASE_URL}/{args.diagtype}/{args.filetype}/{encoded_data}"
+    url = f"{args.base_url}/{args.diagram_type}/{args.filetype}/{encoded_data}"
 
     if args.url:
         print(f"URL: {url}")
