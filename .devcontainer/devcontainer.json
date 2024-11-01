@@ -1,15 +1,28 @@
 {
-  "customizations": {
-    "codespaces": {
-      "openFiles": [
-        "README.md"
-      ],
-      "repositories": {
-        "vladistan/linkml": {
-          "permissions": "write-all"
-        }
-      }
+  "name": "Crystalia Collector",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": "true"
     },
+    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
+      "theme": "robbyrussell",
+      "plugins": "git",
+      "setLocale": false,
+      "desiredLocale": "en_US.UTF-8"
+    },
+    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
+      "gojqVersion": "latest",
+      "jqVersion": "latest",
+      "xqVersion": "latest",
+      "yqVersion": "latest"
+    }
+
+  },
+  "customizations": {
+    "codespaces": { "openFiles": [ "README.md" ] },
     "vscode": {
       "extensions": [
         "ms-python.python@2024.1.10401008",
@@ -25,36 +38,10 @@
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "zsh",
-        "terminal.integrated.profiles.linux": {
-          "zsh": {
-            "path": "/usr/bin/zsh"
-          }
-        }
+        "terminal.integrated.profiles.linux": { "zsh": { "path": "/usr/bin/zsh" } }
       }
     }
   },
-  "features": {
-    "ghcr.io/devcontainers-contrib/features/poetry:2": {},
-    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "configureZshAsDefaultShell": "true"
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
-      "gojqVersion": "latest",
-      "jqVersion": "latest",
-      "xqVersion": "latest",
-      "yqVersion": "latest"
-    },
-    "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
-      "desiredLocale": "en_US.UTF-8",
-      "plugins": "git",
-      "setLocale": false,
-      "theme": "robbyrussell"
-    }
-  },
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "name": "Pokemon and LinkML",
   "postAttachCommand": ".devcontainer/post_attach.sh",
   "postStartCommand": ".devcontainer/env_setup.sh"
 }
