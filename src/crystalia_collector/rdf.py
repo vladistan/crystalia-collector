@@ -2,6 +2,7 @@ from typing import Type
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import RDFLibDumper
 from linkml_runtime.loaders import RDFLibLoader
+from pydantic import BaseModel
 from rdflib import Graph, URIRef
 
 from functools import lru_cache
@@ -28,7 +29,7 @@ def model_from_rdf(
     rdf: Graph,
     type_class: Type[Thing],
     subject: str = None,
-) -> RDFLibLoader:
+) -> BaseModel:
     schema = get_schema()
     if subject:
         old_rdf = rdf

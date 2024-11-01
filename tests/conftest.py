@@ -2,7 +2,7 @@ import pytest
 from pathlib import Path
 
 
-from crystalia.datamodel.crystalia import Method, DescriptorRobustness
+from crystalia_collector.data.linkml.crystalia import Method, DescriptorRobustness
 
 
 @pytest.fixture

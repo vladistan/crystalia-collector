@@ -11,27 +11,22 @@ def test_human_readable_size_exactly_1_kb():
     assert human_readable_size(1024) == "1.0 KB"
 
 
-def test_human_readable_size_between_1_kb_and_1_mb():
+def test_human_readable_size_between_1_kb_and_1_pb():
     assert human_readable_size(2048) == "2.0 KB"
     assert human_readable_size(15360) == "15.0 KB"
 
-
-def test_human_readable_size_exactly_1_mb():
-    assert human_readable_size(1024 * 1024) == "1.0 MB"
-
-
-def test_human_readable_size_between_1_mb_and_1_gb():
-    assert human_readable_size(5 * 1024 * 1024) == "5.0 MB"
-    assert human_readable_size(50 * 1024 * 1024) == "50.0 MB"
-
-
-def test_human_readable_size_exactly_1_gb():
-    assert human_readable_size(1024 * 1024 * 1024) == "1.0 GB"
-
-
-def test_human_readable_size_greater_than_1_gb():
-    assert human_readable_size(3 * 1024 * 1024 * 1024) == "3.0 GB"
-    assert human_readable_size(10 * 1024 * 1024 * 1024) == "10.0 GB"
+    assert human_readable_size(2**20) == "1.0 MB"
+    assert human_readable_size(5 * 2**20) == "5.0 MB"
+    assert human_readable_size(50 * 2**20) == "50.0 MB"
+    assert human_readable_size(2**30) == "1.0 GB"
+    assert human_readable_size(3 * 2**30) == "3.0 GB"
+    assert human_readable_size(10 * 2**30) == "10.0 GB"
+    assert human_readable_size(3 * 2**40) == "3.0 TB"
+    assert human_readable_size(10 * 2**40) == "10.0 TB"
+    assert human_readable_size(3 * 2**40) == "3.0 TB"
+    assert human_readable_size(10 * 2**40) == "10.0 TB"
+    assert human_readable_size(3 * 2 ** 50) == "3.0 PB"
+    assert human_readable_size(10 * 2 ** 50) == "10.0 PB"
 
 
 def test_human_readable_size_zero_bytes():
