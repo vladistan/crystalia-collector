@@ -24,14 +24,11 @@ WHERE {
     ?object rdf:type ?otype .
     FILTER ( ?otype IN (
       crys:Method
-      
+
       ))
   }
  }
  VALUES ?check { linkml:range }
  VALUES ?predicate { crys:usesMethod  }
- 
-}  
 
-
-
+}

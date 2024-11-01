@@ -301,5 +301,3 @@ crys:label a owl:DatatypeProperty ;
         "A human-readable label for the item, most often the filename" ;
     rdfs:range xsd:string ;
     skos:inScheme <https://w3id.org/crystalia> .
-
-

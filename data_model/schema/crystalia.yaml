@@ -55,7 +55,7 @@ classes:
       - label:
           slot_uri: rdfs:label
           required: false
-          description: A human-readable label 
+          description: A human-readable label
     slots:
       - hasType
       - value
@@ -155,7 +155,7 @@ slots:
   coverage:
     description: The coverage of the descriptor (0.0 to 1.0)
     range: float
-    required: true 
+    required: true
     multivalued: false
 
   usesMethod:

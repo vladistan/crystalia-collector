@@ -1,34 +1,14 @@
 {
-  "name": "Pokemon and LinkML",
-  "image": "mcr.microsoft.com/devcontainers/python:3.11",
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "configureZshAsDefaultShell": "true"
-    },
-    "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
-      "theme": "robbyrussell",
-      "plugins": "git",
-      "setLocale": false,
-      "desiredLocale": "en_US.UTF-8"
-    },
-    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
-      "jqVersion": "latest",
-      "yqVersion": "latest",
-      "gojqVersion": "latest",
-      "xqVersion": "latest"
-    },
-    "ghcr.io/devcontainers-contrib/features/poetry:2": {},
-    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
-  },
   "customizations": {
     "codespaces": {
-      "repositories": {
-        "vladistan/linkml": { "permissions": "write-all" }
-      },
       "openFiles": [
         "README.md"
-      ]
+      ],
+      "repositories": {
+        "vladistan/linkml": {
+          "permissions": "write-all"
+        }
+      }
     },
     "vscode": {
       "extensions": [
@@ -53,6 +33,28 @@
       }
     }
   },
- "postStartCommand": ".devcontainer/env_setup.sh",
- "postAttachCommand": ".devcontainer/post_attach.sh"
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/poetry:2": {},
+    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": "true"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/eitsupi/devcontainer-features/jq-likes:2": {
+      "gojqVersion": "latest",
+      "jqVersion": "latest",
+      "xqVersion": "latest",
+      "yqVersion": "latest"
+    },
+    "ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
+      "desiredLocale": "en_US.UTF-8",
+      "plugins": "git",
+      "setLocale": false,
+      "theme": "robbyrussell"
+    }
+  },
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "name": "Pokemon and LinkML",
+  "postAttachCommand": ".devcontainer/post_attach.sh",
+  "postStartCommand": ".devcontainer/env_setup.sh"
 }

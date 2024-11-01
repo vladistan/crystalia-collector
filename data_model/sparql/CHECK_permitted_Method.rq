@@ -21,8 +21,5 @@ SELECT ?g ?s ?p WHERE {
    crys:id,
    rdf:type ))
  }
- 
-} 
 
-
-
+}

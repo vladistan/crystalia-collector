@@ -9,4 +9,4 @@ config:
     value:
       pulumi:template: aws-python
       pulumi:stack: crystalia-collector-batch-infra
-  
+

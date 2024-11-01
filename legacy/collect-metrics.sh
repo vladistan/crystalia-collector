@@ -5,5 +5,3 @@ for f in $(find $DS_PATH)
 do
   md5 $f
 done
-
-

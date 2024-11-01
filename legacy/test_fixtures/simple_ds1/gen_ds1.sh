@@ -16,5 +16,3 @@ lorem --spook --line 11 > ch2/add/ch2c_a.txt
 
 lorem --strindberg --line 19 > ch3/ch3a.txt
 lorem --strindberg --line 25 > ch3/ch3b.txt
-
-

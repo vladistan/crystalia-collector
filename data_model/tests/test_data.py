@@ -17,4 +17,3 @@ def test_load_data():
     for path in EXAMPLE_FILES:
         obj = yaml_loader.load(path, target_class=Descriptor)
         assert obj
-

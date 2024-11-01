@@ -1,0 +1,26 @@
+---
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      # General
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending # Replaces or checks mixed line ending.
+      - id: trailing-whitespace
+
+      # Json
+      - id: check-json
+      - id: pretty-format-json # Checks that all your JSON files are pretty.
+        args: ['--indent', '2', '--autofix']
+        exclude: \.ipynb

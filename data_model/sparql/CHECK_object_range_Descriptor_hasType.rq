@@ -24,12 +24,11 @@ WHERE {
     ?object rdf:type ?otype .
     FILTER ( ?otype IN (
       crys:DescriptorType
-      
+
       ))
   }
  }
  VALUES ?check { linkml:range }
  VALUES ?predicate { crys:hasType  }
- 
-}  
 
+}

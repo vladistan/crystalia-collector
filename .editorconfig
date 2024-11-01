@@ -1,21 +1,29 @@
-# http://editorconfig.org
+# EditorConfig is awesome: http://EditorConfig.org
 
+# top-most EditorConfig file
 root = true
 
+# Unix-style newlines with a newline ending every file
 [*]
-indent_style = space
-indent_size = 4
-trim_trailing_whitespace = true
-insert_final_newline = true
 charset = utf-8
-end_of_line = lf
+end_of_file = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+max_line_length = 120
+quote_type = single
+trim_trailing_whitespace = true
 
-[*.bat]
-indent_style = tab
-end_of_line = crlf
+
+
 
 [LICENSE]
 insert_final_newline = false
 
 [Makefile]
 indent_style = tab
+# YAML Based files - 2 space indent
+[*.{yml, yaml, sls}]
+indent_size = 2
+indent_style = space
+max_line_length = 200

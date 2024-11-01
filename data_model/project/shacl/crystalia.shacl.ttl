@@ -190,4 +190,3 @@ crys:Descriptor a sh:NodeShape ;
             sh:order 4 ;
             sh:path crys:coverage ] ;
     sh:targetClass crys:Descriptor .
-

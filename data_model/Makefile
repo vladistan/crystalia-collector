@@ -53,7 +53,7 @@ endif
 
 
 # basename of a YAML file in model/
-.PHONY: all clean setup gen-project gen-examples gendoc 
+.PHONY: all clean setup gen-project gen-examples gendoc
 
 # note: "help" MUST be the first target in the file,
 # when the user types "make" they should get help info

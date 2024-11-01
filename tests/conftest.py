@@ -28,4 +28,3 @@ def method_sha256():
         label="SHA256",
         robustness=DescriptorRobustness.EXTREMELY_HIGH,
     )
-

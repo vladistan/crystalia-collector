@@ -21,8 +21,8 @@ SELECT
  }
  VALUES ?check { linkml:required }
  VALUES ?predicate { crys:id }
- 
-}  
+
+}
 
 
 
@@ -34,4 +34,3 @@ SELECT
 ## --
 ## Checks for Method
 ## --
-

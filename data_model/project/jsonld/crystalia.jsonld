@@ -1,15 +1,162 @@
 {
-  "name": "crystalia-datamodel",
-  "description": "Data model for the Crystalia dataset annotation model",
-  "title": "Crystalia Data Model",
-  "see_also": [
-    "https://vladistan.github.com/crystalia-collector"
+  "@context": [
+    "project/jsonld/crystalia.context.jsonld",
+    "https://w3id.org/linkml/types.context.jsonld",
+    {
+      "@base": "https://w3id.org/crystalia/"
+    }
   ],
+  "@type": "SchemaDefinition",
+  "classes": [
+    {
+      "@type": "ClassDefinition",
+      "class_uri": "https://w3id.org/crystalia/Thing",
+      "definition_uri": "https://w3id.org/crystalia/Thing",
+      "description": "Anything that has an id",
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "Thing",
+      "slot_usage": {},
+      "slots": [
+        "id"
+      ]
+    },
+    {
+      "@type": "ClassDefinition",
+      "class_uri": "https://w3id.org/crystalia/DescribableThing",
+      "definition_uri": "https://w3id.org/crystalia/DescribableThing",
+      "description": "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor",
+      "from_schema": "https://w3id.org/crystalia",
+      "is_a": "Thing",
+      "name": "DescribableThing",
+      "slot_usage": {},
+      "slots": [
+        "id",
+        "hasDescriptor"
+      ]
+    },
+    {
+      "@type": "ClassDefinition",
+      "class_uri": "https://w3id.org/crystalia/Item",
+      "definition_uri": "https://w3id.org/crystalia/Item",
+      "description": "An individual item for example a file",
+      "from_schema": "https://w3id.org/crystalia",
+      "is_a": "DescribableThing",
+      "name": "Item",
+      "slot_usage": {},
+      "slots": [
+        "id",
+        "hasDescriptor",
+        "label",
+        "isPartOf"
+      ]
+    },
+    {
+      "@type": "ClassDefinition",
+      "attributes": [
+        {
+          "@type": "SlotDefinition",
+          "description": "A human-readable label",
+          "name": "label",
+          "slot_uri": "rdfs:label"
+        }
+      ],
+      "class_uri": "https://w3id.org/crystalia/Descriptor",
+      "definition_uri": "https://w3id.org/crystalia/Descriptor",
+      "description": "A descriptor for the whole or part of an item or another descriptor",
+      "from_schema": "https://w3id.org/crystalia",
+      "is_a": "DescribableThing",
+      "name": "Descriptor",
+      "slot_usage": {},
+      "slots": [
+        "id",
+        "hasDescriptor",
+        "hasType",
+        "value",
+        "offset",
+        "length",
+        "coverage",
+        "descriptor__label"
+      ]
+    },
+    {
+      "@type": "ClassDefinition",
+      "class_uri": "https://w3id.org/crystalia/DescriptorType",
+      "definition_uri": "https://w3id.org/crystalia/DescriptorType",
+      "description": "Details about a descriptor type",
+      "from_schema": "https://w3id.org/crystalia",
+      "is_a": "Thing",
+      "name": "DescriptorType",
+      "slot_usage": {},
+      "slots": [
+        "id",
+        "label",
+        "usesMethod",
+        "max_block_size"
+      ]
+    },
+    {
+      "@type": "ClassDefinition",
+      "class_uri": "https://w3id.org/crystalia/Method",
+      "definition_uri": "https://w3id.org/crystalia/Method",
+      "description": "A method used to generate a descriptor",
+      "from_schema": "https://w3id.org/crystalia",
+      "is_a": "Thing",
+      "name": "Method",
+      "slot_usage": {},
+      "slots": [
+        "id",
+        "label",
+        "comment",
+        "robustness"
+      ]
+    }
+  ],
+  "default_prefix": "crys",
+  "default_range": "string",
+  "description": "Data model for the Crystalia dataset annotation model",
+  "enums": [
+    {
+      "definition_uri": "https://w3id.org/crystalia/DescriptorRobustness",
+      "description": "Degree of resilience of the descriptor to changes in the item",
+      "enum_uri": "crys:DescriptorRobustness",
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "descriptor_robustness",
+      "permissible_values": [
+        {
+          "description": "Descriptor is extremely resilient to changes (e.g., SHA512 sum)",
+          "text": "EXTREMELY_HIGH"
+        },
+        {
+          "description": "Descriptor is very resilient to changes (e.g., MD5 sum)",
+          "text": "VERY_HIGH"
+        },
+        {
+          "description": "Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)",
+          "text": "HIGH"
+        },
+        {
+          "description": "Descriptor is moderately resilient to changes (e.g., CRC sum)",
+          "text": "MODERATE"
+        },
+        {
+          "description": "Descriptor has low resilience to changes (e.g., length + date + name together)",
+          "text": "LOW"
+        },
+        {
+          "description": "Descriptor has very low resilience to changes (e.g., length, date or name individually)",
+          "text": "VERY_LOW"
+        }
+      ]
+    }
+  ],
+  "generation_date": "2024-11-01T09:46:37",
   "id": "https://w3id.org/crystalia",
   "imports": [
     "linkml:types"
   ],
   "license": "MIT",
+  "metamodel_version": "1.7.0",
+  "name": "crystalia-datamodel",
   "prefixes": [
     {
       "prefix_prefix": "crys",
@@ -56,685 +203,538 @@
       "prefix_reference": "http://qudt.org/vocab/unit/"
     }
   ],
-  "default_prefix": "crys",
-  "default_range": "string",
-  "types": [
-    {
-      "name": "string",
-      "definition_uri": "https://w3id.org/linkml/String",
-      "description": "A character string",
-      "notes": [
-        "In RDF serializations, a slot with range of string is treated as a literal or type xsd:string.   If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"string\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:Text"
-      ],
-      "base": "str",
-      "uri": "http://www.w3.org/2001/XMLSchema#string",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "integer",
-      "definition_uri": "https://w3id.org/linkml/Integer",
-      "description": "An integer",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"integer\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:Integer"
-      ],
-      "base": "int",
-      "uri": "http://www.w3.org/2001/XMLSchema#integer",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "boolean",
-      "definition_uri": "https://w3id.org/linkml/Boolean",
-      "description": "A binary (true or false) value",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"boolean\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:Boolean"
-      ],
-      "base": "Bool",
-      "uri": "http://www.w3.org/2001/XMLSchema#boolean",
-      "repr": "bool",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "float",
-      "definition_uri": "https://w3id.org/linkml/Float",
-      "description": "A real number that conforms to the xsd:float specification",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"float\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:Float"
-      ],
-      "base": "float",
-      "uri": "http://www.w3.org/2001/XMLSchema#float",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "double",
-      "definition_uri": "https://w3id.org/linkml/Double",
-      "description": "A real number that conforms to the xsd:double specification",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"double\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "close_mappings": [
-        "schema:Float"
-      ],
-      "base": "float",
-      "uri": "http://www.w3.org/2001/XMLSchema#double",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "decimal",
-      "definition_uri": "https://w3id.org/linkml/Decimal",
-      "description": "A real number with arbitrary precision that conforms to the xsd:decimal specification",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"decimal\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "broad_mappings": [
-        "schema:Number"
-      ],
-      "base": "Decimal",
-      "uri": "http://www.w3.org/2001/XMLSchema#decimal",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "time",
-      "definition_uri": "https://w3id.org/linkml/Time",
-      "description": "A time object represents a (local) time of day, independent of any particular day",
-      "notes": [
-        "URI is dateTime because OWL reasoners do not work with straight date or time",
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"time\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:Time"
-      ],
-      "base": "XSDTime",
-      "uri": "http://www.w3.org/2001/XMLSchema#time",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "date",
-      "definition_uri": "https://w3id.org/linkml/Date",
-      "description": "a date (year, month and day) in an idealized calendar",
-      "notes": [
-        "URI is dateTime because OWL reasoners don't work with straight date or time",
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"date\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:Date"
-      ],
-      "base": "XSDDate",
-      "uri": "http://www.w3.org/2001/XMLSchema#date",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "datetime",
-      "definition_uri": "https://w3id.org/linkml/Datetime",
-      "description": "The combination of a date and time",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"datetime\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "exact_mappings": [
-        "schema:DateTime"
-      ],
-      "base": "XSDDateTime",
-      "uri": "http://www.w3.org/2001/XMLSchema#dateTime",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "date_or_datetime",
-      "definition_uri": "https://w3id.org/linkml/DateOrDatetime",
-      "description": "Either a date or a datetime",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"date_or_datetime\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "str",
-      "uri": "https://w3id.org/linkml/DateOrDatetime",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "uriorcurie",
-      "definition_uri": "https://w3id.org/linkml/Uriorcurie",
-      "description": "a URI or a CURIE",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"uriorcurie\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "URIorCURIE",
-      "uri": "http://www.w3.org/2001/XMLSchema#anyURI",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "curie",
-      "definition_uri": "https://w3id.org/linkml/Curie",
-      "conforms_to": "https://www.w3.org/TR/curie/",
-      "description": "a compact URI",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"curie\"."
-      ],
-      "comments": [
-        "in RDF serializations this MUST be expanded to a URI",
-        "in non-RDF serializations MAY be serialized as the compact representation"
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "Curie",
-      "uri": "http://www.w3.org/2001/XMLSchema#string",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "uri",
-      "definition_uri": "https://w3id.org/linkml/Uri",
-      "conforms_to": "https://www.ietf.org/rfc/rfc3987.txt",
-      "description": "a complete URI",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"uri\"."
-      ],
-      "comments": [
-        "in RDF serializations a slot with range of uri is treated as a literal or type xsd:anyURI unless it is an identifier or a reference to an identifier, in which case it is translated directly to a node"
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "close_mappings": [
-        "schema:URL"
-      ],
-      "base": "URI",
-      "uri": "http://www.w3.org/2001/XMLSchema#anyURI",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "ncname",
-      "definition_uri": "https://w3id.org/linkml/Ncname",
-      "description": "Prefix part of CURIE",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"ncname\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "NCName",
-      "uri": "http://www.w3.org/2001/XMLSchema#string",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "objectidentifier",
-      "definition_uri": "https://w3id.org/linkml/Objectidentifier",
-      "description": "A URI or CURIE that represents an object in the model.",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"objectidentifier\"."
-      ],
-      "comments": [
-        "Used for inheritance and type checking"
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "ElementIdentifier",
-      "uri": "http://www.w3.org/ns/shex#iri",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "nodeidentifier",
-      "definition_uri": "https://w3id.org/linkml/Nodeidentifier",
-      "description": "A URI, CURIE or BNODE that represents a node in a model.",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"nodeidentifier\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "NodeIdentifier",
-      "uri": "http://www.w3.org/ns/shex#nonLiteral",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "jsonpointer",
-      "definition_uri": "https://w3id.org/linkml/Jsonpointer",
-      "conforms_to": "https://datatracker.ietf.org/doc/html/rfc6901",
-      "description": "A string encoding a JSON Pointer. The value of the string MUST conform to JSON Point syntax and SHOULD dereference to a valid object within the current instance document when encoded in tree form.",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"jsonpointer\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "str",
-      "uri": "http://www.w3.org/2001/XMLSchema#string",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "jsonpath",
-      "definition_uri": "https://w3id.org/linkml/Jsonpath",
-      "conforms_to": "https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html",
-      "description": "A string encoding a JSON Path. The value of the string MUST conform to JSON Point syntax and SHOULD dereference to zero or more valid objects within the current instance document when encoded in tree form.",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"jsonpath\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "str",
-      "uri": "http://www.w3.org/2001/XMLSchema#string",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    },
-    {
-      "name": "sparqlpath",
-      "definition_uri": "https://w3id.org/linkml/Sparqlpath",
-      "conforms_to": "https://www.w3.org/TR/sparql11-query/#propertypaths",
-      "description": "A string encoding a SPARQL Property Path. The value of the string MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects within the current instance document when encoded as RDF.",
-      "notes": [
-        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"sparqlpath\"."
-      ],
-      "from_schema": "https://w3id.org/linkml/types",
-      "imported_from": "linkml:types",
-      "base": "str",
-      "uri": "http://www.w3.org/2001/XMLSchema#string",
-      "repr": "str",
-      "@type": "TypeDefinition"
-    }
-  ],
-  "enums": [
-    {
-      "name": "descriptor_robustness",
-      "definition_uri": "https://w3id.org/crystalia/DescriptorRobustness",
-      "description": "Degree of resilience of the descriptor to changes in the item",
-      "from_schema": "https://w3id.org/crystalia",
-      "enum_uri": "crys:DescriptorRobustness",
-      "permissible_values": [
-        {
-          "text": "EXTREMELY_HIGH",
-          "description": "Descriptor is extremely resilient to changes (e.g., SHA512 sum)"
-        },
-        {
-          "text": "VERY_HIGH",
-          "description": "Descriptor is very resilient to changes (e.g., MD5 sum)"
-        },
-        {
-          "text": "HIGH",
-          "description": "Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)"
-        },
-        {
-          "text": "MODERATE",
-          "description": "Descriptor is moderately resilient to changes (e.g., CRC sum)"
-        },
-        {
-          "text": "LOW",
-          "description": "Descriptor has low resilience to changes (e.g., length + date + name together)"
-        },
-        {
-          "text": "VERY_LOW",
-          "description": "Descriptor has very low resilience to changes (e.g., length, date or name individually)"
-        }
-      ]
-    }
+  "see_also": [
+    "https://vladistan.github.com/crystalia-collector"
   ],
   "slots": [
     {
-      "name": "id",
+      "@type": "SlotDefinition",
       "definition_uri": "https://w3id.org/crystalia/id",
       "description": "A unique identifier",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/id",
-      "identifier": true,
-      "owner": "Thing",
       "domain_of": [
         "Thing"
       ],
+      "from_schema": "https://w3id.org/crystalia",
+      "identifier": true,
+      "name": "id",
+      "owner": "Thing",
       "range": "uriorcurie",
       "required": true,
-      "@type": "SlotDefinition"
+      "slot_uri": "https://w3id.org/crystalia/id"
     },
     {
-      "name": "label",
+      "@type": "SlotDefinition",
       "definition_uri": "https://w3id.org/crystalia/label",
       "description": "A human-readable label for the item, most often the filename",
-      "from_schema": "https://w3id.org/crystalia",
-      "mappings": [
-        "http://www.w3.org/2000/01/rdf-schema#label"
-      ],
-      "slot_uri": "http://www.w3.org/2000/01/rdf-schema#label",
-      "owner": "Method",
       "domain_of": [
         "Item",
         "DescriptorType",
         "Method"
       ],
-      "range": "string",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "comment",
-      "definition_uri": "https://w3id.org/crystalia/comment",
-      "description": "A description of the item",
-      "from_schema": "https://w3id.org/crystalia",
-      "mappings": [
-        "http://www.w3.org/2000/01/rdf-schema#comment"
-      ],
-      "slot_uri": "http://www.w3.org/2000/01/rdf-schema#comment",
-      "owner": "Method",
-      "domain_of": [
-        "Method"
-      ],
-      "range": "string",
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "isPartOf",
-      "definition_uri": "https://w3id.org/crystalia/isPartOf",
-      "description": "The items in the dataset such as files",
-      "from_schema": "https://w3id.org/crystalia",
-      "mappings": [
-        "http://purl.org/dc/terms/isPartOf"
-      ],
-      "slot_uri": "http://purl.org/dc/terms/isPartOf",
-      "owner": "Item",
-      "domain_of": [
-        "Item"
-      ],
-      "range": "uriorcurie",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "hasDescriptor",
-      "definition_uri": "https://w3id.org/crystalia/hasDescriptor",
-      "description": "The descriptors associated with an item",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/hasDescriptor",
-      "owner": "DescribableThing",
-      "domain_of": [
-        "DescribableThing"
-      ],
-      "range": "Descriptor",
-      "multivalued": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "max_block_size",
-      "definition_uri": "https://w3id.org/crystalia/max_block_size",
-      "description": "The maximum size of the block of data described by the descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/max_block_size",
-      "owner": "DescriptorType",
-      "domain_of": [
-        "DescriptorType"
-      ],
-      "range": "integer",
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "hasType",
-      "definition_uri": "https://w3id.org/crystalia/hasType",
-      "description": "The type of the descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/hasType",
-      "owner": "Descriptor",
-      "domain_of": [
-        "Descriptor"
-      ],
-      "range": "DescriptorType",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "value",
-      "definition_uri": "https://w3id.org/crystalia/value",
-      "description": "The value of the descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/value",
-      "owner": "Descriptor",
-      "domain_of": [
-        "Descriptor"
-      ],
-      "range": "string",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "offset",
-      "definition_uri": "https://w3id.org/crystalia/offset",
-      "description": "The starting offset for partial file descriptors",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/offset",
-      "owner": "Descriptor",
-      "domain_of": [
-        "Descriptor"
-      ],
-      "range": "integer",
-      "required": true,
-      "unit": {
-        "ucum_code": "byte",
-        "@type": "UnitOfMeasure"
-      },
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "length",
-      "definition_uri": "https://w3id.org/crystalia/length",
-      "description": "The length of the data described by the descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/length",
-      "owner": "Descriptor",
-      "domain_of": [
-        "Descriptor"
-      ],
-      "range": "integer",
-      "unit": {
-        "ucum_code": "byte",
-        "@type": "UnitOfMeasure"
-      },
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "robustness",
-      "definition_uri": "https://w3id.org/crystalia/robustness",
-      "description": "The robustness category of the descriptor type",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/robustness",
-      "owner": "Method",
-      "domain_of": [
-        "Method"
-      ],
-      "range": "descriptor_robustness",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "coverage",
-      "definition_uri": "https://w3id.org/crystalia/coverage",
-      "description": "The coverage of the descriptor (0.0 to 1.0)",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/coverage",
-      "owner": "Descriptor",
-      "domain_of": [
-        "Descriptor"
-      ],
-      "range": "float",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "usesMethod",
-      "definition_uri": "https://w3id.org/crystalia/usesMethod",
-      "description": "The method used to generate the descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "slot_uri": "https://w3id.org/crystalia/usesMethod",
-      "owner": "DescriptorType",
-      "domain_of": [
-        "DescriptorType"
-      ],
-      "range": "Method",
-      "required": true,
-      "@type": "SlotDefinition"
-    },
-    {
-      "name": "descriptor__label",
-      "description": "A human-readable label",
       "from_schema": "https://w3id.org/crystalia",
       "mappings": [
         "http://www.w3.org/2000/01/rdf-schema#label"
       ],
-      "slot_uri": "http://www.w3.org/2000/01/rdf-schema#label",
-      "alias": "label",
-      "owner": "Descriptor",
+      "name": "label",
+      "owner": "Method",
+      "range": "string",
+      "required": true,
+      "slot_uri": "http://www.w3.org/2000/01/rdf-schema#label"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/comment",
+      "description": "A description of the item",
+      "domain_of": [
+        "Method"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "mappings": [
+        "http://www.w3.org/2000/01/rdf-schema#comment"
+      ],
+      "name": "comment",
+      "owner": "Method",
+      "range": "string",
+      "slot_uri": "http://www.w3.org/2000/01/rdf-schema#comment"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/isPartOf",
+      "description": "The items in the dataset such as files",
+      "domain_of": [
+        "Item"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "mappings": [
+        "http://purl.org/dc/terms/isPartOf"
+      ],
+      "name": "isPartOf",
+      "owner": "Item",
+      "range": "uriorcurie",
+      "required": true,
+      "slot_uri": "http://purl.org/dc/terms/isPartOf"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/hasDescriptor",
+      "description": "The descriptors associated with an item",
+      "domain_of": [
+        "DescribableThing"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "multivalued": true,
+      "name": "hasDescriptor",
+      "owner": "DescribableThing",
+      "range": "Descriptor",
+      "slot_uri": "https://w3id.org/crystalia/hasDescriptor"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/max_block_size",
+      "description": "The maximum size of the block of data described by the descriptor",
+      "domain_of": [
+        "DescriptorType"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "max_block_size",
+      "owner": "DescriptorType",
+      "range": "integer",
+      "slot_uri": "https://w3id.org/crystalia/max_block_size"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/hasType",
+      "description": "The type of the descriptor",
       "domain_of": [
         "Descriptor"
       ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "hasType",
+      "owner": "Descriptor",
+      "range": "DescriptorType",
+      "required": true,
+      "slot_uri": "https://w3id.org/crystalia/hasType"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/value",
+      "description": "The value of the descriptor",
+      "domain_of": [
+        "Descriptor"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "value",
+      "owner": "Descriptor",
       "range": "string",
-      "@type": "SlotDefinition"
+      "required": true,
+      "slot_uri": "https://w3id.org/crystalia/value"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/offset",
+      "description": "The starting offset for partial file descriptors",
+      "domain_of": [
+        "Descriptor"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "offset",
+      "owner": "Descriptor",
+      "range": "integer",
+      "required": true,
+      "slot_uri": "https://w3id.org/crystalia/offset",
+      "unit": {
+        "@type": "UnitOfMeasure",
+        "ucum_code": "byte"
+      }
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/length",
+      "description": "The length of the data described by the descriptor",
+      "domain_of": [
+        "Descriptor"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "length",
+      "owner": "Descriptor",
+      "range": "integer",
+      "slot_uri": "https://w3id.org/crystalia/length",
+      "unit": {
+        "@type": "UnitOfMeasure",
+        "ucum_code": "byte"
+      }
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/robustness",
+      "description": "The robustness category of the descriptor type",
+      "domain_of": [
+        "Method"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "robustness",
+      "owner": "Method",
+      "range": "descriptor_robustness",
+      "required": true,
+      "slot_uri": "https://w3id.org/crystalia/robustness"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/coverage",
+      "description": "The coverage of the descriptor (0.0 to 1.0)",
+      "domain_of": [
+        "Descriptor"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "coverage",
+      "owner": "Descriptor",
+      "range": "float",
+      "required": true,
+      "slot_uri": "https://w3id.org/crystalia/coverage"
+    },
+    {
+      "@type": "SlotDefinition",
+      "definition_uri": "https://w3id.org/crystalia/usesMethod",
+      "description": "The method used to generate the descriptor",
+      "domain_of": [
+        "DescriptorType"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "name": "usesMethod",
+      "owner": "DescriptorType",
+      "range": "Method",
+      "required": true,
+      "slot_uri": "https://w3id.org/crystalia/usesMethod"
+    },
+    {
+      "@type": "SlotDefinition",
+      "alias": "label",
+      "description": "A human-readable label",
+      "domain_of": [
+        "Descriptor"
+      ],
+      "from_schema": "https://w3id.org/crystalia",
+      "mappings": [
+        "http://www.w3.org/2000/01/rdf-schema#label"
+      ],
+      "name": "descriptor__label",
+      "owner": "Descriptor",
+      "range": "string",
+      "slot_uri": "http://www.w3.org/2000/01/rdf-schema#label"
     }
   ],
-  "classes": [
-    {
-      "name": "Thing",
-      "definition_uri": "https://w3id.org/crystalia/Thing",
-      "description": "Anything that has an id",
-      "from_schema": "https://w3id.org/crystalia",
-      "slots": [
-        "id"
-      ],
-      "slot_usage": {},
-      "class_uri": "https://w3id.org/crystalia/Thing",
-      "@type": "ClassDefinition"
-    },
-    {
-      "name": "DescribableThing",
-      "definition_uri": "https://w3id.org/crystalia/DescribableThing",
-      "description": "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "is_a": "Thing",
-      "slots": [
-        "id",
-        "hasDescriptor"
-      ],
-      "slot_usage": {},
-      "class_uri": "https://w3id.org/crystalia/DescribableThing",
-      "@type": "ClassDefinition"
-    },
-    {
-      "name": "Item",
-      "definition_uri": "https://w3id.org/crystalia/Item",
-      "description": "An individual item for example a file",
-      "from_schema": "https://w3id.org/crystalia",
-      "is_a": "DescribableThing",
-      "slots": [
-        "id",
-        "hasDescriptor",
-        "label",
-        "isPartOf"
-      ],
-      "slot_usage": {},
-      "class_uri": "https://w3id.org/crystalia/Item",
-      "@type": "ClassDefinition"
-    },
-    {
-      "name": "Descriptor",
-      "definition_uri": "https://w3id.org/crystalia/Descriptor",
-      "description": "A descriptor for the whole or part of an item or another descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "is_a": "DescribableThing",
-      "slots": [
-        "id",
-        "hasDescriptor",
-        "hasType",
-        "value",
-        "offset",
-        "length",
-        "coverage",
-        "descriptor__label"
-      ],
-      "slot_usage": {},
-      "attributes": [
-        {
-          "name": "label",
-          "description": "A human-readable label",
-          "slot_uri": "rdfs:label",
-          "@type": "SlotDefinition"
-        }
-      ],
-      "class_uri": "https://w3id.org/crystalia/Descriptor",
-      "@type": "ClassDefinition"
-    },
-    {
-      "name": "DescriptorType",
-      "definition_uri": "https://w3id.org/crystalia/DescriptorType",
-      "description": "Details about a descriptor type",
-      "from_schema": "https://w3id.org/crystalia",
-      "is_a": "Thing",
-      "slots": [
-        "id",
-        "label",
-        "usesMethod",
-        "max_block_size"
-      ],
-      "slot_usage": {},
-      "class_uri": "https://w3id.org/crystalia/DescriptorType",
-      "@type": "ClassDefinition"
-    },
-    {
-      "name": "Method",
-      "definition_uri": "https://w3id.org/crystalia/Method",
-      "description": "A method used to generate a descriptor",
-      "from_schema": "https://w3id.org/crystalia",
-      "is_a": "Thing",
-      "slots": [
-        "id",
-        "label",
-        "comment",
-        "robustness"
-      ],
-      "slot_usage": {},
-      "class_uri": "https://w3id.org/crystalia/Method",
-      "@type": "ClassDefinition"
-    }
-  ],
-  "metamodel_version": "1.7.0",
   "source_file": "crystalia.yaml",
   "source_file_date": "2024-10-31T23:12:00",
   "source_file_size": 4339,
-  "generation_date": "2024-11-01T09:46:37",
-  "@type": "SchemaDefinition",
-  "@context": [
-    "project/jsonld/crystalia.context.jsonld",
-    "https://w3id.org/linkml/types.context.jsonld",
+  "title": "Crystalia Data Model",
+  "types": [
     {
-      "@base": "https://w3id.org/crystalia/"
+      "@type": "TypeDefinition",
+      "base": "str",
+      "definition_uri": "https://w3id.org/linkml/String",
+      "description": "A character string",
+      "exact_mappings": [
+        "schema:Text"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "string",
+      "notes": [
+        "In RDF serializations, a slot with range of string is treated as a literal or type xsd:string.   If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"string\"."
+      ],
+      "uri": "http://www.w3.org/2001/XMLSchema#string"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "int",
+      "definition_uri": "https://w3id.org/linkml/Integer",
+      "description": "An integer",
+      "exact_mappings": [
+        "schema:Integer"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "integer",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"integer\"."
+      ],
+      "uri": "http://www.w3.org/2001/XMLSchema#integer"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "Bool",
+      "definition_uri": "https://w3id.org/linkml/Boolean",
+      "description": "A binary (true or false) value",
+      "exact_mappings": [
+        "schema:Boolean"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "boolean",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"boolean\"."
+      ],
+      "repr": "bool",
+      "uri": "http://www.w3.org/2001/XMLSchema#boolean"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "float",
+      "definition_uri": "https://w3id.org/linkml/Float",
+      "description": "A real number that conforms to the xsd:float specification",
+      "exact_mappings": [
+        "schema:Float"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "float",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"float\"."
+      ],
+      "uri": "http://www.w3.org/2001/XMLSchema#float"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "float",
+      "close_mappings": [
+        "schema:Float"
+      ],
+      "definition_uri": "https://w3id.org/linkml/Double",
+      "description": "A real number that conforms to the xsd:double specification",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "double",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"double\"."
+      ],
+      "uri": "http://www.w3.org/2001/XMLSchema#double"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "Decimal",
+      "broad_mappings": [
+        "schema:Number"
+      ],
+      "definition_uri": "https://w3id.org/linkml/Decimal",
+      "description": "A real number with arbitrary precision that conforms to the xsd:decimal specification",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "decimal",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"decimal\"."
+      ],
+      "uri": "http://www.w3.org/2001/XMLSchema#decimal"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "XSDTime",
+      "definition_uri": "https://w3id.org/linkml/Time",
+      "description": "A time object represents a (local) time of day, independent of any particular day",
+      "exact_mappings": [
+        "schema:Time"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "time",
+      "notes": [
+        "URI is dateTime because OWL reasoners do not work with straight date or time",
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"time\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#time"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "XSDDate",
+      "definition_uri": "https://w3id.org/linkml/Date",
+      "description": "a date (year, month and day) in an idealized calendar",
+      "exact_mappings": [
+        "schema:Date"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "date",
+      "notes": [
+        "URI is dateTime because OWL reasoners don't work with straight date or time",
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"date\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#date"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "XSDDateTime",
+      "definition_uri": "https://w3id.org/linkml/Datetime",
+      "description": "The combination of a date and time",
+      "exact_mappings": [
+        "schema:DateTime"
+      ],
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "datetime",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"datetime\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#dateTime"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "str",
+      "definition_uri": "https://w3id.org/linkml/DateOrDatetime",
+      "description": "Either a date or a datetime",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "date_or_datetime",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"date_or_datetime\"."
+      ],
+      "repr": "str",
+      "uri": "https://w3id.org/linkml/DateOrDatetime"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "URIorCURIE",
+      "definition_uri": "https://w3id.org/linkml/Uriorcurie",
+      "description": "a URI or a CURIE",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "uriorcurie",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"uriorcurie\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#anyURI"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "Curie",
+      "comments": [
+        "in RDF serializations this MUST be expanded to a URI",
+        "in non-RDF serializations MAY be serialized as the compact representation"
+      ],
+      "conforms_to": "https://www.w3.org/TR/curie/",
+      "definition_uri": "https://w3id.org/linkml/Curie",
+      "description": "a compact URI",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "curie",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"curie\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#string"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "URI",
+      "close_mappings": [
+        "schema:URL"
+      ],
+      "comments": [
+        "in RDF serializations a slot with range of uri is treated as a literal or type xsd:anyURI unless it is an identifier or a reference to an identifier, in which case it is translated directly to a node"
+      ],
+      "conforms_to": "https://www.ietf.org/rfc/rfc3987.txt",
+      "definition_uri": "https://w3id.org/linkml/Uri",
+      "description": "a complete URI",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "uri",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"uri\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#anyURI"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "NCName",
+      "definition_uri": "https://w3id.org/linkml/Ncname",
+      "description": "Prefix part of CURIE",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "ncname",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"ncname\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#string"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "ElementIdentifier",
+      "comments": [
+        "Used for inheritance and type checking"
+      ],
+      "definition_uri": "https://w3id.org/linkml/Objectidentifier",
+      "description": "A URI or CURIE that represents an object in the model.",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "objectidentifier",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"objectidentifier\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/ns/shex#iri"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "NodeIdentifier",
+      "definition_uri": "https://w3id.org/linkml/Nodeidentifier",
+      "description": "A URI, CURIE or BNODE that represents a node in a model.",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "nodeidentifier",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"nodeidentifier\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/ns/shex#nonLiteral"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "str",
+      "conforms_to": "https://datatracker.ietf.org/doc/html/rfc6901",
+      "definition_uri": "https://w3id.org/linkml/Jsonpointer",
+      "description": "A string encoding a JSON Pointer. The value of the string MUST conform to JSON Point syntax and SHOULD dereference to a valid object within the current instance document when encoded in tree form.",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "jsonpointer",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"jsonpointer\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#string"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "str",
+      "conforms_to": "https://www.ietf.org/archive/id/draft-goessner-dispatch-jsonpath-00.html",
+      "definition_uri": "https://w3id.org/linkml/Jsonpath",
+      "description": "A string encoding a JSON Path. The value of the string MUST conform to JSON Point syntax and SHOULD dereference to zero or more valid objects within the current instance document when encoded in tree form.",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "jsonpath",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"jsonpath\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#string"
+    },
+    {
+      "@type": "TypeDefinition",
+      "base": "str",
+      "conforms_to": "https://www.w3.org/TR/sparql11-query/#propertypaths",
+      "definition_uri": "https://w3id.org/linkml/Sparqlpath",
+      "description": "A string encoding a SPARQL Property Path. The value of the string MUST conform to SPARQL syntax and SHOULD dereference to zero or more valid objects within the current instance document when encoded as RDF.",
+      "from_schema": "https://w3id.org/linkml/types",
+      "imported_from": "linkml:types",
+      "name": "sparqlpath",
+      "notes": [
+        "If you are authoring schemas in LinkML YAML, the type is referenced with the lower case \"sparqlpath\"."
+      ],
+      "repr": "str",
+      "uri": "http://www.w3.org/2001/XMLSchema#string"
     }
   ]
 }

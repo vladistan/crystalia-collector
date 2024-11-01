@@ -112,4 +112,3 @@ linkml:Sparqlpath xsd:string
        )
     } OR @<DescribableThing> OR @<DescriptorType> OR @<Method>
 )
-

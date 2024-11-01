@@ -45,4 +45,3 @@ type Thing
   {
     id: Uriorcurie!
   }
-

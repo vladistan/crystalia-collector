@@ -25,4 +25,3 @@ cryd:sha256 a crys:Method ;
 cryd:sha256_whole_file a crys:DescriptorType ;
     rdfs:label "SHA256 full file checksum" ;
     crys:usesMethod cryd:sha256 .
-

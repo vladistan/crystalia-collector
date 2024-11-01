@@ -21,8 +21,5 @@ SELECT
  }
  VALUES ?check { linkml:required }
  VALUES ?predicate { crys:usesMethod }
- 
-}  
 
-
-
+}

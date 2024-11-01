@@ -19,7 +19,7 @@ def list(prefix: str, task_dir: Optional[str] = None, blocksize: int = 8 * GB, u
 
     if task_dir:
         Path(task_dir).mkdir(parents=True, exist_ok=True)
-    
+
     for file in list_files_in_s3_prefix(bucket, prefix):
         size_str = human_readable_size(file.size)
         typer.echo(f's3://{bucket}/{file.key:110}: {size_str:12} {file.last_modified.strftime("%Y-%m-%d")} {file.etag}')
@@ -67,7 +67,7 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
             file = components[0]
             typer.echo(f"Annotating file: {file}")
             bucket, key = file.replace("s3://", "").split("/", 1)
-            
+
             if len(components) == 4:
                 size = int(components[1])
                 offset = int(components[2])
@@ -82,7 +82,7 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
             typer.echo(f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}")
             checksum = compute_s3_checksum(bucket, key, offset, blocksize)
             out.write(f"<{file}>  {checksum}\n")
-    
+
     typer.echo(f"Wrote filenames to output file: {output_file}")
 
 
@@ -113,4 +113,3 @@ def combine():
 
 if __name__ == "__main__":
     app()
-

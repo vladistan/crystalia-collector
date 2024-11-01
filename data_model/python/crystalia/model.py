@@ -1,4 +1,4 @@
-from __future__ import annotations 
+from __future__ import annotations
 
 import re
 import sys
@@ -7,8 +7,8 @@ from datetime import (
     datetime,
     time
 )
-from decimal import Decimal 
-from enum import Enum 
+from decimal import Decimal
+from enum import Enum
 from typing import (
     Any,
     ClassVar,
@@ -202,4 +202,3 @@ Item.model_rebuild()
 Descriptor.model_rebuild()
 DescriptorType.model_rebuild()
 Method.model_rebuild()
-

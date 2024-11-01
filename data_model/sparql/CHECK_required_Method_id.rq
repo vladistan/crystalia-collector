@@ -21,12 +21,11 @@ SELECT
  }
  VALUES ?check { linkml:required }
  VALUES ?predicate { crys:id }
- 
-}  
+
+}
 
 
 
 
 
 ## -- End of checks for Method
-

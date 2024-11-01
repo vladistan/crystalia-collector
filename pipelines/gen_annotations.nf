@@ -29,7 +29,7 @@ process generateRDF {
 
 process uploadToBucket {
     input:
-    path rdfObjects 
+    path rdfObjects
 
     script:
     """
