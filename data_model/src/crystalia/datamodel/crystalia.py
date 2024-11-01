@@ -1,5 +1,5 @@
 # Auto generated from crystalia.yaml by pythongen.py version: 0.0.1
-# Generation date: 2024-10-31T23:07:37
+# Generation date: 2024-11-01T09:46:38
 # Schema: crystalia-datamodel
 #
 # id: https://w3id.org/crystalia
@@ -75,6 +75,9 @@ class MethodId(ThingId):
 
 @dataclass(repr=False)
 class Thing(YAMLRoot):
+    """
+    Anything that has an id
+    """
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Thing"]

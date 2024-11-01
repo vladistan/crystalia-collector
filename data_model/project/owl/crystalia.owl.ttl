@@ -18,14 +18,11 @@ crys:Item a owl:Class ;
     rdfs:label "Item" ;
     rdfs:comment "An individual item for example a file" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:label ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty crys:label ],
-        [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty crys:isPartOf ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:label ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty crys:isPartOf ],
@@ -33,7 +30,10 @@ crys:Item a owl:Class ;
             owl:allValuesFrom xsd:anyURI ;
             owl:onProperty crys:isPartOf ],
         [ a owl:Restriction ;
-            owl:minCardinality 1 ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
             owl:onProperty crys:label ],
         crys:DescribableThing ;
     skos:inScheme <https://w3id.org/crystalia> .
@@ -42,10 +42,10 @@ crys:DescribableThing a owl:Class ;
     rdfs:label "DescribableThing" ;
     rdfs:comment "An item that can be described by one or more descriptors. Could be an item(file) or another descriptor" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:allValuesFrom crys:Descriptor ;
+            owl:minCardinality 0 ;
             owl:onProperty crys:hasDescriptor ],
         [ a owl:Restriction ;
-            owl:minCardinality 0 ;
+            owl:allValuesFrom crys:Descriptor ;
             owl:onProperty crys:hasDescriptor ],
         crys:Thing ;
     skos:inScheme <https://w3id.org/crystalia> .
@@ -54,19 +54,16 @@ crys:Descriptor a owl:Class ;
     rdfs:label "Descriptor" ;
     rdfs:comment "A descriptor for the whole or part of an item or another descriptor" ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:offset ],
+        [ a owl:Restriction ;
             owl:allValuesFrom crys:DescriptorType ;
             owl:onProperty crys:hasType ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty crys:hasType ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty crys:offset ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
             owl:onProperty crys:length ],
         [ a owl:Restriction ;
-            owl:allValuesFrom xsd:integer ;
+            owl:maxCardinality 1 ;
             owl:onProperty crys:offset ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
@@ -75,35 +72,38 @@ crys:Descriptor a owl:Class ;
             owl:minCardinality 1 ;
             owl:onProperty crys:coverage ],
         [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty crys:value ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:coverage ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:string ;
-            owl:onProperty crys:value ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:float ;
-            owl:onProperty crys:coverage ],
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty crys:length ],
         [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty crys:hasType ],
         [ a owl:Restriction ;
             owl:maxCardinality 1 ;
-            owl:onProperty crys:label ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:offset ],
-        [ a owl:Restriction ;
-            owl:allValuesFrom xsd:integer ;
-            owl:onProperty crys:length ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
             owl:onProperty crys:value ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:value ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:hasType ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:integer ;
+            owl:onProperty crys:offset ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:coverage ],
+        [ a owl:Restriction ;
+            owl:allValuesFrom xsd:float ;
+            owl:onProperty crys:coverage ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:value ],
         [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty crys:label ],
@@ -138,32 +138,32 @@ crys:DescriptorType a owl:Class ;
     rdfs:label "DescriptorType" ;
     rdfs:comment "Details about a descriptor type" ;
     rdfs:subClassOf [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:max_block_size ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty crys:label ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty crys:usesMethod ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:usesMethod ],
-        [ a owl:Restriction ;
             owl:allValuesFrom crys:Method ;
             owl:onProperty crys:usesMethod ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
             owl:onProperty crys:label ],
         [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:usesMethod ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:max_block_size ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:usesMethod ],
+        [ a owl:Restriction ;
             owl:allValuesFrom xsd:integer ;
             owl:onProperty crys:max_block_size ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty crys:max_block_size ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:label ],
         crys:Thing ;
     skos:inScheme <https://w3id.org/crystalia> .
 
@@ -171,6 +171,12 @@ crys:Method a owl:Class ;
     rdfs:label "Method" ;
     rdfs:comment "A method used to generate a descriptor" ;
     rdfs:subClassOf [ a owl:Restriction ;
+            owl:allValuesFrom crys:DescriptorRobustness ;
+            owl:onProperty crys:robustness ],
+        [ a owl:Restriction ;
+            owl:minCardinality 1 ;
+            owl:onProperty crys:robustness ],
+        [ a owl:Restriction ;
             owl:maxCardinality 1 ;
             owl:onProperty crys:label ],
         [ a owl:Restriction ;
@@ -178,25 +184,19 @@ crys:Method a owl:Class ;
             owl:onProperty crys:label ],
         [ a owl:Restriction ;
             owl:allValuesFrom xsd:string ;
+            owl:onProperty crys:comment ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
             owl:onProperty crys:comment ],
         [ a owl:Restriction ;
             owl:minCardinality 0 ;
             owl:onProperty crys:comment ],
         [ a owl:Restriction ;
-            owl:allValuesFrom crys:DescriptorRobustness ;
-            owl:onProperty crys:robustness ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:comment ],
-        [ a owl:Restriction ;
-            owl:minCardinality 1 ;
-            owl:onProperty crys:robustness ],
-        [ a owl:Restriction ;
-            owl:maxCardinality 1 ;
-            owl:onProperty crys:robustness ],
-        [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty crys:label ],
+        [ a owl:Restriction ;
+            owl:maxCardinality 1 ;
+            owl:onProperty crys:robustness ],
         crys:Thing ;
     skos:inScheme <https://w3id.org/crystalia> .
 
@@ -208,6 +208,7 @@ crys:hasDescriptor a owl:ObjectProperty ;
 
 crys:Thing a owl:Class ;
     rdfs:label "Thing" ;
+    rdfs:comment "Anything that has an id" ;
     rdfs:subClassOf [ a owl:Restriction ;
             owl:minCardinality 1 ;
             owl:onProperty crys:id ],

@@ -198,7 +198,7 @@
         },
         "Thing": {
             "additionalProperties": false,
-            "description": "",
+            "description": "Anything that has an id",
             "properties": {
                 "id": {
                     "description": "A unique identifier",

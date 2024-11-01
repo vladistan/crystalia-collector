@@ -238,7 +238,7 @@ testdoc: gendoc
 	$(RUN) mkdocs serve
 
 distdoc: gendoc
-	$(RUN) mkdocs serve
+	$(RUN) mkdocs build
 
 
 # only necessary if setting up via cookiecutter

@@ -43,6 +43,7 @@ message Method
   string comment = 0
   descriptorRobustness robustness = 0
  }
+// Anything that has an id
 message Thing
  {
   uriorcurie id = 0

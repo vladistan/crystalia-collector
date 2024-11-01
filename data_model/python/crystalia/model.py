@@ -116,6 +116,9 @@ class DescriptorRobustness(str, Enum):
 
 
 class Thing(ConfiguredBaseModel):
+    """
+    Anything that has an id
+    """
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'from_schema': 'https://w3id.org/crystalia'})
 
     id: str = Field(..., description="""A unique identifier""", json_schema_extra = { "linkml_meta": {'alias': 'id', 'domain_of': ['Thing']} })
