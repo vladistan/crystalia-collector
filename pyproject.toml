@@ -4,31 +4,42 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "crystalia-collector"
-version = "0.1.0"
-description = "Python Boilerplate contains all the boilerplate you need to create a Python package."
-readme = "README.rst"
+version = "0.1.1"
+description = "Crystalia Collector: Generate Dataset Descriptors for Large Datasets"
+readme = "README.md"
 authors = [
   {name = "Vlad Korolev", email = "vlad@v-lad.org"}
 ]
 maintainers = [
   {name = "Vlad Korolev", email = "vlad@v-lad.org"}
 ]
+# Start of Selection
 classifiers = [
-
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Environment :: Console",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Data Engineering",
 ]
-license = {text = "Apache Software License 2.0"}
+license = {text = "MIT License"}
 dependencies = [
-    "typer",  # CLI
-    "toml",  # Config parsing
-    "boto3",  # AWS SDK
+    "typer>=0.4.0",  # CLI
+    "toml>=0.10.2",  # Config parsing
+    "boto3>=1.18.0",  # AWS SDK
 ]
 
 [project.optional-dependencies]
 dev = [
-    "coverage",  # testing
-    "mypy",  # linting
-    "pytest",  # testing
-    "ruff"  # linting
+    "coverage>=6.0",  # testing
+    "mypy>=0.910",  # linting
+    "pytest>=6.2",  # testing
+    "ruff>=0.3.5",  # linting
+    "tox>=3.14.0",
 ]
 
 [project.scripts]
@@ -37,18 +48,15 @@ crystalia-collector = "crystalia_collector.app:app"
 
 [project.urls]
 
-bugs = "https://github.com/vladistan/crystalia_collector/issues"
-changelog = "https://github.com/vladistan/crystalia_collector/blob/master/changelog.md"
-homepage = "https://github.com/vladistan/crystalia_collector"
+bugs = "https://github.com/Ebiquity/crystalia-collector/issues"
+changelog = "https://github.com/Ebiquity/crystalia-collector/blob/master/changelog.md"
+homepage = "https://github.com/Ebiquity/crystalia-collector"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]
-
-
-
 
 # Mypy
 # ----
