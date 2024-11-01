@@ -127,7 +127,7 @@ class Dataset(Thing):
 @dataclass(repr=False)
 class DescribableEntity(Thing):
     """
-    Something that can be described by a descriptop
+    Something that can be described by a descriptor
     """
 
     _inherited_slots: ClassVar[List[str]] = []
@@ -256,7 +256,8 @@ class DescriptorType(Thing):
             self.hasName = str(self.hasName)
 
         if self.hasQuality is not None and not isinstance(
-            self.hasQuality, DescriptorQuality
+            self.hasQuality,
+            DescriptorQuality,
         ):
             self.hasQuality = DescriptorQuality(self.hasQuality)
 

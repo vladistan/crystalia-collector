@@ -25,7 +25,9 @@ def rdf_from_model(thing: Thing) -> Graph:
 
 
 def model_from_rdf(
-    rdf: Graph, type_class: Type[Thing], subject: str = None
+    rdf: Graph,
+    type_class: Type[Thing],
+    subject: str = None,
 ) -> RDFLibLoader:
     schema = get_schema()
     if subject:

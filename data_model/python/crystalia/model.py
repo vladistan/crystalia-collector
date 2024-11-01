@@ -136,7 +136,7 @@ class Thing(ConfiguredBaseModel):
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
-        {"from_schema": "https://w3id.org/crystalia"}
+        {"from_schema": "https://w3id.org/crystalia"},
     )
 
     id: str = Field(
@@ -152,14 +152,17 @@ class DescribableThing(Thing):
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
-        {"from_schema": "https://w3id.org/crystalia"}
+        {"from_schema": "https://w3id.org/crystalia"},
     )
 
     hasDescriptor: Optional[List[str]] = Field(
         None,
         description="""The descriptors associated with an item""",
         json_schema_extra={
-            "linkml_meta": {"alias": "hasDescriptor", "domain_of": ["DescribableThing"]}
+            "linkml_meta": {
+                "alias": "hasDescriptor",
+                "domain_of": ["DescribableThing"],
+            },
         },
     )
     id: str = Field(
@@ -175,7 +178,7 @@ class Item(DescribableThing):
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
-        {"from_schema": "https://w3id.org/crystalia"}
+        {"from_schema": "https://w3id.org/crystalia"},
     )
 
     label: str = Field(
@@ -197,14 +200,17 @@ class Item(DescribableThing):
                 "alias": "isPartOf",
                 "domain_of": ["Item"],
                 "slot_uri": "dct:isPartOf",
-            }
+            },
         },
     )
     hasDescriptor: Optional[List[str]] = Field(
         None,
         description="""The descriptors associated with an item""",
         json_schema_extra={
-            "linkml_meta": {"alias": "hasDescriptor", "domain_of": ["DescribableThing"]}
+            "linkml_meta": {
+                "alias": "hasDescriptor",
+                "domain_of": ["DescribableThing"],
+            },
         },
     )
     id: str = Field(
@@ -220,21 +226,21 @@ class Descriptor(DescribableThing):
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
-        {"from_schema": "https://w3id.org/crystalia"}
+        {"from_schema": "https://w3id.org/crystalia"},
     )
 
     hasType: str = Field(
         ...,
         description="""The type of the descriptor""",
         json_schema_extra={
-            "linkml_meta": {"alias": "hasType", "domain_of": ["Descriptor"]}
+            "linkml_meta": {"alias": "hasType", "domain_of": ["Descriptor"]},
         },
     )
     value: str = Field(
         ...,
         description="""The value of the descriptor""",
         json_schema_extra={
-            "linkml_meta": {"alias": "value", "domain_of": ["Descriptor"]}
+            "linkml_meta": {"alias": "value", "domain_of": ["Descriptor"]},
         },
     )
     offset: int = Field(
@@ -245,7 +251,7 @@ class Descriptor(DescribableThing):
                 "alias": "offset",
                 "domain_of": ["Descriptor"],
                 "unit": {"ucum_code": "byte"},
-            }
+            },
         },
     )
     length: Optional[int] = Field(
@@ -256,14 +262,14 @@ class Descriptor(DescribableThing):
                 "alias": "length",
                 "domain_of": ["Descriptor"],
                 "unit": {"ucum_code": "byte"},
-            }
+            },
         },
     )
     coverage: float = Field(
         ...,
         description="""The coverage of the descriptor (0.0 to 1.0)""",
         json_schema_extra={
-            "linkml_meta": {"alias": "coverage", "domain_of": ["Descriptor"]}
+            "linkml_meta": {"alias": "coverage", "domain_of": ["Descriptor"]},
         },
     )
     label: Optional[str] = Field(
@@ -281,7 +287,10 @@ class Descriptor(DescribableThing):
         None,
         description="""The descriptors associated with an item""",
         json_schema_extra={
-            "linkml_meta": {"alias": "hasDescriptor", "domain_of": ["DescribableThing"]}
+            "linkml_meta": {
+                "alias": "hasDescriptor",
+                "domain_of": ["DescribableThing"],
+            },
         },
     )
     id: str = Field(
@@ -297,7 +306,7 @@ class DescriptorType(Thing):
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
-        {"from_schema": "https://w3id.org/crystalia"}
+        {"from_schema": "https://w3id.org/crystalia"},
     )
 
     label: str = Field(
@@ -315,14 +324,14 @@ class DescriptorType(Thing):
         ...,
         description="""The method used to generate the descriptor""",
         json_schema_extra={
-            "linkml_meta": {"alias": "usesMethod", "domain_of": ["DescriptorType"]}
+            "linkml_meta": {"alias": "usesMethod", "domain_of": ["DescriptorType"]},
         },
     )
     max_block_size: Optional[int] = Field(
         None,
         description="""The maximum size of the block of data described by the descriptor""",
         json_schema_extra={
-            "linkml_meta": {"alias": "max_block_size", "domain_of": ["DescriptorType"]}
+            "linkml_meta": {"alias": "max_block_size", "domain_of": ["DescriptorType"]},
         },
     )
     id: str = Field(
@@ -338,7 +347,7 @@ class Method(Thing):
     """
 
     linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta(
-        {"from_schema": "https://w3id.org/crystalia"}
+        {"from_schema": "https://w3id.org/crystalia"},
     )
 
     label: str = Field(
@@ -360,14 +369,14 @@ class Method(Thing):
                 "alias": "comment",
                 "domain_of": ["Method"],
                 "slot_uri": "rdfs:comment",
-            }
+            },
         },
     )
     robustness: DescriptorRobustness = Field(
         ...,
         description="""The robustness category of the descriptor type""",
         json_schema_extra={
-            "linkml_meta": {"alias": "robustness", "domain_of": ["Method"]}
+            "linkml_meta": {"alias": "robustness", "domain_of": ["Method"]},
         },
     )
     id: str = Field(

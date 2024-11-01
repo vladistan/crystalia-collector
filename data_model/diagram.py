@@ -7,14 +7,15 @@ import requests
 import os
 
 KROKI_SERVER_BASE_URL = os.environ.get(
-    "KROKI_SERVER_BASE_URL", "https://kroki.r4.v-lad.org"
+    "KROKI_SERVER_BASE_URL",
+    "https://kroki.r4.v-lad.org",
 )
 
 
 def main() -> None:
     # Set up argument parser
     parser = argparse.ArgumentParser(
-        description="Generate a diagram URL or save it to a file."
+        description="Generate a diagram URL or save it to a file.",
     )
     parser.add_argument(
         "-u",

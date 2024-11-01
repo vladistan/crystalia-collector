@@ -62,7 +62,7 @@ def test_create_item(item):
 def test_descriptor_model(item, descriptor_short_file_full_hash):
     item.hasDescriptor.append(descriptor_short_file_full_hash)
     descriptor_short_file_full_hash.hasDescriptor.append(
-        descriptor_short_file_full_hash
+        descriptor_short_file_full_hash,
     )
 
 
@@ -73,7 +73,10 @@ def test_create_descriptor_type(descriptor_type_sha256_full):
 
 
 def test_rdf_from_model(
-    item, descriptor_type_sha256_full, method_sha256, descriptor_short_file_full_hash
+    item,
+    descriptor_type_sha256_full,
+    method_sha256,
+    descriptor_short_file_full_hash,
 ):
     item.hasDescriptor.append(descriptor_short_file_full_hash)
     item_rdf = rdf_from_model(item)
@@ -103,7 +106,9 @@ def test_model_from_rdf(short_file_single_descriptor):
     assert descriptor.hasType == "cryd:sha256_whole_file"
 
     desc_type = model_from_rdf(
-        rdf_graph, DescriptorType, subject=str(descriptor.hasType)
+        rdf_graph,
+        DescriptorType,
+        subject=str(descriptor.hasType),
     )
     assert desc_type.label == "SHA256 full file checksum"
     assert desc_type.usesMethod == "cryd:sha256"

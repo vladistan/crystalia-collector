@@ -1,3 +1,4 @@
-infrastructure/
-pipelines/
-ci/
+*
+!src/*
+!pyproject.toml
+!poetry.lock

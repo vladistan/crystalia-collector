@@ -45,9 +45,9 @@ task_role = aws.iam.Role(
                     "Principal": {
                         "Service": "ec2.amazonaws.com",
                     },
-                }
+                },
             ],
-        }
+        },
     ),
 )
 
@@ -70,7 +70,7 @@ ecs_register_container_instance_policy = aws.iam.RolePolicy(
                         "Resource": [arn, f"{arn}/*"],
                     },
                 ],
-            }
+            },
         ),
     ),
 )
@@ -166,7 +166,7 @@ task_policy = aws.iam.Policy(
                     "Resource": logs_resource_arn,
                 },
             ],
-        }
+        },
     ),
 )
 
@@ -183,7 +183,7 @@ task_role = aws.iam.Role(
                     "Principal": {"Service": "ecs-tasks.amazonaws.com"},
                 },
             ],
-        }
+        },
     ),
     tags={
         "Name": f"{project_name}-task-ecs",
@@ -214,7 +214,7 @@ job_definition = aws.batch.JobDefinition(
                     {"type": "MEMORY", "value": "2048"},
                 ],
                 "logConfiguration": {"logDriver": "awslogs"},
-            }
+            },
         ),
     ),
 )

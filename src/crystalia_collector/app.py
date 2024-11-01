@@ -29,7 +29,7 @@ def list(
     for file in list_files_in_s3_prefix(bucket, prefix):
         size_str = human_readable_size(file.size)
         typer.echo(
-            f's3://{bucket}/{file.key:110}: {size_str:12} {file.last_modified.strftime("%Y-%m-%d")} {file.etag}'
+            f's3://{bucket}/{file.key:110}: {size_str:12} {file.last_modified.strftime("%Y-%m-%d")} {file.etag}',
         )
         total_size += file.size
         num_files += 1
@@ -69,7 +69,13 @@ def process_file(
         if use_offsets:
             for offset in stream_offsets(blocksize, file.size):
                 write_task_file(
-                    task_dir, task_num, bucket, file.key, file.size, offset, blocksize
+                    task_dir,
+                    task_num,
+                    bucket,
+                    file.key,
+                    file.size,
+                    offset,
+                    blocksize,
                 )
                 task_num += 1
         else:
@@ -114,11 +120,11 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
                 blocksize = None
             else:
                 raise ValueError(
-                    f"Invalid number of components: {len(components)} for file {file} line {line}"
+                    f"Invalid number of components: {len(components)} for file {file} line {line}",
                 )
 
             typer.echo(
-                f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}"
+                f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}",
             )
             checksum = compute_s3_checksum(bucket, key, offset, blocksize)
             out.write(f"<{file}>  {checksum}\n")
@@ -127,7 +133,10 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
 
 
 def compute_s3_checksum(
-    bucket_name: str, object_key: str, offset: int = 0, length: Optional[int] = None
+    bucket_name: str,
+    object_key: str,
+    offset: int = 0,
+    length: Optional[int] = None,
 ) -> str:
     s3 = boto3.client("s3")
     hasher = hashlib.md5()
