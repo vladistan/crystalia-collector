@@ -1,8 +1,8 @@
 # Auto generated from crystalia.yaml by pythongen.py version: 0.0.1
-# Generation date: 2024-10-25T20:07:58
+# Generation date: 2024-11-01T09:46:38
 # Schema: crystalia-datamodel
 #
-# id: https://crystalia.link/ontology
+# id: https://w3id.org/crystalia
 # description: Data model for the Crystalia dataset annotation model
 # license: MIT
 
@@ -30,7 +30,7 @@ dataclasses._init_fn = dataclasses_init_fn_with_kwargs
 
 # Namespaces
 CRYD = CurieNamespace("cryd", "https://crystalia.link/data/")
-CRYS = CurieNamespace("crys", "https://crystalia.link/ontology/1.0/")
+CRYS = CurieNamespace("crys", "https://w3id.org/crystalia/")
 DCMI = CurieNamespace("dcmi", "http://purl.org/dc/dcmitype/")
 DCT = CurieNamespace("dct", "http://purl.org/dc/terms/")
 LINKML = CurieNamespace("linkml", "https://w3id.org/linkml/")
@@ -73,6 +73,10 @@ class MethodId(ThingId):
 
 @dataclass(repr=False)
 class Thing(YAMLRoot):
+    """
+    Anything that has an id
+    """
+
     _inherited_slots: ClassVar[List[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Thing"]
@@ -315,7 +319,7 @@ class DescriptorRobustness(EnumDefinitionImpl):
     )
     HIGH = PermissibleValue(
         text="HIGH",
-        description="Descriptor is highly resilient to changes (e.g., FarmHash, Jenkins hash)",
+        description="Descriptor is highly resilient to changes (e.g., Farmhash, Jenkins hash)",
     )
     MODERATE = PermissibleValue(
         text="MODERATE",

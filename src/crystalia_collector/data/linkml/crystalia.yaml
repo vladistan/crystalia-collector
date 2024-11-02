@@ -1,5 +1,5 @@
 ---
-id: https://crystalia.link/ontology
+id: https://w3id.org/crystalia
 name: crystalia-datamodel
 title: Crystalia Data Model
 description: |-
@@ -9,7 +9,7 @@ see_also:
   - https://vladistan.github.com/crystalia-collector
 
 prefixes:
-  crys: https://crystalia.link/ontology/1.0/
+  crys: https://w3id.org/crystalia/
   linkml: https://w3id.org/linkml/
   cryd: https://crystalia.link/data/
 
@@ -31,6 +31,7 @@ imports:
 
 classes:
   Thing:
+    description: "Anything that has an id"
     slots:
       - id
 
@@ -80,11 +81,11 @@ classes:
 
 slots:
   id:
+    description: >-
+      A unique identifier
     identifier: true
     required: true
     range: uriorcurie
-    description: >-
-      A unique identifier
 
   label:
     description: A human-readable label for the item, most often the filename
