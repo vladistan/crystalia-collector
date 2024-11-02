@@ -1,0 +1,9 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+cryd:method-sha256 a crys:Method ;
+    rdfs:label "SHA256" ;
+    rdfs:comment "SHA256 is a widely used hash algorithm that generates a 256-bit hash value from a variable-length input. The long signature makes it more resilient against forgery  attempts compared to hash algorithms with shorter signatures." ;
+    crys:robustness "EXTREMELY_HIGH" .
+

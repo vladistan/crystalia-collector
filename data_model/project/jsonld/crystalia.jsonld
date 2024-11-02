@@ -149,7 +149,7 @@
       ]
     }
   ],
-  "generation_date": "2024-11-01T09:46:37",
+  "generation_date": "2024-11-01T21:07:55",
   "id": "https://w3id.org/crystalia",
   "imports": [
     "linkml:types"
@@ -424,8 +424,8 @@
     }
   ],
   "source_file": "crystalia.yaml",
-  "source_file_date": "2024-10-31T23:12:00",
-  "source_file_size": 4339,
+  "source_file_date": "2024-11-01T14:43:36",
+  "source_file_size": 4337,
   "title": "Crystalia Data Model",
   "types": [
     {

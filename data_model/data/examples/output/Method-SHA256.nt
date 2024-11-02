@@ -1,0 +1,4 @@
+<https://crystalia.link/data/method-sha256> <http://www.w3.org/2000/01/rdf-schema#comment> "SHA256 is a widely used hash algorithm that generates a 256-bit hash value from a variable-length input. The long signature makes it more resilient against forgery  attempts compared to hash algorithms with shorter signatures." .
+<https://crystalia.link/data/method-sha256> <https://w3id.org/crystalia/robustness> "EXTREMELY_HIGH" .
+<https://crystalia.link/data/method-sha256> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/crystalia/Method> .
+<https://crystalia.link/data/method-sha256> <http://www.w3.org/2000/01/rdf-schema#label> "SHA256" .

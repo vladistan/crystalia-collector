@@ -25,8 +25,8 @@ def test_human_readable_size_between_1_kb_and_1_pb():
     assert human_readable_size(10 * 2**40) == "10.0 TB"
     assert human_readable_size(3 * 2**40) == "3.0 TB"
     assert human_readable_size(10 * 2**40) == "10.0 TB"
-    assert human_readable_size(3 * 2 ** 50) == "3.0 PB"
-    assert human_readable_size(10 * 2 ** 50) == "10.0 PB"
+    assert human_readable_size(3 * 2**50) == "3.0 PB"
+    assert human_readable_size(10 * 2**50) == "10.0 PB"
 
 
 def test_human_readable_size_zero_bytes():

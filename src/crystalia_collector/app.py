@@ -124,7 +124,9 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
                     f"Invalid number of components: {len(components)} for file {file} line {line}",
                 )
 
-            print( f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}")
+            print(
+                f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}",
+            )
             checksum = compute_s3_checksum(bucket, key, offset, blocksize)
             out.write(f"<{file}>  {checksum}\n")
 

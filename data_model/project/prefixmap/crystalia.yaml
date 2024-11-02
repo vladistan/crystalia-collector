@@ -1,0 +1,13 @@
+{
+   "cryd": "https://crystalia.link/data/",
+   "crys": "https://w3id.org/crystalia/",
+   "dcmi": "http://purl.org/dc/dcmitype/",
+   "dct": "http://purl.org/dc/terms/",
+   "linkml": "https://w3id.org/linkml/",
+   "qudt": "http://qudt.org/schema/qudt/",
+   "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+   "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+   "unit": "http://qudt.org/vocab/unit/",
+   "xml": "http://www.w3.org/XML/1998/namespace",
+   "xsd": "http://www.w3.org/2001/XMLSchema#"
+}

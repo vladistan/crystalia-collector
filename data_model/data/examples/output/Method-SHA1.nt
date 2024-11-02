@@ -1,0 +1,4 @@
+<https://crystalia.link/data/method-sha1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/crystalia/Method> .
+<https://crystalia.link/data/method-sha1> <http://www.w3.org/2000/01/rdf-schema#label> "SHA1" .
+<https://crystalia.link/data/method-sha1> <http://www.w3.org/2000/01/rdf-schema#comment> "SHA1 is a widely used hash algorithm that generates a 160-bit hash value from a variable-length input. It is known for its speed and efficiency, making it suitable for various applications, including digital signatures and checksums." .
+<https://crystalia.link/data/method-sha1> <https://w3id.org/crystalia/robustness> "EXTREMELY_HIGH" .

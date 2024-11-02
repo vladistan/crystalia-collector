@@ -1,0 +1,4 @@
+<https://crystalia.link/data/method-md5> <http://www.w3.org/2000/01/rdf-schema#comment> "MD5 is a widely used hash algorithm that generates a 128-bit hash value from a variable-length input. It is known for its speed and efficiency, making it suitable for various applications, including digital signatures and checksums." .
+<https://crystalia.link/data/method-md5> <http://www.w3.org/2000/01/rdf-schema#label> "MD5" .
+<https://crystalia.link/data/method-md5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/crystalia/Method> .
+<https://crystalia.link/data/method-md5> <https://w3id.org/crystalia/robustness> "VERY_HIGH" .

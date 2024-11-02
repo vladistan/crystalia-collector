@@ -1,0 +1,6 @@
+id: cryd:method-sha256
+label: SHA256
+robustness: EXTREMELY_HIGH
+comment: SHA256 is a widely used hash algorithm that generates a 256-bit hash value
+  from a variable-length input. The long signature makes it more resilient against
+  forgery  attempts compared to hash algorithms with shorter signatures.

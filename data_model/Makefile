@@ -26,7 +26,7 @@ PYPROJ = python/$(subst -,_,$(SCHEMA_NAME))
 PYTHON_DATACLASS = $(PYPROJ)/dataclass.py
 DOCDIR = docs
 DOCTEMPLATES = templates
-EXAMPLEDIR = data/examples/
+EXAMPLEDIR = data/examples
 
 CONFIG_YAML = --config-file config.yaml
 
@@ -158,38 +158,8 @@ else
 	$(info Ok)
 endif
 
-VALID_YML_FILES := $(wildcard $(EXAMPLEDIR)/valid/*.yml)
-VALID_TTL_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.yml,$(EXAMPLEDIR)/valid/%.ttl,$(VALID_YML_FILES))
 VALID_NT_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.ttl,$(EXAMPLEDIR)/valid/%.nt,$(VALID_TTL_FILES))
-VALID_JSON_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.yml,$(EXAMPLEDIR)/valid/%.json,$(VALID_YML_FILES))
-VALID_JSON_LD_FILES := $(patsubst $(EXAMPLEDIR)/valid/%.yml,$(EXAMPLEDIR)/valid/%.ld.json,$(VALID_YML_FILES))
-
-$(EXAMPLEDIR)/valid/%.ttl: $(EXAMPLEDIR)/valid/%.yml $(PYTHON_DATACLASS) $(SCHEMAS)
-	$(RUN) linkml-convert -t ttl \
-		   -m $(PYTHON_DATACLASS) \
-		   --target-class-from-path \
-		   -s $(SOURCE_SCHEMA_PATH) \
-		   -o $@ $<
-
-$(EXAMPLEDIR)/valid/%.json: $(EXAMPLEDIR)/valid/%.yml
-	$(RUN) linkml-convert -t json \
-		   -m $(PYTHON_DATACLASS) \
-		   --target-class-from-path \
-		   -s $(SOURCE_SCHEMA_PATH) \
-		   -o $@ $<
-
-$(EXAMPLEDIR)/valid/%.ld.json: $(EXAMPLEDIR)/valid/%.yml
-	$(RUN) linkml-convert -t json-ld \
-		   -m $(PYTHON_DATACLASS) \
-		   --target-class-from-path \
-		   -s $(SOURCE_SCHEMA_PATH) \
-		   -o $@ $<
-
-
-convert-valid-yml-to-ttl: $(VALID_TTL_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
-convert-valid-yml-to-nt: $(VALID_NT_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
-convert-valid-yml-to-json: $(VALID_JSON_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
-convert-valid-yml-to-json-ld: $(VALID_JSON_LD_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
+convert-valid-ttl-to-nt: $(VALID_NT_FILES) $(SCHEMAS) $(PYTHON_DATACLASS)
 
 docs/%.svg: schema/%.yaml
 	$(RUN) gen-plantuml \
@@ -201,19 +171,26 @@ docs/erd.mermaid: schema/$(SCHEMA_NAME).yaml
 			$<  > $@
 		# --exclude-attributes \
 
-.PHONY: convert-valid-yml-to-ttl convert-valid-yml-to-json convert-valid-yml-to-json-ld
 
-gen-examples: $(VALID_TTL_FILES) $(VALID_JSON_FILES) $(VALID_JSON_LD_FILES)
 
-examples/output:
-	mkdir -p $@
+.PHONY: gen-examples
+gen-examples:
+	mkdir -p $(EXAMPLEDIR)/output
 	$(RUN) linkml-run-examples \
 		--output-formats json \
 		--output-formats yaml \
-		--counter-example-input-directory data/examples/invalid \
-		--input-directory data/examples/valid \
-		--output-directory $@ \
-		--schema $< > $@/README.md
+		--output-formats ttl \
+		--counter-example-input-directory $(EXAMPLEDIR)/invalid \
+		--input-directory $(EXAMPLEDIR)/valid \
+		--output-directory $(EXAMPLEDIR)/output \
+		--schema schema/$(SCHEMA_NAME).yaml > $(EXAMPLEDIR)/output/README.md
+	cd $(EXAMPLEDIR)/output && \
+	for f in *.ttl; do \
+		rdfx convert "$$f" --format nt > "$${f%.ttl}.nt"; \
+	done
+
+
+
 
 # Test documentation locally
 serve: testdoc

@@ -1,0 +1,2 @@
+<https://crystalia.link/data/item-01> <http://www.w3.org/2000/01/rdf-schema#label> "file-1" .
+<https://crystalia.link/data/item-01> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://w3id.org/crystalia/Item> .

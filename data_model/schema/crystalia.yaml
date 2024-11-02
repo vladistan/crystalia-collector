@@ -103,7 +103,7 @@ slots:
     description: >-
       The items in the dataset such as files
     multivalued: false
-    required: true
+    required: false
     range: uriorcurie
     slot_uri: dct:isPartOf
 

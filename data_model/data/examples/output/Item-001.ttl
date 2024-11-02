@@ -1,0 +1,7 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+cryd:item-01 a crys:Item ;
+    rdfs:label "file-1" .
+

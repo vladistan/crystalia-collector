@@ -16,28 +16,28 @@
     dcterms:title "Crystalia Data Model" ;
     rdfs:seeAlso <https://vladistan.github.com/crystalia-collector> ;
     skos:definition "Data model for the Crystalia dataset annotation model" ;
-    sh:declare [ sh:namespace <https://crystalia.link/data/> ;
+    sh:declare [ sh:namespace dcmitype: ;
+            sh:prefix "dcmi" ],
+        [ sh:namespace <https://crystalia.link/data/> ;
             sh:prefix "cryd" ],
-        [ sh:namespace <http://qudt.org/vocab/unit/> ;
-            sh:prefix "unit" ],
         [ sh:namespace rdfs: ;
             sh:prefix "rdfs" ],
-        [ sh:namespace <https://w3id.org/crystalia/> ;
-            sh:prefix "crys" ],
         [ sh:namespace dcterms: ;
             sh:prefix "dct" ],
-        [ sh:namespace rdf: ;
-            sh:prefix "rdf" ],
+        [ sh:namespace <http://qudt.org/vocab/unit/> ;
+            sh:prefix "unit" ],
+        [ sh:namespace <https://w3id.org/crystalia/> ;
+            sh:prefix "crys" ],
+        [ sh:namespace xsd: ;
+            sh:prefix "xsd" ],
         [ sh:namespace xml: ;
             sh:prefix "xml" ],
         [ sh:namespace linkml: ;
             sh:prefix "linkml" ],
-        [ sh:namespace dcmitype: ;
-            sh:prefix "dcmi" ],
-        [ sh:namespace xsd: ;
-            sh:prefix "xsd" ],
         [ sh:namespace qudt: ;
-            sh:prefix "qudt" ] ;
+            sh:prefix "qudt" ],
+        [ sh:namespace rdf: ;
+            sh:prefix "rdf" ] ;
     linkml:classes <https://w3id.org/crystalia/DescribableThing>,
         <https://w3id.org/crystalia/Descriptor>,
         <https://w3id.org/crystalia/DescriptorType>,
@@ -47,7 +47,7 @@
     linkml:default_prefix "crys" ;
     linkml:default_range <https://w3id.org/crystalia/string> ;
     linkml:enums <https://w3id.org/crystalia/descriptor_robustness> ;
-    linkml:generation_date "2024-11-01T09:46:49"^^xsd:dateTime ;
+    linkml:generation_date "2024-11-01T21:08:07"^^xsd:dateTime ;
     linkml:id <https://w3id.org/crystalia> ;
     linkml:imports linkml:types ;
     linkml:metamodel_version "1.7.0" ;
@@ -66,8 +66,8 @@
         <https://w3id.org/crystalia/usesMethod>,
         <https://w3id.org/crystalia/value> ;
     linkml:source_file "crystalia.yaml" ;
-    linkml:source_file_date "2024-10-31T23:12:00"^^xsd:dateTime ;
-    linkml:source_file_size 4339 ;
+    linkml:source_file_date "2024-11-01T14:43:36"^^xsd:dateTime ;
+    linkml:source_file_size 4337 ;
     linkml:types <https://w3id.org/crystalia/boolean>,
         <https://w3id.org/crystalia/curie>,
         <https://w3id.org/crystalia/date>,

@@ -1,0 +1,8 @@
+---
+id: "cryd:method-md5"
+label: "MD5"
+robustness: "VERY_HIGH"
+comment: >-
+  MD5 is a widely used hash algorithm that generates a 128-bit hash value from a
+  variable-length input. It is known for its speed and efficiency, making it
+  suitable for various applications, including digital signatures and checksums.
