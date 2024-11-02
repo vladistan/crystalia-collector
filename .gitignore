@@ -7,3 +7,4 @@
 /data_model/proj
 .nextflow.log.*
 /pipelines/reports
+/tests/work_dir

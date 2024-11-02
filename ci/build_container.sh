@@ -2,7 +2,7 @@
 
 set -e
 
-VERSION=0.13
+VERSION=0.14
 
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 docker build -t crystalia:$VERSION .

@@ -1,0 +1,5 @@
+
+s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202-samples-cohort/3202_samples_cohort_gg_chr2.vcf.gz.tbi 267847 md5-8gb 8589934592 0
+s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202-samples-cohort/3202_samples_cohort_gg_chr20.vcf.gz.tbi 70460 md5-8gb 8589934592 0
+s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202-samples-cohort/3202_samples_cohort_gg_chr21.vcf.gz.tbi 42396 md5-8gb 8589934592 0
+s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202-samples-cohort/3202_samples_cohort_gg_chr22.vcf.gz.tbi 42984 md5-8gb 8589934592 0

@@ -4,4 +4,4 @@ RUN mkdir -p /pkg
 COPY . /pkg
 WORKDIR /pkg
 RUN pip install --no-cache-dir -e . && \
-    pip install --no-cache-dir awscli==2.17.37
+    pip install --no-cache-dir awscli==1.35.20
