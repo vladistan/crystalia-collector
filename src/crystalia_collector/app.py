@@ -15,20 +15,21 @@ app = typer.Typer()
 def list(
     prefix: str,
     task_dir: Optional[str] = None,
-    blocksize: int = 8 * GB,
+    block_size: int = 8 * GB,
     use_offsets: bool = False,
 ) -> None:
     """List files in S3 bucket."""
     bucket, prefix = prefix.split("/", 1)
 
-    total_size, num_files, task_num, small_files = 0, 0, 1, []
+    total_size, num_files, task_num = 0, 0, 1
+    small_files: List[str] = []
 
     if task_dir:
         Path(task_dir).mkdir(parents=True, exist_ok=True)
 
     for file in list_files_in_s3_prefix(bucket, prefix):
         size_str = human_readable_size(file.size)
-        typer.echo(
+        print(
             f's3://{bucket}/{file.key:110}: {size_str:12} {file.last_modified.strftime("%Y-%m-%d")} {file.etag}',
         )
         total_size += file.size
@@ -39,7 +40,7 @@ def list(
                 file,
                 bucket,
                 task_dir,
-                blocksize,
+                block_size,
                 task_num,
                 small_files,
                 total_size,
@@ -50,11 +51,11 @@ def list(
         with open(f"{task_dir}/task_small", "w") as f:
             f.write("\n".join(small_files))
 
-    typer.echo(f"Total size: {human_readable_size(total_size)} in {num_files} files")
+    print(f"Total size: {human_readable_size(total_size)} in {num_files} files")
 
 
 def process_file(
-    file,
+    file: Any,  # Replace Any with the appropriate type if known
     bucket: str,
     task_dir: str,
     blocksize: int,
@@ -107,7 +108,7 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
         for line in f:
             components = line.strip().split()
             file = components[0]
-            typer.echo(f"Annotating file: {file}")
+            print(f"Annotating file: {file}")
             bucket, key = file.replace("s3://", "").split("/", 1)
 
             if len(components) == 4:
@@ -123,13 +124,11 @@ def annotate(task_file: str, output_file: str = "out.rdf") -> None:
                     f"Invalid number of components: {len(components)} for file {file} line {line}",
                 )
 
-            typer.echo(
-                f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}",
-            )
+            print( f"Computing checksum for {file} with offset {offset} and blocksize {blocksize}")
             checksum = compute_s3_checksum(bucket, key, offset, blocksize)
             out.write(f"<{file}>  {checksum}\n")
 
-    typer.echo(f"Wrote filenames to output file: {output_file}")
+    print(f"Wrote filenames to output file: {output_file}")
 
 
 def compute_s3_checksum(
@@ -156,15 +155,15 @@ def compute_s3_checksum(
 def checksum(s3_url: str, offset: int = 0, length: Optional[int] = None) -> None:
     """Compute checksum of a file in S3."""
     bucket, key = s3_url.replace("s3://", "").split("/", 1)
-    typer.echo(f"Computing checksum for s3://{bucket}/{key}")
+    print(f"Computing checksum for s3://{bucket}/{key}")
     checksum = compute_s3_checksum(bucket, key, offset, length)
-    typer.echo(f"Checksum: {checksum}")
+    print(f"Checksum: {checksum}")
 
 
 @app.command()
-def combine():
+def combine() -> None:
     """Combine annotations into a single file."""
-    typer.echo("Combining annotations into a single file...")
+    print("Combining annotations into a single file...")
 
 
 if __name__ == "__main__":
