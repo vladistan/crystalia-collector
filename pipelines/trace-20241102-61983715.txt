@@ -1,0 +1,5 @@
+task_id	hash	native_id	name	status	exit	submit	duration	realtime	%cpu	peak_rss	peak_vmem	rchar	wchar
+1	4e/0a3818	302568a7-8a62-4a8f-8602-cf9b179635be	listFiles	COMPLETED	0	2024-11-02 17:13:07.734	18.4s	616ms	92.1%	14.4 MB	19.7 MB	9.3 MB	17.4 KB
+3	0e/48c964	5aad177d-971a-469f-bb47-54e7a5584a02	generateRDF (2)	COMPLETED	0	2024-11-02 17:13:27.012	29.2s	772ms	89.5%	17 MB	22.3 MB	9.3 MB	17.3 KB
+2	9d/1445f8	5c702eab-9cb5-46ab-9598-72d595074798	generateRDF (1)	COMPLETED	0	2024-11-02 17:13:27.049	29.3s	7.1s	32.8%	53.9 MB	61 MB	125.3 MB	17.2 KB
+4	66/76c9ac	9b8a7aa4-974a-401d-bcdb-cc3169b2e7e4	uploadToBucket (1)	COMPLETED	0	2024-11-02 17:13:57.508	18.6s	694ms	94.2%	14 MB	19.1 MB	9.9 MB	3.3 KB

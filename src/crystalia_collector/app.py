@@ -13,7 +13,7 @@ app = typer.Typer()
 
 
 @app.command()
-def list(prefix: str, task_dir: Optional[Path] = None, method_id: str = "md5_8gb") -> None:
+def list(prefix: str, task_dir: Optional[Path] = None, method_id: str = "md5-8gb") -> None:
   """List files in S3 bucket."""
   num_files, total_size = list_s3_dir(prefix, method_id, task_dir)
   print(f"Total size: {human_readable_size(total_size)} in {num_files} files")
