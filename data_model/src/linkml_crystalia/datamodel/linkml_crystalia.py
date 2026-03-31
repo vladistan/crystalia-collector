@@ -7,19 +7,19 @@
 # license: MIT
 
 import dataclasses
-from typing import Optional, List, Union, Dict, ClassVar, Any
 from dataclasses import dataclass
-from linkml_runtime.linkml_model.meta import EnumDefinition, PermissibleValue
+from typing import Any, ClassVar, Optional, Union
 
-from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.metamodelcore import empty_list
-from linkml_runtime.utils.yamlutils import YAMLRoot, extended_str
+from linkml_runtime.linkml_model.meta import EnumDefinition, PermissibleValue
+from linkml_runtime.utils.curienamespace import CurieNamespace
 from linkml_runtime.utils.dataclass_extensions_376 import (
     dataclasses_init_fn_with_kwargs,
 )
 from linkml_runtime.utils.enumerations import EnumDefinitionImpl
+from linkml_runtime.utils.metamodelcore import empty_list
+from linkml_runtime.utils.slot import Slot
+from linkml_runtime.utils.yamlutils import YAMLRoot, extended_str
 from rdflib import URIRef
-from linkml_runtime.utils.curienamespace import CurieNamespace
 
 metamodel_version = "1.7.0"
 version = None
@@ -71,16 +71,16 @@ class DescriptorTypeId(ThingId):
 
 @dataclass(repr=False)
 class Thing(YAMLRoot):
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Thing"]
     class_class_curie: ClassVar[str] = "crys:Thing"
     class_name: ClassVar[str] = "Thing"
     class_model_uri: ClassVar[URIRef] = CRYS.Thing
 
-    id: Union[str, ThingId] = None
+    id: str | ThingId = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, ThingId):
@@ -95,19 +95,19 @@ class Dataset(Thing):
     A collection of items (e.g., files) with associated metadata
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Dataset"]
     class_class_curie: ClassVar[str] = "crys:Dataset"
     class_name: ClassVar[str] = "Dataset"
     class_model_uri: ClassVar[URIRef] = CRYS.Dataset
 
-    id: Union[str, DatasetId] = None
-    containsItem: Optional[Union[Union[str, ItemId], List[Union[str, ItemId]]]] = (
+    id: str | DatasetId = None
+    containsItem: str | ItemId | list[str | ItemId] | None = (
         empty_list()
     )
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DatasetId):
@@ -130,16 +130,16 @@ class DescribableEntity(Thing):
     Something that can be described by a descriptor
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["DescribableEntity"]
     class_class_curie: ClassVar[str] = "crys:DescribableEntity"
     class_name: ClassVar[str] = "DescribableEntity"
     class_model_uri: ClassVar[URIRef] = CRYS.DescribableEntity
 
-    id: Union[str, DescribableEntityId] = None
+    id: str | DescribableEntityId = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DescribableEntityId):
@@ -154,19 +154,17 @@ class Item(DescribableEntity):
     An individual item (e.g., file) in the dataset
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Item"]
     class_class_curie: ClassVar[str] = "crys:Item"
     class_name: ClassVar[str] = "Item"
     class_model_uri: ClassVar[URIRef] = CRYS.Item
 
-    id: Union[str, ItemId] = None
-    hasDescriptor: Optional[
-        Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]
-    ] = empty_list()
+    id: str | ItemId = None
+    hasDescriptor: str | DescriptorId | list[str | DescriptorId] | None = empty_list()
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, ItemId):
@@ -190,21 +188,21 @@ class Descriptor(DescribableEntity):
     A descriptor for an aspect of an item or another descriptor
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Descriptor"]
     class_class_curie: ClassVar[str] = "crys:Descriptor"
     class_name: ClassVar[str] = "Descriptor"
     class_model_uri: ClassVar[URIRef] = CRYS.Descriptor
 
-    id: Union[str, DescriptorId] = None
-    hasType: Optional[str] = None
-    hasValue: Optional[str] = None
-    hasStartOffset: Optional[int] = None
-    hasLength: Optional[int] = None
-    describes: Optional[Union[str, ThingId]] = None
+    id: str | DescriptorId = None
+    hasType: str | None = None
+    hasValue: str | None = None
+    hasStartOffset: int | None = None
+    hasLength: int | None = None
+    describes: str | ThingId | None = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DescriptorId):
@@ -234,19 +232,19 @@ class DescriptorType(Thing):
     The type of a descriptor, including its quality and coverage
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["DescriptorType"]
     class_class_curie: ClassVar[str] = "crys:DescriptorType"
     class_name: ClassVar[str] = "DescriptorType"
     class_model_uri: ClassVar[URIRef] = CRYS.DescriptorType
 
-    id: Union[str, DescriptorTypeId] = None
-    hasName: Optional[str] = None
-    hasQuality: Optional[Union[str, "DescriptorQuality"]] = None
-    hasCoverage: Optional[float] = None
+    id: str | DescriptorTypeId = None
+    hasName: str | None = None
+    hasQuality: Union[str, "DescriptorQuality"] | None = None
+    hasCoverage: float | None = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DescriptorTypeId):
@@ -327,7 +325,7 @@ slots.containsItem = Slot(
     curie=CRYS.curie("containsItem"),
     model_uri=CRYS.containsItem,
     domain=Dataset,
-    range=Optional[Union[Union[str, ItemId], List[Union[str, ItemId]]]],
+    range=Optional[str | ItemId | list[str | ItemId]],
 )
 
 slots.hasDescriptor = Slot(
@@ -336,7 +334,7 @@ slots.hasDescriptor = Slot(
     curie=CRYS.curie("hasDescriptor"),
     model_uri=CRYS.hasDescriptor,
     domain=None,
-    range=Optional[Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]],
+    range=Optional[str | DescriptorId | list[str | DescriptorId]],
 )
 
 slots.hasType = Slot(
@@ -408,5 +406,5 @@ slots.describes = Slot(
     curie=CRYS.curie("describes"),
     model_uri=CRYS.describes,
     domain=None,
-    range=Optional[Union[str, ThingId]],
+    range=Optional[str | ThingId],
 )

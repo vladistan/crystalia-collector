@@ -1,8 +1,5 @@
-import pytest
 
-from crystalia_collector.s3_iface import list_files_in_s3_prefix, compute_s3_checksum
-
-
+from crystalia_collector.s3_iface import compute_s3_checksum, list_files_in_s3_prefix
 
 
 def test_list_files_in_s3_prefix(s3_bucket, s3_prefix):

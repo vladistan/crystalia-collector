@@ -1,10 +1,10 @@
 """Data test."""
 
-import os
 import glob
+import os
 
-from linkml_runtime.loaders import yaml_loader
 from crystalia.datamodel import Descriptor
+from linkml_runtime.loaders import yaml_loader
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 DATA_DIR = os.path.join(ROOT, "src", "data", "examples")

@@ -1,4 +1,4 @@
-from crystalia_collector.work import list_s3_dir, compute_annotations
+from crystalia_collector.work import compute_annotations, list_s3_dir
 
 
 def test_list_s3_dir(s3_bucket, s3_prefix, work_dir):

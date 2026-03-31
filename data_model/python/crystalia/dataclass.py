@@ -7,20 +7,19 @@
 # license: MIT
 
 import dataclasses
-from typing import Optional, List, Union, Dict, ClassVar, Any
 from dataclasses import dataclass
-from linkml_runtime.linkml_model.meta import EnumDefinition, PermissibleValue
+from typing import Any, ClassVar, Optional, Union
 
-from linkml_runtime.utils.slot import Slot
-from linkml_runtime.utils.metamodelcore import empty_list
-from linkml_runtime.utils.yamlutils import YAMLRoot
+from linkml_runtime.linkml_model.meta import EnumDefinition, PermissibleValue
+from linkml_runtime.utils.curienamespace import CurieNamespace
 from linkml_runtime.utils.dataclass_extensions_376 import (
     dataclasses_init_fn_with_kwargs,
 )
 from linkml_runtime.utils.enumerations import EnumDefinitionImpl
+from linkml_runtime.utils.metamodelcore import URIorCURIE, empty_list
+from linkml_runtime.utils.slot import Slot
+from linkml_runtime.utils.yamlutils import YAMLRoot
 from rdflib import URIRef
-from linkml_runtime.utils.curienamespace import CurieNamespace
-from linkml_runtime.utils.metamodelcore import URIorCURIE
 
 metamodel_version = "1.7.0"
 version = None
@@ -73,16 +72,16 @@ class MethodId(ThingId):
 
 @dataclass(repr=False)
 class Thing(YAMLRoot):
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Thing"]
     class_class_curie: ClassVar[str] = "crys:Thing"
     class_name: ClassVar[str] = "Thing"
     class_model_uri: ClassVar[URIRef] = CRYS.Thing
 
-    id: Union[str, ThingId] = None
+    id: str | ThingId = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, ThingId):
@@ -97,19 +96,17 @@ class DescribableThing(Thing):
     An item that can be described by one or more descriptors. Could be an item(file) or another descriptor
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["DescribableThing"]
     class_class_curie: ClassVar[str] = "crys:DescribableThing"
     class_name: ClassVar[str] = "DescribableThing"
     class_model_uri: ClassVar[URIRef] = CRYS.DescribableThing
 
-    id: Union[str, DescribableThingId] = None
-    hasDescriptor: Optional[
-        Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]
-    ] = empty_list()
+    id: str | DescribableThingId = None
+    hasDescriptor: str | DescriptorId | list[str | DescriptorId] | None = empty_list()
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DescribableThingId):
@@ -133,18 +130,18 @@ class Item(DescribableThing):
     An individual item for example a file
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Item"]
     class_class_curie: ClassVar[str] = "crys:Item"
     class_name: ClassVar[str] = "Item"
     class_model_uri: ClassVar[URIRef] = CRYS.Item
 
-    id: Union[str, ItemId] = None
+    id: str | ItemId = None
     label: str = None
-    isPartOf: Union[str, URIorCURIE] = None
+    isPartOf: str | URIorCURIE = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, ItemId):
@@ -169,22 +166,22 @@ class Descriptor(DescribableThing):
     A descriptor for the whole or part of an item or another descriptor
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Descriptor"]
     class_class_curie: ClassVar[str] = "crys:Descriptor"
     class_name: ClassVar[str] = "Descriptor"
     class_model_uri: ClassVar[URIRef] = CRYS.Descriptor
 
-    id: Union[str, DescriptorId] = None
-    hasType: Union[str, DescriptorTypeId] = None
+    id: str | DescriptorId = None
+    hasType: str | DescriptorTypeId = None
     value: str = None
     offset: int = None
     coverage: float = None
-    length: Optional[int] = None
-    label: Optional[str] = None
+    length: int | None = None
+    label: str | None = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DescriptorId):
@@ -225,19 +222,19 @@ class DescriptorType(Thing):
     Details about a descriptor type
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["DescriptorType"]
     class_class_curie: ClassVar[str] = "crys:DescriptorType"
     class_name: ClassVar[str] = "DescriptorType"
     class_model_uri: ClassVar[URIRef] = CRYS.DescriptorType
 
-    id: Union[str, DescriptorTypeId] = None
+    id: str | DescriptorTypeId = None
     label: str = None
-    usesMethod: Union[str, MethodId] = None
-    max_block_size: Optional[int] = None
+    usesMethod: str | MethodId = None
+    max_block_size: int | None = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, DescriptorTypeId):
@@ -265,19 +262,19 @@ class Method(Thing):
     A method used to generate a descriptor
     """
 
-    _inherited_slots: ClassVar[List[str]] = []
+    _inherited_slots: ClassVar[list[str]] = []
 
     class_class_uri: ClassVar[URIRef] = CRYS["Method"]
     class_class_curie: ClassVar[str] = "crys:Method"
     class_name: ClassVar[str] = "Method"
     class_model_uri: ClassVar[URIRef] = CRYS.Method
 
-    id: Union[str, MethodId] = None
+    id: str | MethodId = None
     label: str = None
     robustness: Union[str, "DescriptorRobustness"] = None
-    comment: Optional[str] = None
+    comment: str | None = None
 
-    def __post_init__(self, *_: List[str], **kwargs: Dict[str, Any]):
+    def __post_init__(self, *_: list[str], **kwargs: dict[str, Any]):
         if self._is_empty(self.id):
             self.MissingRequiredField("id")
         if not isinstance(self.id, MethodId):
@@ -383,7 +380,7 @@ slots.hasDescriptor = Slot(
     curie=CRYS.curie("hasDescriptor"),
     model_uri=CRYS.hasDescriptor,
     domain=None,
-    range=Optional[Union[Union[str, DescriptorId], List[Union[str, DescriptorId]]]],
+    range=Optional[str | DescriptorId | list[str | DescriptorId]],
 )
 
 slots.max_block_size = Slot(

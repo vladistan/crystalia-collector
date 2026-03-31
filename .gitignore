@@ -10,3 +10,6 @@
 .nextflow/
 /pipelines/reports
 /tests/work_dir
+/data/
+/pipelines/out.rdf
+test.ttl

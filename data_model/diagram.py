@@ -1,10 +1,11 @@
 #! /usr/bin/env python3
-import sys
-import base64
-import zlib
 import argparse
-import requests
+import base64
 import os
+import sys
+import zlib
+
+import requests
 
 KROKI_SERVER_BASE_URL = os.environ.get(
     "KROKI_SERVER_BASE_URL",

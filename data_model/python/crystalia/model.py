@@ -4,9 +4,6 @@ from enum import Enum
 from typing import (
     Any,
     ClassVar,
-    Dict,
-    List,
-    Optional,
 )
 
 from pydantic import (
@@ -15,7 +12,6 @@ from pydantic import (
     Field,
     RootModel,
 )
-
 
 metamodel_version = "None"
 version = "None"
@@ -33,7 +29,7 @@ class ConfiguredBaseModel(BaseModel):
 
 
 class LinkMLMeta(RootModel):
-    root: Dict[str, Any] = {}
+    root: dict[str, Any] = {}
     model_config = ConfigDict(frozen=True)
 
     def __getattr__(self, key: str):
@@ -155,7 +151,7 @@ class DescribableThing(Thing):
         {"from_schema": "https://w3id.org/crystalia"},
     )
 
-    hasDescriptor: Optional[List[str]] = Field(
+    hasDescriptor: list[str] | None = Field(
         None,
         description="""The descriptors associated with an item""",
         json_schema_extra={
@@ -203,7 +199,7 @@ class Item(DescribableThing):
             },
         },
     )
-    hasDescriptor: Optional[List[str]] = Field(
+    hasDescriptor: list[str] | None = Field(
         None,
         description="""The descriptors associated with an item""",
         json_schema_extra={
@@ -254,7 +250,7 @@ class Descriptor(DescribableThing):
             },
         },
     )
-    length: Optional[int] = Field(
+    length: int | None = Field(
         None,
         description="""The length of the data described by the descriptor""",
         json_schema_extra={
@@ -272,7 +268,7 @@ class Descriptor(DescribableThing):
             "linkml_meta": {"alias": "coverage", "domain_of": ["Descriptor"]},
         },
     )
-    label: Optional[str] = Field(
+    label: str | None = Field(
         None,
         description="""A human-readable label""",
         json_schema_extra={
@@ -283,7 +279,7 @@ class Descriptor(DescribableThing):
             },
         },
     )
-    hasDescriptor: Optional[List[str]] = Field(
+    hasDescriptor: list[str] | None = Field(
         None,
         description="""The descriptors associated with an item""",
         json_schema_extra={
@@ -327,7 +323,7 @@ class DescriptorType(Thing):
             "linkml_meta": {"alias": "usesMethod", "domain_of": ["DescriptorType"]},
         },
     )
-    max_block_size: Optional[int] = Field(
+    max_block_size: int | None = Field(
         None,
         description="""The maximum size of the block of data described by the descriptor""",
         json_schema_extra={
@@ -361,7 +357,7 @@ class Method(Thing):
             },
         },
     )
-    comment: Optional[str] = Field(
+    comment: str | None = Field(
         None,
         description="""A description of the item""",
         json_schema_extra={

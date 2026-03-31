@@ -4,7 +4,7 @@ import pytest
 
 from crystalia_collector.method.md5 import MD5_2GB
 from crystalia_collector.s3_iface import S3Object
-from crystalia_collector.util import human_readable_size, stream_offsets, process_file
+from crystalia_collector.util import human_readable_size, process_file, stream_offsets
 
 
 def test_human_readable_size_bytes_less_than_1_kb():
