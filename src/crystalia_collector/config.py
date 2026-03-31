@@ -1,13 +1,16 @@
 import os
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, TomlConfigSettingsSource
 
 # Default project Sentry DSN — used when enable_telemetry=True and no custom DSN is configured.
 # Replace with your project's actual DSN from https://sentry.io/settings/<org>/projects/<project>/keys/
-_DEFAULT_SENTRY_DSN: str | None = "https://610970a9e5029efe77fa5deff231ec37@o4508594232426496.ingest.us.sentry.io/4511138745745408"
+_DEFAULT_SENTRY_DSN: str | None = (
+    "https://610970a9e5029efe77fa5deff231ec37@o4508594232426496.ingest.us.sentry.io/4511138745745408"
+)
 
 _CONFIG_PATHS = [
     Path("crystalia.toml"),
@@ -33,6 +36,10 @@ class CollectorSettings(BaseSettings):
     # S3 settings
     default_method_id: str = "md5-8gb"
     default_output_file: str = "out.rdf"
+
+    # Pipeline defaults
+    default_workers: int = (os.cpu_count() or 1) * 2
+    default_format: Literal["turtle", "text"] = "turtle"
 
     # Telemetry
     enable_telemetry: bool = False
@@ -70,5 +77,4 @@ class CollectorSettings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> CollectorSettings:
-    """Get application settings (loaded once at first call)."""
     return CollectorSettings()

@@ -1,6 +1,11 @@
 from functools import lru_cache
 from pathlib import Path
 
+# Import spike result (Phase 1):
+# - ``linkml`` package is NOT installed; SchemaView, RDFLibDumper, RDFLibLoader
+#   remain available from ``linkml_runtime``.
+# - Pydantic model classes are available from ``crystalia_data_model.datamodel.linkml_crystalia``
+#   and will replace the vendored dataclasses in Phase 3.
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import RDFLibDumper
 from linkml_runtime.loaders import RDFLibLoader
@@ -9,7 +14,7 @@ from rdflib import Graph, URIRef
 
 from crystalia_collector.data.linkml.crystalia import Thing
 
-SCHEMA_DIR = Path(__file__).parent / "data" / "linkml"
+SCHEMA_DIR = Path(__file__).parent / "schema"
 
 
 @lru_cache
