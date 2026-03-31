@@ -1,10 +1,10 @@
 import hashlib
-
-import boto3
-from typing import Iterator, Optional
-
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
+
+import boto3
 
 
 @dataclass
@@ -15,7 +15,7 @@ class S3Object:
     size: int
 
 
-def s3_object_from_dict(obj: dict) -> S3Object:
+def s3_object_from_dict(obj: dict[str, Any]) -> S3Object:
     return S3Object(
         key=obj["Key"],
         last_modified=obj["LastModified"],
@@ -44,7 +44,7 @@ def compute_s3_checksum(
     bucket_name: str,
     object_key: str,
     offset: int = 0,
-    length: Optional[int] = None,
+    length: int | None = None,
 ) -> str:
     s3 = boto3.client("s3")
     hasher = hashlib.md5()

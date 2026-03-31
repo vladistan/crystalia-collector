@@ -1,8 +1,8 @@
 class GenericMethod:
-  def __init__(self):
-    self.block_size = 0
-    self.id = None
+    def __init__(self) -> None:
+        self.block_size = 0
+        self.id: str | None = None
 
-  @property
-  def needs_offsets(self):
-    return self.block_size != 0
+    @property
+    def needs_offsets(self) -> bool:
+        return self.block_size != 0

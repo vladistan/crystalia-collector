@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from crystalia_collector.method.md5 import method_by_id
 from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_files_in_s3_prefix
 from crystalia_collector.util import human_readable_size, process_file, write_task_file
 
 
-def list_s3_dir(prefix, method_id, task_dir):
+def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
     bucket, prefix = prefix.split("/", 1)
 
     total_size, num_files, task_num = 0, 0, 1
@@ -34,7 +36,7 @@ def list_s3_dir(prefix, method_id, task_dir):
     return num_files, total_size
 
 
-def compute_annotations(output_file, task_file):
+def compute_annotations(output_file: str, task_file: str) -> None:
     with open(task_file) as f, open(output_file, "w") as out:
         for line in f:
             components = line.strip().split()

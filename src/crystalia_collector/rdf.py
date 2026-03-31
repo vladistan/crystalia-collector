@@ -19,13 +19,13 @@ def get_schema() -> SchemaView:
 
 
 def rdf_from_model(thing: Thing) -> Graph:
-    return RDFLibDumper().as_rdf_graph(thing, get_schema())
+    return RDFLibDumper().as_rdf_graph(thing, get_schema())  # type: ignore[no-any-return]
 
 
 def model_from_rdf(
     rdf: Graph,
     type_class: type[Thing],
-    subject: str = None,
+    subject: str | None = None,
 ) -> BaseModel:
     schema = get_schema()
     if subject:
@@ -34,7 +34,7 @@ def model_from_rdf(
         triples = old_rdf.triples((URIRef(schema.expand_curie(subject)), None, None))
         rdf += triples
 
-    return RDFLibLoader().load(
+    return RDFLibLoader().load(  # type: ignore[no-any-return]
         source=rdf,
         fmt="turtle",
         target_class=type_class,

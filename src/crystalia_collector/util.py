@@ -56,7 +56,7 @@ def write_task_file(
     task_dir.mkdir(parents=True, exist_ok=True)
     with open(f"{task_dir}/task_{task_num}", "w") as f:
 
-        def write_obj(obj):
+        def write_obj(obj: S3Object) -> None:
             f.write(f"s3://{bucket}/{obj.key} {obj.size} {method.id} {method.block_size} {offset}\n")
 
         if isinstance(content, list):

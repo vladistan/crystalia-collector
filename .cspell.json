@@ -20,6 +20,7 @@
     "rdfx",
     "SPARQL",
     "boto",
+    "botocore",
     "awslogs",
     "envtmpdir",
     "apidoc",
