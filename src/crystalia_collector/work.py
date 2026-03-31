@@ -1,8 +1,12 @@
 from pathlib import Path
 
+import structlog
+
 from crystalia_collector.method.md5 import method_by_id
 from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_files_in_s3_prefix
 from crystalia_collector.util import human_readable_size, process_file, write_task_file
+
+log = structlog.get_logger()
 
 
 def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
@@ -14,8 +18,13 @@ def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int
 
     for file in list_files_in_s3_prefix(bucket, prefix):
         size_str = human_readable_size(file.size)
-        print(
-            f's3://{bucket}/{file.key:110}: {size_str:12} {file.last_modified.strftime("%Y-%m-%d")} {file.etag}',
+        log.info(
+            "s3_object_found",
+            bucket=bucket,
+            key=file.key,
+            size=size_str,
+            last_modified=file.last_modified.strftime("%Y-%m-%d"),
+            etag=file.etag,
         )
         total_size += file.size
         num_files += 1
@@ -43,7 +52,7 @@ def compute_annotations(output_file: str, task_file: str) -> None:
             if not components:
                 continue
             file = components[0]
-            print(f"Annotating file: {file}")
+            log.info("annotating_file", file=file)
             bucket, key = file.replace("s3://", "").split("/", 1)
 
             if len(components) == 5:
@@ -58,8 +67,11 @@ def compute_annotations(output_file: str, task_file: str) -> None:
                     f"Invalid number of components: {len(components)} for file {file} line {line}",
                 )
 
-            print(
-                f"Computing checksum for {file} with offset {offset} and blocksize {block_size}",
+            log.info(
+                "computing_file_checksum",
+                file=file,
+                offset=offset,
+                block_size=block_size,
             )
             checksum = compute_s3_checksum(bucket, key, offset, block_size)
             out.write(f"<{file}>  {checksum}\n")

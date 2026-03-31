@@ -1,0 +1,11 @@
+# AWS Configuration
+export AWS_PROFILE=default
+export AWS_DEFAULT_REGION=us-east-1
+
+# Sentry (optional - leave empty to disable)
+export SENTRY_DSN=
+
+# Application settings
+export CRYSTALIA_DEFAULT_METHOD_ID=md5-8gb
+export CRYSTALIA_DEFAULT_OUTPUT_FILE=out.rdf
+export CRYSTALIA_LOG_JSON=true

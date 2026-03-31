@@ -39,7 +39,10 @@ dependencies = [
   "toml>=0.10.2",
   "boto3>=1.18.0",
   "linkml-runtime>=1.10.0",
-  "crystalia-data-model"
+  "crystalia-data-model",
+  "sentry-sdk>=2.0",
+  "structlog>=24.0",
+  "pydantic-settings>=2.0",
 ]
 keywords = ["knowledge-graph", "provenance", "data-engineering"]
 requires-python = ">=3.13"
@@ -78,7 +81,7 @@ disable_error_code = "attr-defined"
 
 [[tool.mypy.overrides]]
 # External libraries without type stubs
-module = ["boto3", "boto3.*", "botocore.*", "linkml_runtime", "linkml_runtime.*"]
+module = ["boto3", "boto3.*", "botocore.*", "linkml_runtime", "linkml_runtime.*", "sentry_sdk", "sentry_sdk.*", "structlog", "structlog.*", "pydantic_settings", "pydantic_settings.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
