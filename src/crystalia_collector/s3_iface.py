@@ -1,10 +1,16 @@
-import hashlib
+"""Thin facade over source.s3 — preserves the legacy public API.
+
+Callers should continue importing S3Object, list_files_in_s3_prefix, and
+compute_s3_checksum from this module.  The real logic now lives in
+crystalia_collector.source.s3.S3Source.
+"""
+
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-import boto3
+from crystalia_collector.source.s3 import S3Source
 
 
 @dataclass
@@ -25,19 +31,14 @@ def s3_object_from_dict(obj: dict[str, Any]) -> S3Object:
 
 
 def list_files_in_s3_prefix(bucket_name: str, prefix: str) -> Iterator[S3Object]:
-    s3 = boto3.client("s3")
-    response = s3.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-
-    for obj in response["Contents"]:
-        yield s3_object_from_dict(obj)
-    while response["IsTruncated"]:
-        response = s3.list_objects_v2(
-            Bucket=bucket_name,
-            Prefix=prefix,
-            ContinuationToken=response["NextContinuationToken"],
+    source = S3Source()
+    for file_obj in source.list_files(f"s3://{bucket_name}/{prefix}"):
+        yield S3Object(
+            key=file_obj.uri.removeprefix(f"s3://{bucket_name}/"),
+            last_modified=file_obj.mtime,
+            etag=file_obj.etag or "",
+            size=file_obj.size,
         )
-        for obj in response["Contents"]:
-            yield s3_object_from_dict(obj)
 
 
 def compute_s3_checksum(
@@ -46,15 +47,5 @@ def compute_s3_checksum(
     offset: int = 0,
     length: int | None = None,
 ) -> str:
-    s3 = boto3.client("s3")
-    hasher = hashlib.md5()
-
-    response = s3.get_object(
-        Bucket=bucket_name,
-        Key=object_key,
-        Range=f"bytes={offset}-{offset + length - 1}" if length else f"bytes={offset}-",
-    )
-    for chunk in response["Body"].iter_chunks(chunk_size=8192):
-        hasher.update(chunk)
-
-    return hasher.hexdigest()
+    source = S3Source()
+    return source.compute_checksum(f"s3://{bucket_name}/{object_key}", offset, length)
