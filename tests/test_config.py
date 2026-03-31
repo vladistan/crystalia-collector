@@ -10,7 +10,7 @@ def test_default_values():
     assert settings.default_output_file == "out.rdf"
     assert settings.sentry_environment == "development"
     assert settings.log_json is True
-    assert settings.enable_telemetry is True
+    assert settings.enable_telemetry is False
 
 
 def test_sentry_dsn_defaults_to_none_when_no_default_set(monkeypatch):
@@ -56,6 +56,7 @@ def test_crystalia_sentry_dsn_takes_precedence_over_bare(monkeypatch):
 def test_default_dsn_used_when_telemetry_enabled_and_no_dsn(monkeypatch):
     monkeypatch.delenv("SENTRY_DSN", raising=False)
     monkeypatch.delenv("CRYSTALIA_SENTRY_DSN", raising=False)
+    monkeypatch.setenv("CRYSTALIA_ENABLE_TELEMETRY", "true")
     import crystalia_collector.config as cfg_module
 
     monkeypatch.setattr(cfg_module, "_DEFAULT_SENTRY_DSN", "https://default@o0.ingest.sentry.io/0")

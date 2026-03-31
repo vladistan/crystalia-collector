@@ -81,7 +81,7 @@ To disable telemetry: `export CRYSTALIA_ENABLE_TELEMETRY=false`
 
 ## Telemetry
 
-Crystalia Collector reports errors and performance data to Sentry by default (`enable_telemetry=true`). No personally identifiable information is collected.
+Crystalia Collector can report errors and performance data to Sentry. Telemetry is **opt-in** and disabled by default. No personally identifiable information is collected.
 
 To verify your Sentry integration is working:
 

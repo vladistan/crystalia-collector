@@ -35,7 +35,7 @@ class CollectorSettings(BaseSettings):
     default_output_file: str = "out.rdf"
 
     # Telemetry
-    enable_telemetry: bool = True
+    enable_telemetry: bool = False
     sentry_dsn: str | None = None
     sentry_environment: str = "development"
 
