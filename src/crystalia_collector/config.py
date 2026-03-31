@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, TomlConf
 
 # Default project Sentry DSN — used when enable_telemetry=True and no custom DSN is configured.
 # Replace with your project's actual DSN from https://sentry.io/settings/<org>/projects/<project>/keys/
-_DEFAULT_SENTRY_DSN: str | None = None  # TODO: set project DSN after creating Sentry project
+_DEFAULT_SENTRY_DSN: str | None = "https://610970a9e5029efe77fa5deff231ec37@o4508594232426496.ingest.us.sentry.io/4511138745745408"
 
 _CONFIG_PATHS = [
     Path("crystalia.toml"),
