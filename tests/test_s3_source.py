@@ -10,7 +10,11 @@ from crystalia_collector.source.s3 import S3Source
 _NOW = datetime(2024, 1, 1, tzinfo=UTC)
 
 
-def _s3_response(objects: list[dict[str, str | int | datetime]], is_truncated: bool = False, next_token: str | None = None) -> dict[str, Any]:
+def _s3_response(
+    objects: list[dict[str, str | int | datetime]],
+    is_truncated: bool = False,
+    next_token: str | None = None,
+) -> dict[str, Any]:
     response = {"Contents": objects, "IsTruncated": is_truncated}
     if next_token:
         response["NextContinuationToken"] = next_token
