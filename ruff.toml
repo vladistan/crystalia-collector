@@ -1,0 +1,14 @@
+target-version = "py313"
+line-length = 120
+src = ["src", "tests"]
+exclude = [
+    "data_model",
+    "src/crystalia_collector/data/linkml",
+]
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "N"]
+
+[lint.per-file-ignores]
+"tests/*" = ["S101", "ANN", "D"]
+"src/crystalia_collector/method/md5.py" = ["N801"]

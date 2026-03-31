@@ -1,16 +1,13 @@
-from typing import Type
+from functools import lru_cache
+from pathlib import Path
+
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers import RDFLibDumper
 from linkml_runtime.loaders import RDFLibLoader
 from pydantic import BaseModel
 from rdflib import Graph, URIRef
 
-from functools import lru_cache
-from pathlib import Path
-
-
-from crystalia.datamodel.crystalia import Thing
-
+from crystalia_collector.data.linkml.crystalia import Thing
 
 SCHEMA_DIR = Path(__file__).parent / "data" / "linkml"
 
@@ -27,7 +24,7 @@ def rdf_from_model(thing: Thing) -> Graph:
 
 def model_from_rdf(
     rdf: Graph,
-    type_class: Type[Thing],
+    type_class: type[Thing],
     subject: str = None,
 ) -> BaseModel:
     schema = get_schema()

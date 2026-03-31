@@ -1,13 +1,13 @@
 import pytest
-from linkml_runtime.loaders import yaml_loader
-from crystalia.datamodel.crystalia import (
-    Item,
+from crystalia_collector.data.linkml.crystalia import (
     Descriptor,
-    Method,
     DescriptorRobustness,
     DescriptorType,
+    Item,
+    Method,
 )
 from rdflib import Graph
+
 from crystalia_collector.rdf import model_from_rdf, rdf_from_model
 
 
