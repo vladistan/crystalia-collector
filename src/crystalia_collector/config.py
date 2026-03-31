@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pydantic_settings import BaseSettings
 
 
@@ -18,6 +20,7 @@ class CollectorSettings(BaseSettings):
     log_json: bool = True
 
 
+@lru_cache(maxsize=1)
 def get_settings() -> CollectorSettings:
-    """Get application settings (cached)."""
+    """Get application settings (loaded once at first call)."""
     return CollectorSettings()

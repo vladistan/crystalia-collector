@@ -1,11 +1,11 @@
 """Monitoring and structured logging configuration."""
 
-from __future__ import annotations
-
 import os
 
 import sentry_sdk
 import structlog
+
+from crystalia_collector import __version__
 
 
 def init_monitoring(dsn: str | None = None) -> None:
@@ -16,8 +16,11 @@ def init_monitoring(dsn: str | None = None) -> None:
         return
     sentry_sdk.init(
         dsn=dsn,
-        traces_sample_rate=1.0,
+        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.03")),
         environment=os.environ.get("SENTRY_ENVIRONMENT", "development"),
+        release=__version__,
+        attach_stacktrace=True,
+        send_default_pii=False,
     )
 
 
