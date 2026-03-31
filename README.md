@@ -44,18 +44,62 @@ The block-based methods generate offset/length pairs in task files, enabling par
 
 ## Configuration
 
-Environment variables:
+Settings are loaded in this order (highest priority first):
+
+1. Environment variables (`CRYSTALIA_*` prefix, or bare `SENTRY_DSN`)
+2. `./crystalia.toml` in the current directory
+3. `~/.config/crystalia-collector/config.toml` (user global)
+4. Built-in defaults
+
+### Config file
+
+Create `~/.config/crystalia-collector/config.toml` for persistent settings:
+
+```toml
+default_method_id = "md5-8gb"
+sentry_environment = "production"
+log_json = false
+enable_telemetry = true
+```
+
+### Environment variables
 
 | Variable | Description |
 |----------|-------------|
 | `AWS_PROFILE` | AWS credentials profile to use |
 | `AWS_DEFAULT_REGION` | AWS region (e.g. `us-east-1`) |
-| `SENTRY_DSN` | Sentry DSN for error tracking (optional) |
+| `CRYSTALIA_ENABLE_TELEMETRY` | Send crash reports to Sentry (default: `true`) |
+| `CRYSTALIA_SENTRY_DSN` | Override Sentry DSN (uses project default when not set) |
+| `SENTRY_DSN` | Bare DSN fallback, e.g. for CI or Heroku |
 | `CRYSTALIA_DEFAULT_METHOD_ID` | Default checksum method (default: `md5-8gb`) |
 | `CRYSTALIA_DEFAULT_OUTPUT_FILE` | Default output file for annotations (default: `out.rdf`) |
-| `CRYSTALIA_LOG_JSON` | Enable JSON-formatted log output |
+| `CRYSTALIA_LOG_JSON` | JSON-formatted log output (default: `true`) |
 
 Copy `.envrc.example` to `.envrc` and adjust as needed.
+
+To disable telemetry: `export CRYSTALIA_ENABLE_TELEMETRY=false`
+
+## Telemetry
+
+Crystalia Collector reports errors and performance data to Sentry by default (`enable_telemetry=true`). No personally identifiable information is collected.
+
+To verify your Sentry integration is working:
+
+```bash
+crystalia-collector test-sentry
+```
+
+To redirect telemetry to your own Sentry project:
+
+```bash
+export CRYSTALIA_SENTRY_DSN=https://your-key@your-org.ingest.sentry.io/your-project
+```
+
+To disable telemetry entirely:
+
+```bash
+export CRYSTALIA_ENABLE_TELEMETRY=false
+```
 
 ## Development
 
