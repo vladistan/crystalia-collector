@@ -1,7 +1,7 @@
 import pytest
 from rdflib import Graph
 
-from crystalia_collector.data.linkml.crystalia import (
+from crystalia_data_model.datamodel.linkml_crystalia import (
     Descriptor,
     DescriptorRobustness,
     DescriptorType,
@@ -60,10 +60,8 @@ def test_create_item(item):
 
 
 def test_descriptor_model(item, descriptor_short_file_full_hash):
-    item.hasDescriptor.append(descriptor_short_file_full_hash)
-    descriptor_short_file_full_hash.hasDescriptor.append(
-        descriptor_short_file_full_hash,
-    )
+    item.hasDescriptor = [descriptor_short_file_full_hash.id]
+    descriptor_short_file_full_hash.hasDescriptor = [descriptor_short_file_full_hash.id]
 
 
 def test_create_descriptor_type(descriptor_type_sha256_full):
@@ -78,7 +76,7 @@ def test_rdf_from_model(
     method_sha256,
     descriptor_short_file_full_hash,
 ):
-    item.hasDescriptor.append(descriptor_short_file_full_hash)
+    item.hasDescriptor = [descriptor_short_file_full_hash.id]
     item_rdf = rdf_from_model(item)
     dtype_rdf = rdf_from_model(descriptor_type_sha256_full)
     method_rdf = rdf_from_model(method_sha256)
@@ -93,8 +91,10 @@ def test_model_from_rdf(short_file_single_descriptor):
     rdf_graph = Graph()
     rdf_graph.parse(short_file_single_descriptor, format="turtle")
 
+    item_uri = "s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202/samples-cohort/a.txt"
+
     # Use the function to get the data class instance
-    item = model_from_rdf(rdf_graph, Item)
+    item = model_from_rdf(rdf_graph, Item, subject=item_uri)
 
     # Perform assertions
     assert item.label == "Short file in the cohort"
@@ -115,4 +115,4 @@ def test_model_from_rdf(short_file_single_descriptor):
 
     method = model_from_rdf(rdf_graph, Method, subject=str(desc_type.usesMethod))
     assert method.label == "SHA256"
-    assert method.robustness.code.text == DescriptorRobustness.EXTREMELY_HIGH.text
+    assert method.robustness == DescriptorRobustness.EXTREMELY_HIGH

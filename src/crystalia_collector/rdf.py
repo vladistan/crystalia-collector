@@ -1,18 +1,13 @@
 from functools import lru_cache
 from pathlib import Path
 
-# Import spike result (Phase 1):
-# - ``linkml`` package is NOT installed; SchemaView, RDFLibDumper, RDFLibLoader
-#   remain available from ``linkml_runtime``.
-# - Pydantic model classes are available from ``crystalia_data_model.datamodel.linkml_crystalia``
-#   and will replace the vendored dataclasses in Phase 3.
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers import RDFLibDumper
-from linkml_runtime.loaders import RDFLibLoader
+from linkml_runtime.dumpers.pydantic_rdf_dumper import PydanticRDFDumper
+from linkml_runtime.loaders.pydantic_rdf_loader import PydanticRDFLoader
 from pydantic import BaseModel
-from rdflib import Graph, URIRef
+from rdflib import Graph
 
-from crystalia_collector.data.linkml.crystalia import Thing
+from crystalia_data_model.datamodel.linkml_crystalia import Thing
 
 SCHEMA_DIR = Path(__file__).parent / "schema"
 
@@ -24,7 +19,7 @@ def get_schema() -> SchemaView:
 
 
 def rdf_from_model(thing: Thing) -> Graph:
-    return RDFLibDumper().as_rdf_graph(thing, get_schema())  # type: ignore[no-any-return]
+    return PydanticRDFDumper().as_rdf_graph(thing)  # type: ignore[no-any-return]
 
 
 def model_from_rdf(
@@ -32,17 +27,13 @@ def model_from_rdf(
     type_class: type[Thing],
     subject: str | None = None,
 ) -> BaseModel:
-    schema = get_schema()
+    root_subject: str | None = None
     if subject:
-        old_rdf = rdf
-        rdf = Graph()
-        triples = old_rdf.triples((URIRef(schema.expand_curie(subject)), None, None))
-        rdf += triples
+        root_subject = get_schema().expand_curie(subject)
 
-    return RDFLibLoader().load(  # type: ignore[no-any-return]
+    return PydanticRDFLoader().load(  # type: ignore[no-any-return]
         source=rdf,
         fmt="turtle",
         target_class=type_class,
-        ignore_unmapped_predicates=True,
-        schemaview=schema,
+        root_subject=root_subject,
     )

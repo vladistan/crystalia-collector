@@ -38,7 +38,8 @@ dependencies = [
   "typer>=0.4.0",
   "toml>=0.10.2",
   "boto3>=1.18.0",
-  "linkml-runtime>=1.10.0",
+  "linkml",
+  "linkml-runtime",
   "crystalia-data-model",
   "sentry-sdk>=2.0",
   "structlog>=24.0",
@@ -86,12 +87,6 @@ disable_error_code = ["attr-defined", "import-untyped", "var-annotated", "no-unt
 module = ["boto3", "boto3.*", "botocore.*", "linkml_runtime", "linkml_runtime.*", "sentry_sdk", "sentry_sdk.*", "structlog", "structlog.*", "pydantic_settings", "pydantic_settings.*", "crystalia_data_model", "crystalia_data_model.*"]
 ignore_missing_imports = true
 
-[[tool.mypy.overrides]]
-# TODO(Phase 3): Remove this override once vendored data/linkml/ is deleted
-# Vendored auto-generated LinkML dataclass code
-module = "crystalia_collector.data.linkml.*"
-ignore_errors = true
-
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_default_fixture_loop_scope = "function"
@@ -99,3 +94,5 @@ addopts = "--ignore=legacy --ignore=data_model"
 
 [tool.uv.sources]
 crystalia-data-model = {path = "../crystalia-data-model", editable = true}
+linkml = {path = "../../linkml/linkml/packages/linkml", editable = true}
+linkml-runtime = {path = "../../linkml/linkml/packages/linkml_runtime", editable = true}
