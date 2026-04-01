@@ -7,9 +7,9 @@ import typer
 
 from crystalia_collector.config import get_settings
 from crystalia_collector.monitoring import configure_logging, init_monitoring
-from crystalia_collector.s3_iface import compute_s3_checksum
+from crystalia_collector.source import detect_source
 from crystalia_collector.util import human_readable_size
-from crystalia_collector.work import compute_annotations, list_s3_dir
+from crystalia_collector.work import compute_annotations, list_dir
 
 GB = 2**30
 
@@ -33,9 +33,9 @@ def main() -> None:
 
 @app.command()
 def list(prefix: str, task_dir: Path | None = None, method_id: str = get_settings().default_method_id) -> None:
-    """List files in S3 bucket."""
+    """List files in an S3 bucket or local directory."""
     try:
-        num_files, total_size = list_s3_dir(prefix, method_id, task_dir)
+        num_files, total_size = list_dir(prefix, method_id, task_dir)
         log.info("listing_complete", num_files=num_files, total_size=human_readable_size(total_size))
     except Exception as exc:
         log.error("listing_failed", error=str(exc))
@@ -54,12 +54,12 @@ def annotate(task_file: str, output_file: str = get_settings().default_output_fi
 
 
 @app.command()
-def checksum(s3_url: str, offset: int = 0, length: int | None = None) -> None:
-    """Compute checksum of a file in S3."""
+def checksum(uri: str, offset: int = 0, length: int | None = None) -> None:
+    """Compute checksum of a file."""
     try:
-        bucket, key = s3_url.replace("s3://", "").split("/", 1)
-        log.info("computing_checksum", bucket=bucket, key=key)
-        result = compute_s3_checksum(bucket, key, offset, length)
+        source = detect_source(uri)
+        log.info("computing_checksum", uri=uri)
+        result = source.compute_checksum(uri, offset, length)
         log.info("checksum_complete", checksum=result)
     except Exception as exc:
         log.error("checksum_failed", error=str(exc))

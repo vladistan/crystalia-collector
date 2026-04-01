@@ -36,12 +36,12 @@ def test_test_sentry_no_dsn(monkeypatch):
 
 
 def test_list_error_handling():
-    with patch("crystalia_collector.app.list_s3_dir", side_effect=RuntimeError("S3 error")):
-        result = runner.invoke(app, ["list", "bad-bucket/prefix"])
+    with patch("crystalia_collector.app.list_dir", side_effect=RuntimeError("source error")):
+        result = runner.invoke(app, ["list", "/some/path"])
     assert result.exit_code != 0
 
 
 def test_checksum_error_handling():
-    with patch("crystalia_collector.app.compute_s3_checksum", side_effect=RuntimeError("S3 error")):
+    with patch("crystalia_collector.app.detect_source", side_effect=RuntimeError("source error")):
         result = runner.invoke(app, ["checksum", "s3://bucket/key"])
     assert result.exit_code != 0
