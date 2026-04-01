@@ -1,3 +1,5 @@
+"""Local filesystem backend implementing the Source protocol."""
+
 import hashlib
 import os
 from collections.abc import Iterator

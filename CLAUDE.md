@@ -2,21 +2,30 @@
 
 ## Project
 
-crystalia-collector — CLI tool that generates RDF dataset descriptors from large S3-hosted datasets.
+crystalia-collector — CLI tool that generates RDF dataset descriptors from large S3-hosted and local datasets.
 
 ## Structure
 
 ```
 src/crystalia_collector/
-  app.py            # Typer CLI entry point
+  app.py            # Typer CLI entry point (list, annotate, checksum, combine, run)
   config.py         # Pydantic Settings (env vars, TOML files)
-  work.py           # Core workflow: list S3, generate tasks, compute annotations
-  s3_iface.py       # S3 client: paginated listing, byte-range checksums
+  work.py           # Core workflow: list dirs, generate tasks, compute annotations, run pipeline
+  s3_iface.py       # Legacy S3 facade (delegates to source/s3.py)
   rdf.py            # RDF <-> Pydantic model conversion via PydanticRDFDumper/Loader
   monitoring.py     # Sentry + structlog setup
   util.py           # Size formatting, offset generation, task file writing
-  method/           # Checksum methods (GenericMethod base, MD5 variants)
-  schema/           # Local LinkML schema (used for CURIE expansion)
+  source/           # Source abstraction layer
+    __init__.py     # FileObject model, Source protocol, detect_source()
+    local.py        # LocalSource: local filesystem backend
+    s3.py           # S3Source: AWS S3 backend
+  method/           # Descriptor computation methods
+    __init__.py     # Method registry and method_by_id() factory
+    generic.py      # GenericMethod base class
+    glimpse.py      # Glimpse variants (full, slim, light, meta)
+    glimpse_dir.py  # GlimpseDir variants (directory-level descriptors)
+    md5.py          # MD5 variants (unbounded, 2GB, 8GB)
+  schema/           # Local LinkML schema (crystalia.yaml, used for CURIE expansion)
 ```
 
 ## Data Model
@@ -25,7 +34,17 @@ Pydantic models are imported from `crystalia_data_model.datamodel.linkml_crystal
 (editable install via `uv.sources` in pyproject.toml). RDF conversion uses
 `PydanticRDFDumper`/`PydanticRDFLoader` from `linkml_runtime` (also editable).
 
-## Commands
+## CLI Commands
+
+```bash
+crystalia-collector list <prefix>           # List files at S3 or local prefix
+crystalia-collector annotate <task-file>    # Compute descriptors from task file
+crystalia-collector checksum <uri>          # Compute checksum for a single file
+crystalia-collector combine <dir> -o <out>  # Combine descriptor files into one
+crystalia-collector run <prefix>            # End-to-end pipeline: list -> tasks -> annotate -> combine
+```
+
+## Development Commands
 
 ```bash
 uv sync                          # Install dependencies
@@ -41,5 +60,6 @@ docker build -t crystalia-collector .  # Build container
 - Entry point: `crystalia-collector` -> `crystalia_collector.app:app`
 - Coverage minimum: 80%
 - MyPy strict mode enabled
+- S3 tests require real AWS credentials (skipped automatically when unavailable)
 - Tests ignore `legacy/` and `data_model/` directories
 - Nextflow pipelines in `pipelines/`, Pulumi infrastructure in `infrastructure/`
