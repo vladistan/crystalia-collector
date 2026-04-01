@@ -10,6 +10,7 @@
 6. [Nextflow Pipelines](#6-nextflow-pipelines)
 7. [Infrastructure](#7-infrastructure)
 8. [Extensibility](#8-extensibility)
+9. [Glimpse Descriptor Method](#9-glimpse-descriptor-method)
 
 ---
 
@@ -512,3 +513,157 @@ RDF output is handled in `rdf.py`. To add alternative formats:
 from linkml_runtime.dumpers import JSONDumper, YAMLDumper
 JSONDumper().dump(thing, to_file="output.json")
 ```
+
+---
+
+## 9. Glimpse Descriptor Method
+
+### Overview
+
+The Glimpse method produces lightweight file and directory descriptors for fast change
+detection without full-file checksums. It captures metadata (name, timestamps, size)
+plus an MD5 of the first 2 KB of file content, organised as a top-level descriptor
+with typed child descriptors.
+
+### File Descriptor Variants
+
+| Variant | Fields | Robustness |
+|---------|--------|------------|
+| `glimpse` | name, size, md5, ctime, mtime | LOW |
+| `glimpse-slim` | name, size, mtime, md5 | LOW |
+| `glimpse-light` | size, md5, mtime | VERY_LOW |
+| `glimpse-meta` | name, size, mtime | VERY_LOW |
+
+### Directory Descriptor Variants
+
+| Variant | Fields | Robustness |
+|---------|--------|------------|
+| `glimpse-dir` | name, mtime, count, rollup_hash | LOW |
+| `glimpse-dir-slim` | name, mtime, rollup_hash | LOW |
+| `glimpse-dir-light` | mtime, rollup_hash | VERY_LOW |
+| `glimpse-dir-meta` | name, mtime, count | VERY_LOW |
+
+Note: `glimpse-dir-meta` omits rollup\_hash (consistent with `glimpse-meta` omitting
+md5).
+
+### Record Structure
+
+**File:**
+
+```
+Item (file)
+  └── Descriptor: glimpse (top-level)
+        hasType: crystalia:descriptor-type/glimpse
+        value:   "v0:<md5_of_composite>"
+        coverage: min(2048 / file_size, 1.0)
+        offset:  0
+        hasDescriptor:
+          - crystalia:descriptor-type/ctime     → "<ISO8601>",  coverage: 1.0
+          - crystalia:descriptor-type/filename  → "<name>",     coverage: 1.0
+          - crystalia:descriptor-type/md5-head  → "<md5hex>",   coverage: min(2048/file_size, 1.0)
+          - crystalia:descriptor-type/mtime     → "<ISO8601>",  coverage: 1.0
+          - crystalia:descriptor-type/file-size → "<bytes>",    coverage: 1.0
+```
+
+**Directory:**
+
+```
+Item (directory)
+  └── Descriptor: glimpse-dir (top-level)
+        hasType: crystalia:descriptor-type/glimpse-dir
+        value:   "v0:<rollup_hash>"
+        hasDescriptor:
+          - crystalia:descriptor-type/filename → "<dir_name>",    coverage: 1.0
+          - crystalia:descriptor-type/mtime    → "<ISO8601>",     coverage: 1.0
+          - crystalia:descriptor-type/count    → "<child_count>", coverage: 1.0
+```
+
+### Composite Hash (v0)
+
+The top-level descriptor `value` is a versioned composite hash. Fields are combined
+in a **fixed, explicit order** — not sorted from attached descriptors — to ensure
+stability as the model evolves.
+
+**Field order per variant:**
+
+| Variant | Field order |
+|---------|-------------|
+| `glimpse` | filename, size, md5, ctime, mtime |
+| `glimpse-slim` | filename, size, mtime, md5 |
+| `glimpse-light` | size, md5, mtime |
+| `glimpse-meta` | filename, size, mtime |
+| `glimpse-dir` | filename, mtime, count, then child item IDs sorted alphabetically |
+| `glimpse-dir-slim` | filename, mtime, then child item IDs sorted alphabetically |
+| `glimpse-dir-light` | mtime, then child item IDs sorted alphabetically |
+
+**Hash input format** — one line per field:
+
+```
+fieldname:<value>\n
+```
+
+**Final value:** `v0:<md5_hex_of_input>`
+
+The `v0:` prefix is a version marker. If the composition algorithm changes in the
+future, increment to `v1:`, etc. Consumers can detect the version without re-deriving.
+
+### Child Descriptor Types
+
+| Type URI | Used In | Semantics |
+|----------|---------|-----------|
+| `crystalia:descriptor-type/filename` | all variants | file or directory name |
+| `crystalia:descriptor-type/file-size` | file variants with size field | file size in bytes |
+| `crystalia:descriptor-type/mtime` | all variants | last-modified timestamp (ISO 8601 UTC) |
+| `crystalia:descriptor-type/ctime` | `glimpse` only | inode change time (ISO 8601 UTC) |
+| `crystalia:descriptor-type/md5-head` | file variants with md5 field | MD5 of first 2048 bytes; coverage = min(2048/size, 1.0) |
+| `crystalia:descriptor-type/count` | dir variants with count field | number of direct children (files + subdirs) |
+
+### Item ID Derivation
+
+Item IDs are derived from the descriptor's `v0:` composite hash, making them
+content-addressable:
+
+- `id = "cryd:<hash>"` where `<hash>` is the hex portion of the `v0:` value
+- Same file in two locations → same hash → same ID → instant duplicate detection
+- Same directory structure duplicated elsewhere → same rollup hash → same ID
+
+### Filename Handling
+
+The `filename` child descriptor value is the **basename only** (no path prefix):
+
+- File at `/data/project/results/output.csv` → filename value: `"output.csv"`
+- Directory `/data/project/results/` → filename value: `"results"`
+- During gather/reduce: absolute paths used for grouping files into directories
+- When writing descriptors: path components stripped, only basename stored
+- Composite hash input uses basename: `filename:output.csv\n`
+
+### Directory Rollup Hash — Paired Variants
+
+Each directory variant's rollup uses the corresponding file variant's hash for
+children:
+
+| Dir Variant | Child hash source | Detects content changes? |
+|-------------|-------------------|--------------------------|
+| `glimpse-dir` | child's `glimpse` hash (name, size, md5, ctime, mtime) | Yes |
+| `glimpse-dir-slim` | child's `glimpse-slim` hash (name, size, mtime, md5) | Yes |
+| `glimpse-dir-light` | child's `glimpse-light` hash (size, md5, mtime) | Yes |
+| `glimpse-dir-meta` | no rollup | No (structural only) |
+
+Rollup hash input format:
+
+```
+<dir's own fixed fields per variant>
+child:<basename1>:<child_v0_hash>\n
+child:<basename2>:<child_v0_hash>\n
+...
+```
+
+Children sorted by basename (with extension). Final value: `v0:<md5_of_input>`
+
+### Edge Cases
+
+| Condition | Behaviour |
+|-----------|-----------|
+| Zero-byte file | `md5-head` value = MD5 of empty bytes; `coverage = 1.0` |
+| File ≤ 2048 bytes | Read entire file; `coverage = 1.0` |
+| Empty directory | `count = 0`; rollup hash computed over empty child list; descriptor still created |

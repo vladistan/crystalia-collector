@@ -2,8 +2,10 @@ from pathlib import Path
 
 import structlog
 
+from crystalia_collector.method import method_by_id
 from crystalia_collector.method.generic import GenericMethod
-from crystalia_collector.method.md5 import method_by_id
+from crystalia_collector.method.glimpse import GlimpseBase
+from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_files_in_s3_prefix
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
@@ -48,10 +50,16 @@ def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int
 
 
 def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
+    method = method_by_id(method_id)
+
+    if isinstance(method, GlimpseDirBase):
+        return _list_dir_glimpse_dirs(prefix, method, task_dir)
+    if isinstance(method, GlimpseBase):
+        return _list_dir_glimpse_files(prefix, method)
+
     source = detect_source(prefix)
     total_size, num_files, task_num = 0, 0, 1
     small_files: list[FileObject] = []
-    method = method_by_id(method_id)
 
     for file_obj in source.list_files(prefix):
         log.info(
@@ -72,6 +80,57 @@ def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, i
     return num_files, total_size
 
 
+def _list_dir_glimpse_files(prefix: str, method: GlimpseBase) -> tuple[int, int]:
+    """Scan files with a Glimpse file method and log descriptor summaries."""
+    from crystalia_collector.glimpse_scanner import scan_files
+
+    source = detect_source(prefix)
+    results = scan_files(prefix, source, method)
+    total_size = 0
+    for file_obj, top, _ in results:
+        log.info(
+            "glimpse_file",
+            uri=file_obj.uri,
+            basename=file_obj.basename,
+            method=method.id,
+            descriptor_id=top.id,
+            value=top.value,
+        )
+        total_size += file_obj.size
+    return len(results), total_size
+
+
+def _list_dir_glimpse_dirs(
+    prefix: str,
+    method: GlimpseDirBase,
+    task_dir: Path | None,
+) -> tuple[int, int]:
+    """Scan files and directories with a Glimpse dir method and log directory descriptors."""
+    from crystalia_collector.glimpse_scanner import scan_with_dirs
+    from crystalia_collector.method import method_by_id as _method_by_id
+
+    file_method_raw = _method_by_id(method.paired_file_method_id)
+    if not isinstance(file_method_raw, GlimpseBase):
+        msg = f"Paired file method {method.paired_file_method_id!r} is not a GlimpseBase"
+        raise ValueError(msg)
+
+    source = detect_source(prefix)
+    file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method)
+
+    total_size = sum(r[0].size for r in file_results)
+
+    for dir_uri, top, _ in dir_results:
+        log.info(
+            "glimpse_dir",
+            uri=dir_uri,
+            method=method.id,
+            descriptor_id=top.id,
+            value=top.value,
+        )
+
+    return len(file_results), total_size
+
+
 def _process_file_object(
     file_obj: FileObject,
     method: GenericMethod,
@@ -81,7 +140,7 @@ def _process_file_object(
 ) -> int:
     if file_obj.size < (2**24) or file_obj.size < method.block_size / 2:
         small_files.append(file_obj)
-    elif method.block_size == 0:
+    elif not method.needs_offsets:
         _write_task_entries(task_dir, task_num, method, file_obj)
         task_num += 1
     else:
