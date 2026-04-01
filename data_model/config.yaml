@@ -1,5 +1,4 @@
 # Configuration of generators (defaults illustrated)
----
 generator_args:
   excel:
     mergeimports: true
@@ -37,5 +36,3 @@ generator_args:
   typescript:
     mergeimports: true
     metadata: true
-
-...

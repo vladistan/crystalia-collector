@@ -13,3 +13,4 @@
 /data/
 /pipelines/out.rdf
 test.ttl
+.coverage

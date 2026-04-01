@@ -4,4 +4,3 @@
 
 cryd:item-01 a crys:Item ;
     rdfs:label "file-1" .
-
