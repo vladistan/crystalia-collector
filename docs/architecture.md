@@ -165,9 +165,10 @@ method instance.
 
 ## 3. Data Model
 
-The data model is defined in LinkML and vendored from the `crystalia-data-model`
-project. Source schema: `src/crystalia_collector/data/linkml/crystalia.yaml`.
-Generated Python dataclasses: `src/crystalia_collector/data/linkml/crystalia.py`.
+The data model is defined in LinkML in the `crystalia-data-model` package
+(editable install). Pydantic models are imported from
+`crystalia_data_model.datamodel.linkml_crystalia`. Local schema for CURIE
+expansion: `src/crystalia_collector/schema/crystalia.yaml`.
 
 ### Class Hierarchy
 

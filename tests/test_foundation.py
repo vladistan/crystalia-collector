@@ -64,6 +64,30 @@ def test_rdf_module_schema_loads():
     assert "Item" in schema.all_classes()
 
 
+def test_schema_dir_points_to_existing_file():
+    from crystalia_collector.rdf import SCHEMA_DIR
+
+    schema_file = SCHEMA_DIR / "crystalia.yaml"
+    assert schema_file.exists(), f"Schema file not found at {schema_file}"
+
+
+def test_schema_dir_is_under_package():
+    from crystalia_collector.rdf import SCHEMA_DIR
+
+    assert "crystalia_collector" in SCHEMA_DIR.parts
+
+
+def test_get_schema_missing_file_raises(tmp_path, monkeypatch):
+    import crystalia_collector.rdf as rdf_mod
+
+    rdf_mod.get_schema.cache_clear()
+    monkeypatch.setattr(rdf_mod, "SCHEMA_DIR", tmp_path)
+    with pytest.raises(FileNotFoundError):
+        rdf_mod.get_schema()
+    monkeypatch.undo()
+    rdf_mod.get_schema.cache_clear()
+
+
 # --- Step 1.2: Configuration extension ---
 
 
