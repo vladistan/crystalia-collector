@@ -1,3 +1,8 @@
+import tempfile
+from collections import defaultdict
+from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from dataclasses import dataclass
 from pathlib import Path
 
 import structlog
@@ -12,6 +17,30 @@ from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
 
 log = structlog.get_logger()
+
+
+@dataclass
+class RunResult:
+    total: int
+    succeeded: int
+    failed: int
+
+
+def _process_task_file(task_file_path: str) -> list[tuple[str, str]]:
+    results: list[tuple[str, str]] = []
+    with open(task_file_path) as f:
+        for line in f:
+            parts = line.strip().split()
+            if not parts:
+                continue
+            uri = parts[0]
+            block_size = int(parts[3])
+            offset = int(parts[4])
+            length = block_size if block_size > 0 else None
+            source = detect_source(uri)
+            checksum = source.compute_checksum(uri, offset, length)
+            results.append((uri, checksum))
+    return results
 
 
 def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
@@ -198,6 +227,64 @@ def combine_descriptors(items: list[Item], output_path: Path, fmt: str) -> None:
         raise ValueError(msg)
 
     log.info("combine_complete", num_items=len(sorted_items), output=str(output_path))
+
+
+def run_pipeline(
+    prefix: str,
+    method_id: str,
+    output_path: Path,
+    workers: int,
+    fmt: str,
+    fail_fast: bool = False,
+    verbose: bool = False,
+    progress_callback: Callable[[int], None] | None = None,
+) -> RunResult:
+    log.info("pipeline_start", prefix=prefix, method_id=method_id, workers=workers, fmt=fmt)
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        task_dir_path = Path(temp_dir)
+        num_files, _total_size = list_dir(prefix, method_id, task_dir_path)
+
+        task_files = sorted(task_dir_path.glob("task_*"))
+        log.info("tasks_generated", num_tasks=len(task_files), num_files=num_files)
+
+        all_results: list[tuple[str, str]] = []
+        succeeded = 0
+        failed = 0
+
+        if task_files:
+            with ProcessPoolExecutor(max_workers=workers) as executor:
+                futures = {executor.submit(_process_task_file, str(tf)): tf for tf in task_files}
+                for future in as_completed(futures):
+                    try:
+                        results = future.result()
+                        all_results.extend(results)
+                        succeeded += len(results)
+                        if progress_callback:
+                            progress_callback(len(results))
+                    except Exception as exc:
+                        failed += 1
+                        if fail_fast:
+                            raise
+                        log.error("task_failed", task_file=str(futures[future]), error=str(exc))
+
+        by_uri: dict[str, list[str]] = defaultdict(list)
+        for uri, checksum in all_results:
+            by_uri[uri].append(checksum)
+
+        items = []
+        for uri in sorted(by_uri):
+            basename = Path(uri).name
+            checksums = by_uri[uri]
+            desc_ids = [f"crys:desc-{c}" for c in checksums]
+            item = Item(id=f"crys:{basename}", label=basename, hasDescriptor=desc_ids)
+            items.append(item)
+
+        combine_descriptors(items, output_path, fmt)
+
+        total = succeeded + failed
+        log.info("pipeline_complete", total=total, succeeded=succeeded, failed=failed)
+        return RunResult(total=total, succeeded=succeeded, failed=failed)
 
 
 def compute_annotations(output_file: str, task_file: str) -> None:
