@@ -1,8 +1,5 @@
----
 # This extends the default conf by adjusting some options.
-
 extends: default
-
 rules:
   comments:
     min-spaces-from-content: 1 # Match prettier's formatting style.

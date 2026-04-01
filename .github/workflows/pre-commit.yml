@@ -1,8 +1,6 @@
 # yamllint disable-line rule:document-start
 name: Run Checks
-
 on: [push, pull_request]
-
 jobs:
   pre-commit-ci:
     runs-on: ubuntu-latest

@@ -1,13 +1,12 @@
 from functools import lru_cache
 from pathlib import Path
 
+from crystalia_data_model.datamodel.linkml_crystalia import Thing
 from linkml_runtime import SchemaView
 from linkml_runtime.dumpers.pydantic_rdf_dumper import PydanticRDFDumper
 from linkml_runtime.loaders.pydantic_rdf_loader import PydanticRDFLoader
 from pydantic import BaseModel
 from rdflib import Graph
-
-from crystalia_data_model.datamodel.linkml_crystalia import Thing
 
 SCHEMA_DIR = Path(__file__).parent / "schema"
 
