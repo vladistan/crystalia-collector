@@ -1,6 +1,7 @@
 import sys
 from enum import IntEnum
 from pathlib import Path
+from typing import Annotated
 
 import structlog
 import typer
@@ -9,7 +10,7 @@ from crystalia_collector.config import get_settings
 from crystalia_collector.monitoring import configure_logging, init_monitoring
 from crystalia_collector.source import detect_source
 from crystalia_collector.util import human_readable_size
-from crystalia_collector.work import compute_annotations, list_dir
+from crystalia_collector.work import combine_descriptors, compute_annotations, list_dir
 
 GB = 2**30
 
@@ -67,9 +68,33 @@ def checksum(uri: str, offset: int = 0, length: int | None = None) -> None:
 
 
 @app.command()
-def combine() -> None:
-    """Combine annotations into a single file."""
-    log.info("combining_annotations")
+def combine(
+    input_dir: Annotated[Path, typer.Argument(help="Directory containing annotation Turtle files")],
+    output: Annotated[Path, typer.Option("-o", "--output", help="Output file path")] = Path("catalog.ttl"),
+    fmt: Annotated[
+        str,
+        typer.Option("-f", "--format", help="Output format (turtle or text)"),
+    ] = get_settings().default_format,
+) -> None:
+    """Combine individual annotation files into a single catalog."""
+    try:
+        from crystalia_data_model.datamodel.linkml_crystalia import Item
+        from rdflib import Graph
+
+        from crystalia_collector.rdf import model_from_rdf
+
+        items = []
+        for ttl_file in sorted(input_dir.glob("*.ttl")):
+            g = Graph()
+            g.parse(ttl_file, format="turtle")
+            item = model_from_rdf(g, Item)
+            items.append(item)
+
+        combine_descriptors(items, output, fmt)
+        log.info("combine_complete", output=str(output), num_items=len(items))
+    except Exception as exc:
+        log.error("combine_failed", error=str(exc))
+        raise typer.Exit(code=ExitCode.ERROR) from exc
 
 
 @app.command(name="test-sentry")

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import structlog
+from crystalia_data_model.datamodel.linkml_crystalia import Item
 
 from crystalia_collector.method import method_by_id
 from crystalia_collector.method.generic import GenericMethod
@@ -168,6 +169,35 @@ def _write_task_entries(
                 write_obj(obj)
         else:
             write_obj(content)
+
+
+def combine_descriptors(items: list[Item], output_path: Path, fmt: str) -> None:
+    from rdflib import Graph
+
+    from crystalia_collector.rdf import rdf_from_model
+
+    sorted_items = sorted(items, key=lambda item: str(item.id))
+    log.info("combining_descriptors", num_items=len(items), output=str(output_path), fmt=fmt)
+
+    if fmt == "turtle":
+        combined = Graph()
+        for item in sorted_items:
+            g = rdf_from_model(item)
+            for prefix, ns in g.namespaces():
+                combined.bind(prefix, ns)
+            for triple in g:
+                combined.add(triple)
+        output_path.write_text(combined.serialize(format="turtle"))
+    elif fmt == "text":
+        with open(output_path, "w") as f:
+            for item in sorted_items:
+                for desc_id in item.hasDescriptor:
+                    f.write(f"{item.id}  {desc_id}\n")
+    else:
+        msg = f"Unsupported format: {fmt}"
+        raise ValueError(msg)
+
+    log.info("combine_complete", num_items=len(sorted_items), output=str(output_path))
 
 
 def compute_annotations(output_file: str, task_file: str) -> None:

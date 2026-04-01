@@ -17,8 +17,10 @@ def test_help():
     assert "test-sentry" in result.output
 
 
-def test_combine():
-    result = runner.invoke(app, ["combine"])
+def test_combine(tmp_path):
+    input_dir = tmp_path / "annotations"
+    input_dir.mkdir()
+    result = runner.invoke(app, ["combine", str(input_dir)])
     assert result.exit_code == 0
 
 
