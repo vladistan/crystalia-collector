@@ -4,7 +4,6 @@ src = ["src", "tests"]
 exclude = [
     ".claude",
     "data_model",
-    "src/crystalia_collector/data/linkml",
 ]
 
 [lint]
