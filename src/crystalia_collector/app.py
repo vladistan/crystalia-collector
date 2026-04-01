@@ -10,7 +10,7 @@ from crystalia_collector.config import get_settings
 from crystalia_collector.monitoring import configure_logging, init_monitoring
 from crystalia_collector.source import detect_source
 from crystalia_collector.util import human_readable_size
-from crystalia_collector.work import combine_descriptors, compute_annotations, list_dir
+from crystalia_collector.work import combine_descriptors, compute_annotations, list_dir, run_pipeline
 
 GB = 2**30
 
@@ -94,6 +94,65 @@ def combine(
         log.info("combine_complete", output=str(output), num_items=len(items))
     except Exception as exc:
         log.error("combine_failed", error=str(exc))
+        raise typer.Exit(code=ExitCode.ERROR) from exc
+
+
+@app.command()
+def run(
+    source: Annotated[str, typer.Argument(help="Local directory path to process")],
+    output: Annotated[Path, typer.Option("-o", "--output", help="Output file path")] = Path("catalog.ttl"),
+    method_id: Annotated[
+        str,
+        typer.Option("--method", help="Checksum method ID"),
+    ] = get_settings().default_method_id,
+    workers: Annotated[
+        int,
+        typer.Option("-w", "--workers", help="Number of parallel workers"),
+    ] = get_settings().default_workers,
+    fmt: Annotated[
+        str,
+        typer.Option("-f", "--format", help="Output format (turtle or text)"),
+    ] = get_settings().default_format,
+    fail_fast: Annotated[bool, typer.Option("--fail-fast", help="Stop on first error")] = False,
+    verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Enable verbose per-file logging")] = False,
+) -> None:
+    """Run the full pipeline: list, process, and combine files into a catalog."""
+    if source.startswith("s3://"):
+        typer.echo("Error: S3 sources are not supported by the run command. Use list + annotate instead.")
+        raise typer.Exit(code=ExitCode.ERROR)
+
+    try:
+        from rich.console import Console
+        from rich.progress import Progress, SpinnerColumn, TextColumn
+
+        console = Console(stderr=True)
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            TextColumn("{task.completed} files"),
+            console=console,
+            transient=True,
+        ) as progress:
+            task_id = progress.add_task("Processing...", total=None)
+
+            def update_progress(count: int) -> None:
+                progress.update(task_id, advance=count)
+
+            result = run_pipeline(
+                source,
+                method_id,
+                output,
+                workers,
+                fmt,
+                fail_fast=fail_fast,
+                verbose=verbose,
+                progress_callback=update_progress,
+            )
+
+        typer.echo(f"Processed {result.succeeded} files, {result.failed} failed, output: {output}")
+    except Exception as exc:
+        log.error("run_failed", error=str(exc))
         raise typer.Exit(code=ExitCode.ERROR) from exc
 
 

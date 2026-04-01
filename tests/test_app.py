@@ -47,3 +47,33 @@ def test_checksum_error_handling():
     with patch("crystalia_collector.app.detect_source", side_effect=RuntimeError("source error")):
         result = runner.invoke(app, ["checksum", "s3://bucket/key"])
     assert result.exit_code != 0
+
+
+def test_run_produces_output(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "test.txt").write_text("hello")
+    output = tmp_path / "out.ttl"
+    result = runner.invoke(app, ["run", str(data_dir), "-o", str(output)])
+    assert result.exit_code == 0
+    assert output.exists()
+
+
+def test_run_s3_source_rejected():
+    result = runner.invoke(app, ["run", "s3://bucket/prefix"])
+    assert result.exit_code != 0
+
+
+def test_run_summary_output(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "a.txt").write_text("alpha")
+    output = tmp_path / "out.ttl"
+    result = runner.invoke(app, ["run", str(data_dir), "-o", str(output)])
+    assert result.exit_code == 0
+    assert "Processed" in result.output
+
+
+def test_run_in_help():
+    result = runner.invoke(app, ["--help"])
+    assert "run" in result.output
