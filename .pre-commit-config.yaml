@@ -47,21 +47,6 @@ repos:
     rev: v0.1.0
     hooks:
       - id: dockerfilelint
-  - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.14
-    hooks:
-      - id: mdformat
-        additional_dependencies:
-          - mdformat-beautysh
-          - mdformat-black
-          - mdformat-config
-          - mdformat-deflist
-          # - mdformat-frontmatter  # Breaks.
-          - mdformat-footnote
-          - mdformat-gfm
-          - mdformat-shfmt
-          - mdformat-tables
-          - mdformat-toc
   - repo: https://github.com/ikamensh/flynt/
     rev: '1.0.1'
     hooks:
