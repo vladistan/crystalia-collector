@@ -6,8 +6,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import structlog
-from crystalia_data_model.datamodel.linkml_crystalia import Item
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
+from crystalia_collector.glimpse_compute import _content_id
 from crystalia_collector.method import method_by_id
 from crystalia_collector.method.generic import GenericMethod
 from crystalia_collector.method.glimpse import GlimpseBase
@@ -26,20 +27,31 @@ class RunResult:
     failed: int
 
 
-def _process_task_file(task_file_path: str) -> list[tuple[str, str]]:
-    results: list[tuple[str, str]] = []
+def _process_task_file(task_file_path: str) -> list[tuple[str, Descriptor]]:
+    results: list[tuple[str, Descriptor]] = []
     with open(task_file_path) as f:
         for line in f:
             parts = line.strip().split()
             if not parts:
                 continue
             uri = parts[0]
+            size = int(parts[1])
+            method_id = parts[2]
             block_size = int(parts[3])
             offset = int(parts[4])
             length = block_size if block_size > 0 else None
             source = detect_source(uri)
             checksum = source.compute_checksum(uri, offset, length)
-            results.append((uri, checksum))
+            coverage = min(block_size / size, 1.0) if block_size > 0 and size > 0 else 1.0
+            descriptor = Descriptor(
+                id=_content_id(f"cryd:{method_id}", checksum),
+                hasType=f"cryd:{method_id}",
+                value=checksum,
+                offset=offset,
+                coverage=coverage,
+                length=block_size if block_size > 0 else None,
+            )
+            results.append((uri, descriptor))
     return results
 
 
@@ -200,7 +212,12 @@ def _write_task_entries(
             write_obj(content)
 
 
-def combine_descriptors(items: list[Item], output_path: Path, fmt: str) -> None:
+def combine_descriptors(
+    items: list[Item],
+    output_path: Path,
+    fmt: str,
+    descriptors: list[Descriptor] | None = None,
+) -> None:
     from rdflib import Graph
 
     from crystalia_collector.rdf import rdf_from_model
@@ -216,6 +233,13 @@ def combine_descriptors(items: list[Item], output_path: Path, fmt: str) -> None:
                 combined.bind(prefix, ns)
             for triple in g:
                 combined.add(triple)
+        if descriptors:
+            for desc in descriptors:
+                g = rdf_from_model(desc)
+                for prefix, ns in g.namespaces():
+                    combined.bind(prefix, ns)
+                for triple in g:
+                    combined.add(triple)
         output_path.write_text(combined.serialize(format="turtle"))
     elif fmt == "text":
         with open(output_path, "w") as f:
@@ -229,18 +253,13 @@ def combine_descriptors(items: list[Item], output_path: Path, fmt: str) -> None:
     log.info("combine_complete", num_items=len(sorted_items), output=str(output_path))
 
 
-def run_pipeline(
+def _run_md5_pipeline(
     prefix: str,
     method_id: str,
-    output_path: Path,
     workers: int,
-    fmt: str,
-    fail_fast: bool = False,
-    verbose: bool = False,
-    progress_callback: Callable[[int], None] | None = None,
-) -> RunResult:
-    log.info("pipeline_start", prefix=prefix, method_id=method_id, workers=workers, fmt=fmt)
-
+    fail_fast: bool,
+    progress_callback: Callable[[int], None] | None,
+) -> tuple[list[Item], list[Descriptor], int, int]:
     with tempfile.TemporaryDirectory() as temp_dir:
         task_dir_path = Path(temp_dir)
         num_files, _total_size = list_dir(prefix, method_id, task_dir_path)
@@ -248,7 +267,7 @@ def run_pipeline(
         task_files = sorted(task_dir_path.glob("task_*"))
         log.info("tasks_generated", num_tasks=len(task_files), num_files=num_files)
 
-        all_results: list[tuple[str, str]] = []
+        all_results: list[tuple[str, Descriptor]] = []
         succeeded = 0
         failed = 0
 
@@ -268,23 +287,121 @@ def run_pipeline(
                             raise
                         log.error("task_failed", task_file=str(futures[future]), error=str(exc))
 
-        by_uri: dict[str, list[str]] = defaultdict(list)
-        for uri, checksum in all_results:
-            by_uri[uri].append(checksum)
+        by_uri: dict[str, list[Descriptor]] = defaultdict(list)
+        for uri, descriptor in all_results:
+            by_uri[uri].append(descriptor)
 
-        items = []
+        items: list[Item] = []
+        all_descriptors: list[Descriptor] = []
         for uri in sorted(by_uri):
             basename = Path(uri).name
-            checksums = by_uri[uri]
-            desc_ids = [f"crys:desc-{c}" for c in checksums]
+            descriptors = by_uri[uri]
+            desc_ids = [d.id for d in descriptors]
             item = Item(id=f"crys:{basename}", label=basename, hasDescriptor=desc_ids)
             items.append(item)
+            all_descriptors.extend(descriptors)
 
-        combine_descriptors(items, output_path, fmt)
+        return items, all_descriptors, succeeded, failed
 
-        total = succeeded + failed
-        log.info("pipeline_complete", total=total, succeeded=succeeded, failed=failed)
-        return RunResult(total=total, succeeded=succeeded, failed=failed)
+
+def _run_glimpse_pipeline(
+    prefix: str,
+    method: GlimpseBase,
+) -> tuple[list[Item], list[Descriptor], int]:
+    from crystalia_collector.glimpse_scanner import scan_files
+
+    source = detect_source(prefix)
+    results = scan_files(prefix, source, method)
+
+    items: list[Item] = []
+    all_descriptors: list[Descriptor] = []
+    for file_obj, top, children in results:
+        item = Item(
+            id=f"crys:{file_obj.basename}",
+            label=file_obj.basename,
+            hasDescriptor=[top.id],
+        )
+        items.append(item)
+        all_descriptors.append(top)
+        all_descriptors.extend(children)
+    return items, all_descriptors, len(results)
+
+
+def _run_glimpse_dir_pipeline(
+    prefix: str,
+    method: GlimpseDirBase,
+) -> tuple[list[Item], list[Descriptor], int]:
+    from crystalia_collector.glimpse_scanner import scan_with_dirs
+
+    file_method_raw = method_by_id(method.paired_file_method_id)
+    if not isinstance(file_method_raw, GlimpseBase):
+        msg = f"Paired file method {method.paired_file_method_id!r} is not a GlimpseBase"
+        raise ValueError(msg)
+
+    source = detect_source(prefix)
+    file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method)
+
+    items: list[Item] = []
+    all_descriptors: list[Descriptor] = []
+
+    for file_obj, top, children in file_results:
+        item = Item(
+            id=f"crys:{file_obj.basename}",
+            label=file_obj.basename,
+            hasDescriptor=[top.id],
+        )
+        items.append(item)
+        all_descriptors.append(top)
+        all_descriptors.extend(children)
+
+    for dir_uri, top, children in dir_results:
+        basename = Path(dir_uri).name or dir_uri
+        item = Item(
+            id=f"crys:{basename}",
+            label=basename,
+            hasDescriptor=[top.id],
+        )
+        items.append(item)
+        all_descriptors.append(top)
+        all_descriptors.extend(children)
+
+    return items, all_descriptors, len(file_results)
+
+
+def run_pipeline(
+    prefix: str,
+    method_id: str,
+    output_path: Path,
+    workers: int,
+    fmt: str,
+    fail_fast: bool = False,
+    verbose: bool = False,
+    progress_callback: Callable[[int], None] | None = None,
+) -> RunResult:
+    log.info("pipeline_start", prefix=prefix, method_id=method_id, workers=workers, fmt=fmt)
+
+    method = method_by_id(method_id)
+
+    if isinstance(method, GlimpseDirBase):
+        items, all_descriptors, succeeded = _run_glimpse_dir_pipeline(prefix, method)
+        failed = 0
+    elif isinstance(method, GlimpseBase):
+        items, all_descriptors, succeeded = _run_glimpse_pipeline(prefix, method)
+        failed = 0
+    else:
+        items, all_descriptors, succeeded, failed = _run_md5_pipeline(
+            prefix,
+            method_id,
+            workers,
+            fail_fast,
+            progress_callback,
+        )
+
+    combine_descriptors(items, output_path, fmt, all_descriptors)
+
+    total = succeeded + failed
+    log.info("pipeline_complete", total=total, succeeded=succeeded, failed=failed)
+    return RunResult(total=total, succeeded=succeeded, failed=failed)
 
 
 def compute_annotations(output_file: str, task_file: str) -> None:

@@ -1,5 +1,5 @@
 import pytest
-from crystalia_data_model.datamodel.linkml_crystalia import Item
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
 from crystalia_collector.work import combine_descriptors
 
@@ -76,3 +76,27 @@ def test_combine_descriptors_empty_items_text(tmp_path):
     combine_descriptors([], output, "text")
     assert output.exists()
     assert output.read_text() == ""
+
+
+def test_combine_descriptors_with_descriptor_objects(tmp_path):
+    desc = Descriptor(
+        id="cryd:abc123",
+        hasType="cryd:md5-8gb",
+        value="abc123def456",  # pragma: allowlist secret
+        offset=0,
+        coverage=1.0,
+        length=8589934592,
+    )
+    items = [Item(id="crys:test.txt", label="test.txt", hasDescriptor=["cryd:abc123"])]
+    output = tmp_path / "catalog.ttl"
+    combine_descriptors(items, output, "turtle", descriptors=[desc])
+
+    from rdflib import Graph
+
+    g = Graph()
+    g.parse(output, format="turtle")
+
+    # Should have both Item and Descriptor triples
+    subjects = {str(s) for s in g.subjects()}
+    assert any("test.txt" in s for s in subjects)
+    assert any("abc123" in s for s in subjects)

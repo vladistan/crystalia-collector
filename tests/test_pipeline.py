@@ -1,4 +1,11 @@
+from rdflib import RDF, Graph, URIRef
+
 from crystalia_collector.work import RunResult, run_pipeline
+
+CRYS = "https://w3id.org/crystalia#"
+CRYS_NS = "https://w3id.org/crystalia/"
+ITEM = URIRef(f"{CRYS}Item")
+DESCRIPTOR = URIRef(f"{CRYS}Descriptor")
 
 
 def test_run_pipeline_produces_valid_turtle(tmp_path):
@@ -94,3 +101,56 @@ def test_run_pipeline_progress_callback(tmp_path):
     )
 
     assert sum(counts) >= 2
+
+
+def test_run_pipeline_md5_produces_descriptors(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "hello.txt").write_text("hello world")
+
+    output = tmp_path / "catalog.ttl"
+    run_pipeline(str(data_dir), "md5-8gb", output, workers=1, fmt="turtle")
+
+    g = Graph()
+    g.parse(output, format="turtle")
+
+    items = list(g.subjects(RDF.type, ITEM))
+    descs = list(g.subjects(RDF.type, DESCRIPTOR))
+    assert len(items) == 1
+    assert len(descs) >= 1
+
+    # Every hasDescriptor reference should have a Descriptor with a value
+    has_desc = URIRef(f"{CRYS_NS}hasDescriptor")
+    value_pred = URIRef(f"{CRYS_NS}value")
+    for item in items:
+        for _, _, desc_id in g.triples((item, has_desc, None)):
+            desc_uri = URIRef(
+                str(desc_id).replace("cryd:", "https://crystalia.link/data/"),
+            )
+            assert (desc_uri, value_pred, None) in g
+
+
+def test_run_pipeline_glimpse_produces_descriptor_tree(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "test.txt").write_text("glimpse test content")
+
+    output = tmp_path / "catalog.ttl"
+    result = run_pipeline(
+        str(data_dir),
+        "glimpse",
+        output,
+        workers=1,
+        fmt="turtle",
+    )
+
+    assert result.succeeded == 1
+
+    g = Graph()
+    g.parse(output, format="turtle")
+
+    items = list(g.subjects(RDF.type, ITEM))
+    descs = list(g.subjects(RDF.type, DESCRIPTOR))
+    assert len(items) == 1
+    # Glimpse: 1 top + 5 children (filename, size, md5, ctime, mtime)
+    assert len(descs) == 6
