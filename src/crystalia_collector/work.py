@@ -1,4 +1,5 @@
 import tempfile
+import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -297,7 +298,7 @@ def _run_md5_pipeline(
             basename = Path(uri).name
             descriptors = by_uri[uri]
             desc_ids = [d.id for d in descriptors]
-            item = Item(id=f"crys:{basename}", label=basename, hasDescriptor=desc_ids)
+            item = Item(id=f"crys:{uuid.uuid4()}", label=basename, hasDescriptor=desc_ids)
             items.append(item)
             all_descriptors.extend(descriptors)
 
@@ -317,7 +318,7 @@ def _run_glimpse_pipeline(
     all_descriptors: list[Descriptor] = []
     for file_obj, top, children in results:
         item = Item(
-            id=f"crys:{file_obj.basename}",
+            id=f"crys:{uuid.uuid4()}",
             label=file_obj.basename,
             hasDescriptor=[top.id],
         )
@@ -348,7 +349,7 @@ def _run_glimpse_dir_pipeline(
     dir_items: dict[str, str] = {}
     for dir_uri, top, children in dir_results:
         basename = Path(dir_uri).name or dir_uri
-        item_id = f"crys:{basename}"
+        item_id = f"crys:{uuid.uuid4()}"
         dir_items[dir_uri] = item_id
         item = Item(
             id=item_id,
@@ -364,7 +365,7 @@ def _run_glimpse_dir_pipeline(
         parent_dir = str(Path(file_obj.uri).parent)
         parent_id = dir_items.get(parent_dir)
         item = Item(
-            id=f"crys:{file_obj.basename}",
+            id=f"crys:{uuid.uuid4()}",
             label=file_obj.basename,
             hasDescriptor=[top.id],
             isPartOf=parent_id,

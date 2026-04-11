@@ -28,7 +28,8 @@ def test_run_pipeline_produces_valid_turtle(tmp_path):
     assert result.failed == 0
 
 
-def test_run_pipeline_deterministic(tmp_path):
+def test_run_pipeline_deterministic_descriptors(tmp_path):
+    """Descriptor content is deterministic; Item UUIDs differ between runs."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
     (data_dir / "a.txt").write_text("alpha")
@@ -38,7 +39,24 @@ def test_run_pipeline_deterministic(tmp_path):
     out2 = tmp_path / "out2.ttl"
     run_pipeline(str(data_dir), "md5-8gb", out1, workers=1, fmt="turtle")
     run_pipeline(str(data_dir), "md5-8gb", out2, workers=2, fmt="turtle")
-    assert out1.read_text() == out2.read_text()
+
+    g1, g2 = Graph(), Graph()
+    g1.parse(out1, format="turtle")
+    g2.parse(out2, format="turtle")
+
+    # Same number of items and descriptors
+    items1 = list(g1.subjects(RDF.type, ITEM))
+    items2 = list(g2.subjects(RDF.type, ITEM))
+    assert len(items1) == len(items2)
+    assert len(list(g1.subjects(RDF.type, DESCRIPTOR))) == len(
+        list(g2.subjects(RDF.type, DESCRIPTOR)),
+    )
+
+    # Descriptor values are identical across runs
+    value_pred = URIRef(f"{CRYS_NS}value")
+    vals1 = sorted(str(v) for _, _, v in g1.triples((None, value_pred, None)))
+    vals2 = sorted(str(v) for _, _, v in g2.triples((None, value_pred, None)))
+    assert vals1 == vals2
 
 
 def test_run_pipeline_text_format(tmp_path):
