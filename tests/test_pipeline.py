@@ -15,7 +15,7 @@ def test_run_pipeline_produces_valid_turtle(tmp_path):
     (data_dir / "file2.txt").write_text("goodbye world")
 
     output = tmp_path / "catalog.ttl"
-    result = run_pipeline(str(data_dir), "md5-8gb", output, workers=1, fmt="turtle")
+    result = run_pipeline(str(data_dir), ["md5-8gb"], output, workers=1, fmt="turtle")
 
     assert output.exists()
     from rdflib import Graph
@@ -37,8 +37,8 @@ def test_run_pipeline_deterministic_descriptors(tmp_path):
 
     out1 = tmp_path / "out1.ttl"
     out2 = tmp_path / "out2.ttl"
-    run_pipeline(str(data_dir), "md5-8gb", out1, workers=1, fmt="turtle")
-    run_pipeline(str(data_dir), "md5-8gb", out2, workers=2, fmt="turtle")
+    run_pipeline(str(data_dir), ["md5-8gb"], out1, workers=1, fmt="turtle")
+    run_pipeline(str(data_dir), ["md5-8gb"], out2, workers=2, fmt="turtle")
 
     g1, g2 = Graph(), Graph()
     g1.parse(out1, format="turtle")
@@ -65,7 +65,7 @@ def test_run_pipeline_text_format(tmp_path):
     (data_dir / "test.txt").write_text("test content")
 
     output = tmp_path / "catalog.txt"
-    result = run_pipeline(str(data_dir), "md5-8gb", output, workers=1, fmt="text")
+    result = run_pipeline(str(data_dir), ["md5-8gb"], output, workers=1, fmt="text")
 
     assert output.exists()
     content = output.read_text()
@@ -81,7 +81,7 @@ def test_run_pipeline_result_counts(tmp_path):
     (data_dir / "three.txt").write_text("three")
 
     output = tmp_path / "catalog.ttl"
-    result = run_pipeline(str(data_dir), "md5-8gb", output, workers=2, fmt="turtle")
+    result = run_pipeline(str(data_dir), ["md5-8gb"], output, workers=2, fmt="turtle")
 
     assert result.total == result.succeeded + result.failed
     assert result.succeeded >= 1
@@ -93,7 +93,7 @@ def test_run_pipeline_empty_directory(tmp_path):
     data_dir.mkdir()
 
     output = tmp_path / "catalog.ttl"
-    result = run_pipeline(str(data_dir), "md5-8gb", output, workers=1, fmt="turtle")
+    result = run_pipeline(str(data_dir), ["md5-8gb"], output, workers=1, fmt="turtle")
 
     assert result.total == 0
     assert result.succeeded == 0
@@ -111,7 +111,7 @@ def test_run_pipeline_progress_callback(tmp_path):
     output = tmp_path / "catalog.ttl"
     run_pipeline(
         str(data_dir),
-        "md5-8gb",
+        ["md5-8gb"],
         output,
         workers=1,
         fmt="turtle",
@@ -127,7 +127,7 @@ def test_run_pipeline_md5_produces_descriptors(tmp_path):
     (data_dir / "hello.txt").write_text("hello world")
 
     output = tmp_path / "catalog.ttl"
-    run_pipeline(str(data_dir), "md5-8gb", output, workers=1, fmt="turtle")
+    run_pipeline(str(data_dir), ["md5-8gb"], output, workers=1, fmt="turtle")
 
     g = Graph()
     g.parse(output, format="turtle")
@@ -156,7 +156,7 @@ def test_run_pipeline_glimpse_produces_descriptor_tree(tmp_path):
     output = tmp_path / "catalog.ttl"
     result = run_pipeline(
         str(data_dir),
-        "glimpse",
+        ["glimpse"],
         output,
         workers=1,
         fmt="turtle",

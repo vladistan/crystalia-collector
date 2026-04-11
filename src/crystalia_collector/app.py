@@ -32,8 +32,8 @@ def main() -> None:
     configure_logging(json_output=settings.log_json)
 
 
-@app.command()
-def list(prefix: str, task_dir: Path | None = None, method_id: str = get_settings().default_method_id) -> None:
+@app.command(name="list")
+def list_files(prefix: str, task_dir: Path | None = None, method_id: str = get_settings().default_method_id) -> None:
     """List files in an S3 bucket or local directory."""
     try:
         num_files, total_size = list_dir(prefix, method_id, task_dir)
@@ -101,10 +101,10 @@ def combine(
 def run(
     source: Annotated[str, typer.Argument(help="Local directory path to process")],
     output: Annotated[Path, typer.Option("-o", "--output", help="Output file path")] = Path("catalog.ttl"),
-    method_id: Annotated[
-        str,
-        typer.Option("--method", help="Checksum method ID"),
-    ] = get_settings().default_method_id,
+    method: Annotated[
+        list[str] | None,
+        typer.Option("--method", help="Descriptor method(s) to run (repeatable)"),
+    ] = None,
     workers: Annotated[
         int,
         typer.Option("-w", "--workers", help="Number of parallel workers"),
@@ -120,6 +120,8 @@ def run(
     if source.startswith("s3://"):
         typer.echo("Error: S3 sources are not supported by the run command. Use list + annotate instead.")
         raise typer.Exit(code=ExitCode.ERROR)
+
+    method_ids = method if method else [get_settings().default_method_id]
 
     try:
         from rich.console import Console
@@ -141,7 +143,7 @@ def run(
 
             result = run_pipeline(
                 source,
-                method_id,
+                method_ids,
                 output,
                 workers,
                 fmt,

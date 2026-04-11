@@ -260,7 +260,7 @@ def _run_md5_pipeline(
     workers: int,
     fail_fast: bool,
     progress_callback: Callable[[int], None] | None,
-) -> tuple[list[Item], list[Descriptor], int, int]:
+) -> tuple[dict[str, list[Descriptor]], list[str], int, int]:
     with tempfile.TemporaryDirectory() as temp_dir:
         task_dir_path = Path(temp_dir)
         num_files, _total_size = list_dir(prefix, method_id, task_dir_path)
@@ -292,46 +292,31 @@ def _run_md5_pipeline(
         for uri, descriptor in all_results:
             by_uri[uri].append(descriptor)
 
-        items: list[Item] = []
-        all_descriptors: list[Descriptor] = []
-        for uri in sorted(by_uri):
-            basename = Path(uri).name
-            descriptors = by_uri[uri]
-            desc_ids = [d.id for d in descriptors]
-            item = Item(id=f"crys:{uuid.uuid4()}", label=basename, hasDescriptor=desc_ids)
-            items.append(item)
-            all_descriptors.extend(descriptors)
-
-        return items, all_descriptors, succeeded, failed
+        return by_uri, list(by_uri), succeeded, failed
 
 
-def _run_glimpse_pipeline(
+def _collect_glimpse(
     prefix: str,
     method: GlimpseBase,
-) -> tuple[list[Item], list[Descriptor], int]:
+) -> tuple[dict[str, list[Descriptor]], list[Descriptor]]:
     from crystalia_collector.glimpse_scanner import scan_files
 
     source = detect_source(prefix)
     results = scan_files(prefix, source, method)
 
-    items: list[Item] = []
-    all_descriptors: list[Descriptor] = []
+    by_uri: dict[str, list[Descriptor]] = {}
+    extra_descriptors: list[Descriptor] = []
     for file_obj, top, children in results:
-        item = Item(
-            id=f"crys:{uuid.uuid4()}",
-            label=file_obj.basename,
-            hasDescriptor=[top.id],
-        )
-        items.append(item)
-        all_descriptors.append(top)
-        all_descriptors.extend(children)
-    return items, all_descriptors, len(results)
+        by_uri[file_obj.uri] = [top]
+        extra_descriptors.append(top)
+        extra_descriptors.extend(children)
+    return by_uri, extra_descriptors
 
 
-def _run_glimpse_dir_pipeline(
+def _collect_glimpse_dir(
     prefix: str,
     method: GlimpseDirBase,
-) -> tuple[list[Item], list[Descriptor], int]:
+) -> tuple[dict[str, list[Descriptor]], dict[str, list[Descriptor]], list[Descriptor]]:
     from crystalia_collector.glimpse_scanner import scan_with_dirs
 
     file_method_raw = method_by_id(method.paired_file_method_id)
@@ -342,44 +327,26 @@ def _run_glimpse_dir_pipeline(
     source = detect_source(prefix)
     file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method)
 
-    items: list[Item] = []
-    all_descriptors: list[Descriptor] = []
-
-    # Build directory Items first so we can reference their IDs
-    dir_items: dict[str, str] = {}
-    for dir_uri, top, children in dir_results:
-        basename = Path(dir_uri).name or dir_uri
-        item_id = f"crys:{uuid.uuid4()}"
-        dir_items[dir_uri] = item_id
-        item = Item(
-            id=item_id,
-            label=basename,
-            hasDescriptor=[top.id],
-        )
-        items.append(item)
-        all_descriptors.append(top)
-        all_descriptors.extend(children)
+    file_descs: dict[str, list[Descriptor]] = {}
+    dir_descs: dict[str, list[Descriptor]] = {}
+    extra_descriptors: list[Descriptor] = []
 
     for file_obj, top, children in file_results:
-        # Find parent directory for isPartOf
-        parent_dir = str(Path(file_obj.uri).parent)
-        parent_id = dir_items.get(parent_dir)
-        item = Item(
-            id=f"crys:{uuid.uuid4()}",
-            label=file_obj.basename,
-            hasDescriptor=[top.id],
-            isPartOf=parent_id,
-        )
-        items.append(item)
-        all_descriptors.append(top)
-        all_descriptors.extend(children)
+        file_descs[file_obj.uri] = [top]
+        extra_descriptors.append(top)
+        extra_descriptors.extend(children)
 
-    return items, all_descriptors, len(file_results)
+    for dir_uri, top, children in dir_results:
+        dir_descs[dir_uri] = [top]
+        extra_descriptors.append(top)
+        extra_descriptors.extend(children)
+
+    return file_descs, dir_descs, extra_descriptors
 
 
 def run_pipeline(
     prefix: str,
-    method_id: str,
+    method_ids: list[str],
     output_path: Path,
     workers: int,
     fmt: str,
@@ -387,30 +354,76 @@ def run_pipeline(
     verbose: bool = False,
     progress_callback: Callable[[int], None] | None = None,
 ) -> RunResult:
-    log.info("pipeline_start", prefix=prefix, method_id=method_id, workers=workers, fmt=fmt)
+    log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
 
-    method = method_by_id(method_id)
+    # Collect descriptors per file URI across all methods
+    merged_files: dict[str, list[Descriptor]] = defaultdict(list)
+    merged_dirs: dict[str, list[Descriptor]] = defaultdict(list)
+    all_descriptors: list[Descriptor] = []
+    total_succeeded = 0
+    total_failed = 0
 
-    if isinstance(method, GlimpseDirBase):
-        items, all_descriptors, succeeded = _run_glimpse_dir_pipeline(prefix, method)
-        failed = 0
-    elif isinstance(method, GlimpseBase):
-        items, all_descriptors, succeeded = _run_glimpse_pipeline(prefix, method)
-        failed = 0
-    else:
-        items, all_descriptors, succeeded, failed = _run_md5_pipeline(
-            prefix,
-            method_id,
-            workers,
-            fail_fast,
-            progress_callback,
+    for method_id in method_ids:
+        method = method_by_id(method_id)
+
+        if isinstance(method, GlimpseDirBase):
+            file_descs, dir_descs, extras = _collect_glimpse_dir(prefix, method)
+            for uri, descs in file_descs.items():
+                merged_files[uri].extend(descs)
+            for uri, descs in dir_descs.items():
+                merged_dirs[uri].extend(descs)
+            all_descriptors.extend(extras)
+            total_succeeded += len(file_descs)
+        elif isinstance(method, GlimpseBase):
+            by_uri, extras = _collect_glimpse(prefix, method)
+            for uri, descs in by_uri.items():
+                merged_files[uri].extend(descs)
+            all_descriptors.extend(extras)
+            total_succeeded += len(by_uri)
+        else:
+            md5_by_uri, _uris, succeeded, failed = _run_md5_pipeline(
+                prefix,
+                method_id,
+                workers,
+                fail_fast,
+                progress_callback,
+            )
+            for uri, descs in md5_by_uri.items():
+                merged_files[uri].extend(descs)
+            all_descriptors.extend(d for descs in md5_by_uri.values() for d in descs)
+            total_succeeded += succeeded
+            total_failed += failed
+
+    # Build directory Items first so file Items can reference them
+    dir_item_ids: dict[str, str] = {}
+    items: list[Item] = []
+    for dir_uri in sorted(merged_dirs):
+        basename = Path(dir_uri).name or dir_uri
+        item_id = f"crys:{uuid.uuid4()}"
+        dir_item_ids[dir_uri] = item_id
+        desc_ids = [d.id for d in merged_dirs[dir_uri]]
+        items.append(Item(id=item_id, label=basename, hasDescriptor=desc_ids))
+
+    # Build file Items with isPartOf linking to parent directory
+    for uri in sorted(merged_files):
+        basename = Path(uri).name
+        parent_dir = str(Path(uri).parent)
+        parent_id = dir_item_ids.get(parent_dir)
+        desc_ids = [d.id for d in merged_files[uri]]
+        items.append(
+            Item(
+                id=f"crys:{uuid.uuid4()}",
+                label=basename,
+                hasDescriptor=desc_ids,
+                isPartOf=parent_id,
+            ),
         )
 
     combine_descriptors(items, output_path, fmt, all_descriptors)
 
-    total = succeeded + failed
-    log.info("pipeline_complete", total=total, succeeded=succeeded, failed=failed)
-    return RunResult(total=total, succeeded=succeeded, failed=failed)
+    total = total_succeeded + total_failed
+    log.info("pipeline_complete", total=total, succeeded=total_succeeded, failed=total_failed)
+    return RunResult(total=total, succeeded=total_succeeded, failed=total_failed)
 
 
 def compute_annotations(output_file: str, task_file: str) -> None:
