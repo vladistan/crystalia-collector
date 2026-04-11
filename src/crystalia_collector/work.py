@@ -344,22 +344,30 @@ def _run_glimpse_dir_pipeline(
     items: list[Item] = []
     all_descriptors: list[Descriptor] = []
 
-    for file_obj, top, children in file_results:
+    # Build directory Items first so we can reference their IDs
+    dir_items: dict[str, str] = {}
+    for dir_uri, top, children in dir_results:
+        basename = Path(dir_uri).name or dir_uri
+        item_id = f"crys:{basename}"
+        dir_items[dir_uri] = item_id
         item = Item(
-            id=f"crys:{file_obj.basename}",
-            label=file_obj.basename,
+            id=item_id,
+            label=basename,
             hasDescriptor=[top.id],
         )
         items.append(item)
         all_descriptors.append(top)
         all_descriptors.extend(children)
 
-    for dir_uri, top, children in dir_results:
-        basename = Path(dir_uri).name or dir_uri
+    for file_obj, top, children in file_results:
+        # Find parent directory for isPartOf
+        parent_dir = str(Path(file_obj.uri).parent)
+        parent_id = dir_items.get(parent_dir)
         item = Item(
-            id=f"crys:{basename}",
-            label=basename,
+            id=f"crys:{file_obj.basename}",
+            label=file_obj.basename,
             hasDescriptor=[top.id],
+            isPartOf=parent_id,
         )
         items.append(item)
         all_descriptors.append(top)
