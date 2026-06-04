@@ -1,4 +1,5 @@
 from rdflib import RDF, Graph, URIRef
+from rdflib.namespace import DCTERMS
 
 from crystalia_collector.work import RunResult, run_pipeline
 
@@ -6,6 +7,8 @@ CRYS = "https://w3id.org/crystalia#"
 CRYS_NS = "https://w3id.org/crystalia/"
 ITEM = URIRef(f"{CRYS}Item")
 DESCRIPTOR = URIRef(f"{CRYS}Descriptor")
+HAS_DESCRIPTOR = URIRef(f"{CRYS_NS}hasDescriptor")
+HAS_TYPE = URIRef(f"{CRYS_NS}hasType")
 
 
 def test_run_pipeline_produces_valid_turtle(tmp_path):
@@ -172,3 +175,82 @@ def test_run_pipeline_glimpse_produces_descriptor_tree(tmp_path):
     assert len(items) == 1
     # Glimpse: 1 top + 5 children (filename, size, md5, ctime, mtime)
     assert len(descs) == 6
+
+
+def test_run_pipeline_glimpse_dir_produces_directory_items(tmp_path):
+    data_dir = tmp_path / "data"
+    subdir = data_dir / "subdir"
+    subdir.mkdir(parents=True)
+    (data_dir / "root.txt").write_text("root file")
+    (subdir / "child.txt").write_text("child file")
+
+    output = tmp_path / "catalog.ttl"
+    result = run_pipeline(str(data_dir), ["glimpse-dir"], output, workers=1, fmt="turtle")
+
+    assert result.succeeded == 2  # 2 files
+
+    g = Graph()
+    g.parse(output, format="turtle")
+
+    items = list(g.subjects(RDF.type, ITEM))
+    # 2 files + 2 dirs (data_dir + subdir)
+    assert len(items) == 4
+
+    # Both dirs have a glimpse-dir descriptor
+    glimpse_dir_type = URIRef("https://crystalia.link/data/glimpse-dir")
+    dir_desc_types = [
+        str(o)
+        for s in g.subjects(RDF.type, DESCRIPTOR)
+        for o in g.objects(s, HAS_TYPE)
+        if str(o) == str(glimpse_dir_type)
+    ]
+    assert len(dir_desc_types) == 2
+
+    # Child file Item has isPartOf pointing to subdir Item
+    child_items_with_parent = [s for s in g.subjects(RDF.type, ITEM) if (s, DCTERMS.isPartOf, None) in g]
+    assert len(child_items_with_parent) == 2
+
+    # Every isPartOf target is itself an Item
+    for s in child_items_with_parent:
+        for _, _, parent in g.triples((s, DCTERMS.isPartOf, None)):
+            assert (parent, RDF.type, ITEM) in g
+
+
+def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
+    data_dir = tmp_path / "data"
+    subdir = data_dir / "sub"
+    subdir.mkdir(parents=True)
+    (subdir / "a.txt").write_text("alpha")
+    (subdir / "b.txt").write_text("beta")
+
+    output = tmp_path / "catalog.ttl"
+    result = run_pipeline(
+        str(data_dir),
+        ["md5-8gb", "glimpse-dir"],
+        output,
+        workers=1,
+        fmt="turtle",
+    )
+
+    assert result.failed == 0
+
+    g = Graph()
+    g.parse(output, format="turtle")
+
+    items = list(g.subjects(RDF.type, ITEM))
+    # 2 files + 2 dirs (data_dir + sub)
+    assert len(items) == 4
+
+    # File Items each have 2 descriptors (md5-8gb + glimpse)
+    file_items = [s for s in items if (s, DCTERMS.isPartOf, None) in g]
+    assert len(file_items) == 2
+    for item in file_items:
+        desc_ids = list(g.objects(item, HAS_DESCRIPTOR))
+        assert len(desc_ids) == 2
+
+    # Dir Items each have 1 descriptor (glimpse-dir)
+    dir_items = [s for s in items if s not in file_items]
+    assert len(dir_items) == 2
+    for item in dir_items:
+        desc_ids = list(g.objects(item, HAS_DESCRIPTOR))
+        assert len(desc_ids) == 1
