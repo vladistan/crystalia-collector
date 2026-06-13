@@ -49,9 +49,20 @@ def test_annotate(data_dir, work_dir):
     compute_annotations(output_file, task_file)
 
 
-def test_process_task_file(data_dir):
-    task_file = str(data_dir / "test_task.txt")
-    results = _process_task_file(task_file)
+def test_process_task_file(data_dir, tmp_path):
+    # Build the task file at runtime from real sample files so absolute paths
+    # are correct on any machine (the old static fixture hardcoded /home/vlad).
+    files = [
+        data_dir / "dir1" / "chr22_small.txt",
+        data_dir / "dir1" / "short_file_single_descriptor.ttl",
+        data_dir / "dir3" / "unique_file.txt",
+        data_dir / "dir3" / "nested" / "chr22_small.txt",
+    ]
+    task_file = tmp_path / "task.txt"
+    task_file.write_text(
+        "".join(f"{f} {f.stat().st_size} md5-8gb 8589934592 0\n" for f in files),
+    )
+    results = _process_task_file(str(task_file))
 
     assert len(results) == 4
 
@@ -78,7 +89,7 @@ def test_list_dir_glimpse_files(data_dir):
     assert isinstance(method, GlimpseBase)
     num_files, total_size = _list_dir_glimpse_files(str(data_dir), method)
 
-    assert num_files == 10
+    assert num_files == 9
     assert total_size > 0
 
 
@@ -88,7 +99,7 @@ def test_collect_glimpse_dir(data_dir):
     file_descs, dir_descs, extras = _collect_glimpse_dir(str(data_dir), method)
 
     # 9 files across all directories
-    assert len(file_descs) == 10
+    assert len(file_descs) == 9
 
     # Directories: sample_data, dir1, dir2, dir3, nested
     assert len(dir_descs) == 5

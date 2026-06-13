@@ -1,4 +1,0 @@
-/home/vlad/Proj/mine/thesis/crystalia_collector/tests/sample_data/dir1/chr22_small.txt 657 md5-8gb 8589934592 0
-/home/vlad/Proj/mine/thesis/crystalia_collector/tests/sample_data/dir1/short_file_single_descriptor.ttl 994 md5-8gb 8589934592 0
-/home/vlad/Proj/mine/thesis/crystalia_collector/tests/sample_data/dir3/unique_file.txt 29 md5-8gb 8589934592 0
-/home/vlad/Proj/mine/thesis/crystalia_collector/tests/sample_data/dir3/nested/chr22_small.txt 657 md5-8gb 8589934592 0
