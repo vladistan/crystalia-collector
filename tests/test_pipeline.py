@@ -3,10 +3,9 @@ from rdflib.namespace import DCTERMS
 
 from crystalia_collector.work import RunResult, run_pipeline
 
-CRYS = "https://w3id.org/crystalia#"
 CRYS_NS = "https://w3id.org/crystalia/"
-ITEM = URIRef(f"{CRYS}Item")
-DESCRIPTOR = URIRef(f"{CRYS}Descriptor")
+ITEM = URIRef(f"{CRYS_NS}Item")
+DESCRIPTOR = URIRef(f"{CRYS_NS}Descriptor")
 HAS_DESCRIPTOR = URIRef(f"{CRYS_NS}hasDescriptor")
 HAS_TYPE = URIRef(f"{CRYS_NS}hasType")
 

@@ -116,3 +116,25 @@ def test_model_from_rdf(short_file_single_descriptor):
     method = model_from_rdf(rdf_graph, Method, subject=str(desc_type.usesMethod))
     assert method.label == "SHA256"
     assert method.robustness == DescriptorRobustness.EXTREMELY_HIGH
+
+
+def test_model_from_rdf_without_subject_resolves_item_by_type(test_dir):
+    """Regression: loading without an explicit subject must resolve the Item by
+    rdf:type rather than falling back to an arbitrary (wrong) subject.
+
+    The fixture declares Method, DescriptorType and Descriptor before the Item,
+    all using the slash-convention crys: type URIs. Without the class_uri fix the
+    loader searches for a hash-separated type URI absent from the graph, fails to
+    match, and falls back to the first arbitrary subject -- mis-validating a
+    Method/Descriptor as an Item (wrong label or a missing-field ValidationError).
+    This is the no-explicit-subject path that the `combine` command exercises.
+    """
+    rdf_graph = Graph()
+    rdf_graph.parse(test_dir / "rdf_data" / "multi_subject_no_root.ttl", format="turtle")
+
+    item = model_from_rdf(rdf_graph, Item)
+
+    assert isinstance(item, Item)
+    assert item.label == "Short file in the cohort"
+    assert item.isPartOf == "https://registry.opendata.aws/ilmn-dragen-1kgp"
+    assert str(item.id).endswith("samples-cohort/a.txt")
