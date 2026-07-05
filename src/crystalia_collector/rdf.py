@@ -1,3 +1,10 @@
+# Resolved LinkML import paths (Phase 1 spike, 2026-07-05):
+#   - SchemaView:         linkml_runtime
+#   - PydanticRDFDumper:  linkml_runtime.dumpers.pydantic_rdf_dumper
+#   - PydanticRDFLoader:  linkml_runtime.loaders.pydantic_rdf_loader
+# Note: `linkml` and `linkml_runtime` are two separate Python packages colocated
+# in the linkml monorepo. RDF/schema APIs live in `linkml_runtime`; the top-level
+# `linkml` package (compiler/generators) itself imports from `linkml_runtime`.
 from functools import lru_cache
 from pathlib import Path
 
