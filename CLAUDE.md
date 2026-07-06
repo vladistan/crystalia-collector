@@ -13,8 +13,12 @@ src/crystalia_collector/
   work.py           # Core workflow: list dirs, generate tasks, compute annotations, run pipeline
   s3_iface.py       # Legacy S3 facade (delegates to source/s3.py)
   rdf.py            # RDF <-> Pydantic model conversion via PydanticRDFDumper/Loader
+  glimpse_scanner.py     # Walks a source and scans files/dirs with a Glimpse method
+  glimpse_compute.py     # Computes file-level Glimpse descriptors (content ids)
+  glimpse_dir_compute.py # Computes directory-level Glimpse descriptors
   monitoring.py     # Sentry + structlog setup
   util.py           # Size formatting, offset generation, task file writing
+  _vendor/          # Vendored fork RDF code (PydanticRDFDumper/Loader) — see VENDORED.md
   source/           # Source abstraction layer
     __init__.py     # FileObject model, Source protocol, detect_source()
     local.py        # LocalSource: local filesystem backend
@@ -30,9 +34,14 @@ src/crystalia_collector/
 
 ## Data Model
 
-Pydantic models are imported from `crystalia_data_model.datamodel.linkml_crystalia`
-(editable install via `uv.sources` in pyproject.toml). RDF conversion uses
-`PydanticRDFDumper`/`PydanticRDFLoader` from `linkml_runtime` (also editable).
+Pydantic models are imported from `crystalia_data_model.datamodel.linkml_crystalia`.
+For public PyPI distribution this package is **vendored** into
+`src/crystalia_data_model/` (source of truth: `../crystalia-data-model`; see its
+`VENDORED.md`). RDF conversion uses `PydanticRDFDumper`/`PydanticRDFLoader`, also
+**vendored** into `src/crystalia_collector/_vendor/` because they exist only in
+the LinkML monorepo fork, not in public `linkml-runtime`. Public
+`linkml-runtime` still supplies `SchemaView` and the vendored classes' base
+classes.
 
 ## CLI Commands
 

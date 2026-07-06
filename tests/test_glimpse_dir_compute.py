@@ -1,7 +1,5 @@
 from datetime import UTC, datetime
 
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
-
 from crystalia_collector.glimpse_dir_compute import build_dir_descriptor
 from crystalia_collector.method.glimpse_dir import (
     GlimpseDir,
@@ -9,6 +7,7 @@ from crystalia_collector.method.glimpse_dir import (
     GlimpseDirMeta,
     GlimpseDirSlim,
 )
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
 

@@ -3,9 +3,8 @@
 import hashlib
 from datetime import datetime
 
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
-
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 _TYPE_FILENAME = "cryd:desc-type/filename"
 _TYPE_MTIME = "cryd:desc-type/mtime"

@@ -5,13 +5,12 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
-
 from crystalia_collector.glimpse_compute import build_file_descriptor
 from crystalia_collector.glimpse_dir_compute import build_dir_descriptor
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_collector.source import FileObject, Source
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 # Alias: (basename, top-level descriptor) pair used for rollup inputs
 ChildEntry = tuple[str, Descriptor]

@@ -1,4 +1,7 @@
 import pytest
+from rdflib import Graph
+
+from crystalia_collector.rdf import model_from_rdf, rdf_from_model
 from crystalia_data_model.datamodel.linkml_crystalia import (
     Descriptor,
     DescriptorRobustness,
@@ -6,9 +9,6 @@ from crystalia_data_model.datamodel.linkml_crystalia import (
     Item,
     Method,
 )
-from rdflib import Graph
-
-from crystalia_collector.rdf import model_from_rdf, rdf_from_model
 
 
 @pytest.fixture

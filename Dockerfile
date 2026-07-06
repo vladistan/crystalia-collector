@@ -1,8 +1,8 @@
 # Stage 1: Builder
-FROM python:3.13-bookworm AS builder
+FROM python:3.13.1-bookworm AS builder
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# Install uv (pinned)
+COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /uvx /bin/
 
 WORKDIR /app
 
@@ -19,7 +19,7 @@ COPY src ./src
 RUN uv sync --frozen
 
 # Stage 2: Runtime
-FROM python:3.13-slim-bookworm
+FROM python:3.13.1-slim-bookworm
 
 # Create non-root user
 RUN groupadd --gid 1000 appuser && \

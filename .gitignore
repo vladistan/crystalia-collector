@@ -13,7 +13,12 @@
 /data/
 /pipelines/out.rdf
 test.ttl
+catalog.ttl
 .coverage
+coverage.xml
+
+# Agent worktrees (large, transient — created by workspace tooling)
+/.claude/worktrees/
 
 # Non-public real-data collection artifacts (glimpse catalogs over private datasets)
 /real_test_061326/

@@ -1,7 +1,7 @@
 import pytest
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
 from crystalia_collector.work import combine_descriptors
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
 
 @pytest.fixture
