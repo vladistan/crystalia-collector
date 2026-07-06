@@ -3,10 +3,9 @@
 import hashlib
 from collections.abc import Sequence
 
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
-
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.source import FileObject, Source
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 # Child descriptor type URIs (cryd: = data-instance namespace)
 _TYPE_FILENAME = "cryd:desc-type/filename"

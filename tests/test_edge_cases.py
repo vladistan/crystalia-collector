@@ -18,9 +18,9 @@ def test_list_files_empty_dir(tmp_path):
 
 def test_list_files_zero_byte_file(tmp_path):
     (tmp_path / "empty.bin").write_bytes(b"")
-    files = list(LocalSource().list_files(str(tmp_path)))
-    assert len(files) == 1
-    assert files[0].size == 0
+    file_list = list(LocalSource().list_files(str(tmp_path)))
+    assert len(file_list) == 1
+    assert file_list[0].size == 0
 
 
 def test_checksum_zero_byte_file(tmp_path):

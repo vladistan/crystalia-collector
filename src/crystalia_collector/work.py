@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import structlog
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
 from crystalia_collector.glimpse_compute import _content_id
 from crystalia_collector.method import method_by_id
@@ -17,6 +16,7 @@ from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_files_in_s3_prefix
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
 log = structlog.get_logger()
 
@@ -125,6 +125,7 @@ def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, i
 
 def _list_dir_glimpse_files(prefix: str, method: GlimpseBase) -> tuple[int, int]:
     """Scan files with a Glimpse file method and log descriptor summaries."""
+    # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_files
 
     source = detect_source(prefix)
@@ -149,10 +150,10 @@ def _list_dir_glimpse_dirs(
     task_dir: Path | None,
 ) -> tuple[int, int]:
     """Scan files and directories with a Glimpse dir method and log directory descriptors."""
+    # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_with_dirs
-    from crystalia_collector.method import method_by_id as _method_by_id
 
-    file_method_raw = _method_by_id(method.paired_file_method_id)
+    file_method_raw = method_by_id(method.paired_file_method_id)
     if not isinstance(file_method_raw, GlimpseBase):
         msg = f"Paired file method {method.paired_file_method_id!r} is not a GlimpseBase"
         raise ValueError(msg)
@@ -219,6 +220,8 @@ def combine_descriptors(
     fmt: str,
     descriptors: list[Descriptor] | None = None,
 ) -> None:
+    # local imports: defer the heavy RDF stack (rdflib + linkml_runtime) until
+    # turtle output is actually requested, keeping CLI startup fast.
     from rdflib import Graph
 
     from crystalia_collector.rdf import rdf_from_model
@@ -299,6 +302,7 @@ def _collect_glimpse(
     prefix: str,
     method: GlimpseBase,
 ) -> tuple[dict[str, list[Descriptor]], list[Descriptor]]:
+    # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_files
 
     source = detect_source(prefix)
@@ -317,6 +321,7 @@ def _collect_glimpse_dir(
     prefix: str,
     method: GlimpseDirBase,
 ) -> tuple[dict[str, list[Descriptor]], dict[str, list[Descriptor]], list[Descriptor]]:
+    # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_with_dirs
 
     file_method_raw = method_by_id(method.paired_file_method_id)
@@ -342,6 +347,43 @@ def _collect_glimpse_dir(
         extra_descriptors.extend(children)
 
     return file_descs, dir_descs, extra_descriptors
+
+
+def _build_directory_items(
+    merged_dirs: dict[str, list[Descriptor]],
+) -> tuple[list[Item], dict[str, str]]:
+    """Build directory Items and return them with a {dir_uri: item_id} map."""
+    dir_item_ids: dict[str, str] = {}
+    items: list[Item] = []
+    for dir_uri in sorted(merged_dirs):
+        basename = Path(dir_uri).name or dir_uri
+        item_id = f"crys:{uuid.uuid4()}"
+        dir_item_ids[dir_uri] = item_id
+        desc_ids = [d.id for d in merged_dirs[dir_uri]]
+        items.append(Item(id=item_id, label=basename, hasDescriptor=desc_ids))
+    return items, dir_item_ids
+
+
+def _build_file_items(
+    merged_files: dict[str, list[Descriptor]],
+    dir_item_ids: dict[str, str],
+) -> list[Item]:
+    """Build file Items, linking each to its parent directory Item via isPartOf."""
+    items: list[Item] = []
+    for uri in sorted(merged_files):
+        basename = Path(uri).name
+        parent_dir = str(Path(uri).parent)
+        parent_id = dir_item_ids.get(parent_dir)
+        desc_ids = [d.id for d in merged_files[uri]]
+        items.append(
+            Item(
+                id=f"crys:{uuid.uuid4()}",
+                label=basename,
+                hasDescriptor=desc_ids,
+                isPartOf=parent_id,
+            ),
+        )
+    return items
 
 
 def run_pipeline(
@@ -394,30 +436,10 @@ def run_pipeline(
             total_succeeded += succeeded
             total_failed += failed
 
-    # Build directory Items first so file Items can reference them
-    dir_item_ids: dict[str, str] = {}
-    items: list[Item] = []
-    for dir_uri in sorted(merged_dirs):
-        basename = Path(dir_uri).name or dir_uri
-        item_id = f"crys:{uuid.uuid4()}"
-        dir_item_ids[dir_uri] = item_id
-        desc_ids = [d.id for d in merged_dirs[dir_uri]]
-        items.append(Item(id=item_id, label=basename, hasDescriptor=desc_ids))
-
-    # Build file Items with isPartOf linking to parent directory
-    for uri in sorted(merged_files):
-        basename = Path(uri).name
-        parent_dir = str(Path(uri).parent)
-        parent_id = dir_item_ids.get(parent_dir)
-        desc_ids = [d.id for d in merged_files[uri]]
-        items.append(
-            Item(
-                id=f"crys:{uuid.uuid4()}",
-                label=basename,
-                hasDescriptor=desc_ids,
-                isPartOf=parent_id,
-            ),
-        )
+    # Build directory Items first so file Items can reference them via isPartOf
+    dir_items, dir_item_ids = _build_directory_items(merged_dirs)
+    file_items = _build_file_items(merged_files, dir_item_ids)
+    items = dir_items + file_items
 
     combine_descriptors(items, output_path, fmt, all_descriptors)
 

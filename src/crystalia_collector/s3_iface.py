@@ -8,7 +8,6 @@ crystalia_collector.source.s3.S3Source.
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 
 from crystalia_collector.source.s3 import S3Source
 
@@ -19,15 +18,6 @@ class S3Object:
     last_modified: datetime
     etag: str
     size: int
-
-
-def s3_object_from_dict(obj: dict[str, Any]) -> S3Object:
-    return S3Object(
-        key=obj["Key"],
-        last_modified=obj["LastModified"],
-        etag=obj["ETag"],
-        size=obj["Size"],
-    )
 
 
 def list_files_in_s3_prefix(bucket_name: str, prefix: str) -> Iterator[S3Object]:

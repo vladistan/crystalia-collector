@@ -1,19 +1,21 @@
-# Resolved LinkML import paths (Phase 1 spike, 2026-07-05):
-#   - SchemaView:         linkml_runtime
-#   - PydanticRDFDumper:  linkml_runtime.dumpers.pydantic_rdf_dumper
-#   - PydanticRDFLoader:  linkml_runtime.loaders.pydantic_rdf_loader
-# Note: `linkml` and `linkml_runtime` are two separate Python packages colocated
-# in the linkml monorepo. RDF/schema APIs live in `linkml_runtime`; the top-level
-# `linkml` package (compiler/generators) itself imports from `linkml_runtime`.
+# LinkML RDF import paths:
+#   - SchemaView:         linkml_runtime (public PyPI)
+#   - PydanticRDFDumper:  crystalia_collector._vendor.pydantic_rdf_dumper
+#   - PydanticRDFLoader:  crystalia_collector._vendor.pydantic_rdf_loader
+# PydanticRDFDumper/PydanticRDFLoader are vendored because they exist only in the
+# LinkML monorepo fork, not in public PyPI `linkml-runtime` (see
+# _vendor/VENDORED.md for provenance and the upstreaming TODO). SchemaView and the
+# vendored classes' base classes are all provided by public `linkml-runtime`.
 from functools import lru_cache
 from pathlib import Path
 
-from crystalia_data_model.datamodel.linkml_crystalia import Thing
 from linkml_runtime import SchemaView
-from linkml_runtime.dumpers.pydantic_rdf_dumper import PydanticRDFDumper
-from linkml_runtime.loaders.pydantic_rdf_loader import PydanticRDFLoader
 from pydantic import BaseModel
 from rdflib import Graph
+
+from crystalia_collector._vendor.pydantic_rdf_dumper import PydanticRDFDumper
+from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+from crystalia_data_model.datamodel.linkml_crystalia import Thing
 
 SCHEMA_DIR = Path(__file__).parent / "schema"
 

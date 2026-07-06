@@ -3,7 +3,10 @@ line-length = 120
 src = ["src", "tests"]
 exclude = [
   ".claude",
-  "data_model"
+  "data_model",
+  # Vendored generated / fork code (see src/*/VENDORED.md) is not linted.
+  "src/crystalia_data_model",
+  "src/crystalia_collector/_vendor"
 ]
 
 [lint]

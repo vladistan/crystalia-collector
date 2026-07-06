@@ -78,10 +78,12 @@ def combine(
 ) -> None:
     """Combine individual annotation files into a single catalog."""
     try:
-        from crystalia_data_model.datamodel.linkml_crystalia import Item
+        # local imports: defer the heavy RDF stack (rdflib + linkml_runtime) and
+        # data model until the combine command actually runs.
         from rdflib import Graph
 
         from crystalia_collector.rdf import model_from_rdf
+        from crystalia_data_model.datamodel.linkml_crystalia import Item
 
         items = []
         for ttl_file in sorted(input_dir.glob("*.ttl")):
@@ -124,6 +126,8 @@ def run(
     method_ids = method if method else [get_settings().default_method_id]
 
     try:
+        # local imports: lazy-load the optional rich progress UI so it is only
+        # imported when the run command needs it.
         from rich.console import Console
         from rich.progress import Progress, SpinnerColumn, TextColumn
 
@@ -169,6 +173,7 @@ def test_sentry() -> None:
     try:
         raise RuntimeError("Sentry test exception from crystalia-collector")
     except RuntimeError:
+        # local import: only needed for the opt-in Sentry self-test command.
         import sentry_sdk
 
         sentry_sdk.capture_exception()

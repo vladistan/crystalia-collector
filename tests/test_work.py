@@ -1,7 +1,6 @@
 import boto3
 import botocore.exceptions
 import pytest
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 from crystalia_collector.method import method_by_id
 from crystalia_collector.method.glimpse import GlimpseBase
@@ -13,6 +12,7 @@ from crystalia_collector.work import (
     compute_annotations,
     list_s3_dir,
 )
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 
 def _has_aws_credentials() -> bool:
