@@ -70,6 +70,12 @@ omit = ["tests/*", "src/crystalia_collector/_vendor/*"]
 [tool.hatch.build.targets.wheel]
 packages = ["src/crystalia_collector", "src/crystalia_data_model"]
 
+[tool.hatch.build.targets.sdist]
+# Keep the sdist lean — exclude local artifacts (Nextflow HTML reports under
+# pipelines/, the generated data_model/ docs site, IDE/infra dirs). pyproject.toml
+# and PKG-INFO are always included by hatchling.
+only-include = ["src", "tests", "README.md", "LICENSE", "changelog.md", "HISTORY.rst", "ruff.toml", "Dockerfile"]
+
 [tool.mypy]
 files = "."
 exclude = ["data_model", "legacy", "infrastructure", "crystalia_data_model", "_vendor"]
