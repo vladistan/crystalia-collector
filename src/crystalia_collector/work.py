@@ -20,6 +20,12 @@ from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
 
 log = structlog.get_logger()
 
+# Descriptor type for a file's path relative to the scan root. This is location
+# metadata and is deliberately NOT folded into any content-composite hash, so
+# content descriptor IDs stay stable and identical files in different directories
+# still share content IDs.
+_TYPE_RELPATH = "cryd:desc-type/relpath"
+
 
 @dataclass
 class RunResult:
@@ -364,17 +370,47 @@ def _build_directory_items(
     return items, dir_item_ids
 
 
+def _relative_path(uri: str, root: str) -> str:
+    """Return uri as a POSIX path relative to the scan root, including the basename.
+
+    The run pipeline is local-only, so uri and root are absolute local paths.
+    Falls back to the basename if uri is not under root.
+    """
+    try:
+        return Path(uri).relative_to(root).as_posix()
+    except ValueError:
+        return Path(uri).name
+
+
 def _build_file_items(
     merged_files: dict[str, list[Descriptor]],
     dir_item_ids: dict[str, str],
-) -> list[Item]:
-    """Build file Items, linking each to its parent directory Item via isPartOf."""
+    root: str,
+) -> tuple[list[Item], list[Descriptor]]:
+    """Build file Items, each with a relpath descriptor and an isPartOf link to its parent dir.
+
+    Returns (items, relpath_descriptors). The relpath descriptor carries the file's
+    path relative to the scan root as location metadata and is referenced by the
+    Item (not by the content descriptor), so content-composite IDs are unaffected.
+    """
     items: list[Item] = []
+    relpath_descriptors: list[Descriptor] = []
     for uri in sorted(merged_files):
         basename = Path(uri).name
         parent_dir = str(Path(uri).parent)
         parent_id = dir_item_ids.get(parent_dir)
-        desc_ids = [d.id for d in merged_files[uri]]
+
+        relpath = _relative_path(uri, root)
+        relpath_desc = Descriptor(
+            id=_content_id(_TYPE_RELPATH, relpath),
+            hasType=_TYPE_RELPATH,
+            value=relpath,
+            offset=0,
+            coverage=1.0,
+        )
+        relpath_descriptors.append(relpath_desc)
+
+        desc_ids = [d.id for d in merged_files[uri]] + [relpath_desc.id]
         items.append(
             Item(
                 id=f"crys:{uuid.uuid4()}",
@@ -383,7 +419,7 @@ def _build_file_items(
                 isPartOf=parent_id,
             ),
         )
-    return items
+    return items, relpath_descriptors
 
 
 def run_pipeline(
@@ -438,8 +474,9 @@ def run_pipeline(
 
     # Build directory Items first so file Items can reference them via isPartOf
     dir_items, dir_item_ids = _build_directory_items(merged_dirs)
-    file_items = _build_file_items(merged_files, dir_item_ids)
+    file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, prefix)
     items = dir_items + file_items
+    all_descriptors.extend(relpath_descriptors)
 
     combine_descriptors(items, output_path, fmt, all_descriptors)
 

@@ -14,7 +14,7 @@ dev = [
 
 [project]
 name = "crystalia-collector"
-version = "0.1.1"
+version = "0.2.0"
 description = "Crystalia Collector: Generate Dataset Descriptors for Large Datasets"
 readme = "README.md"
 authors = [

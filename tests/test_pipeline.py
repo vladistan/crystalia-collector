@@ -173,8 +173,18 @@ def test_run_pipeline_glimpse_produces_descriptor_tree(tmp_path):
     items = list(g.subjects(RDF.type, ITEM))
     descs = list(g.subjects(RDF.type, DESCRIPTOR))
     assert len(items) == 1
-    # Glimpse: 1 top + 5 children (filename, size, md5, ctime, mtime)
-    assert len(descs) == 6
+    # Glimpse: 1 top + 5 children (filename, size, md5, ctime, mtime) + 1 item-level relpath
+    assert len(descs) == 7
+    # The item-level relpath descriptor carries the file's path relative to the scan root
+    value_pred = URIRef(f"{CRYS_NS}value")
+    relpath_values = [
+        str(v)
+        for s in descs
+        for t in g.objects(s, HAS_TYPE)
+        if str(t).endswith("desc-type/relpath")
+        for v in g.objects(s, value_pred)
+    ]
+    assert relpath_values == ["test.txt"]
 
 
 @pytest.mark.xfail(
@@ -251,12 +261,12 @@ def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
     # 2 files + 2 dirs (data_dir + sub)
     assert len(items) == 4
 
-    # File Items each have 2 descriptors (md5-8gb + glimpse)
+    # File Items each have 3 descriptors (md5-8gb + glimpse-dir + item-level relpath)
     file_items = [s for s in items if (s, DCTERMS.isPartOf, None) in g]
     assert len(file_items) == 2
     for item in file_items:
         desc_ids = list(g.objects(item, HAS_DESCRIPTOR))
-        assert len(desc_ids) == 2
+        assert len(desc_ids) == 3
 
     # Dir Items each have 1 descriptor (glimpse-dir)
     dir_items = [s for s in items if s not in file_items]
