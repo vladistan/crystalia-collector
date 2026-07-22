@@ -274,3 +274,32 @@ def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
     for item in dir_items:
         desc_ids = list(g.objects(item, HAS_DESCRIPTOR))
         assert len(desc_ids) == 1
+
+
+def test_run_pipeline_glimpse_dir_meta_does_not_crash(tmp_path):
+    # Regression: glimpse-dir-meta previously crashed with "Unknown method ''"
+    # because it had an empty paired_file_method_id. It should now enumerate
+    # directories and emit count/mtime descriptors (no rollup).
+    data_dir = tmp_path / "data"
+    subdir = data_dir / "sub"
+    subdir.mkdir(parents=True)
+    (data_dir / "root.txt").write_text("root")
+    (subdir / "child.txt").write_text("child")
+
+    output = tmp_path / "catalog.ttl"
+    result = run_pipeline(str(data_dir), ["glimpse-dir-meta"], output, workers=1, fmt="turtle")
+
+    assert result.failed == 0
+    assert result.succeeded > 0
+
+    g = Graph()
+    g.parse(output, format="turtle")
+    # Directory entities carry a count descriptor
+    count_values = [
+        str(v)
+        for s in g.subjects(RDF.type, DESCRIPTOR)
+        for t in g.objects(s, HAS_TYPE)
+        if str(t).endswith("desc-type/count")
+        for v in g.objects(s, URIRef(f"{CRYS_NS}value"))
+    ]
+    assert count_values

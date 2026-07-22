@@ -22,6 +22,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   `required: true` to `required: false`, matching the upstream
   crystalia-data-model schema and the generated Pydantic model (which the plain
   glimpse path relies on when emitting `isPartOf`-less file Items).
+- `glimpse-dir-meta` no longer crashes with `Unknown method ''`. It had an empty
+  `paired_file_method_id`; it is now paired with `glimpse-meta` so directories
+  are enumerated and emit `count`/`mtime` descriptors (no rollup, as intended).
 
 ## [0.1.1] - 2026-07-05
 

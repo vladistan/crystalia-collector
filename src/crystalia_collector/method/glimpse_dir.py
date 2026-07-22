@@ -64,5 +64,8 @@ class GlimpseDirMeta(GlimpseDirBase):
         self.id = "glimpse-dir-meta"
         self.fields = _GLIMPSE_DIR_META_FIELDS
         self.has_rollup = False
-        self.paired_file_method_id = ""
+        # Paired with the metadata-only file method so directory children can be
+        # enumerated and counted. With has_rollup=False the file descriptors are
+        # only used for the child count, never folded into the directory hash.
+        self.paired_file_method_id = "glimpse-meta"
         self.robustness = "VERY_LOW"
