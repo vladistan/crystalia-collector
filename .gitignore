@@ -20,5 +20,8 @@ coverage.xml
 # Agent worktrees (large, transient — created by workspace tooling)
 /.claude/worktrees/
 
+# SciTools Understand databases (code-analysis tool artifacts)
+*.und/
+
 # Non-public real-data collection artifacts (glimpse catalogs over private datasets)
-/real_test_061326/
+/real_test_*/

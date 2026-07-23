@@ -6,13 +6,47 @@ from crystalia_collector.method import method_by_id
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_collector.work import (
+    _TYPE_RELPATH,
+    _build_file_items,
     _collect_glimpse_dir,
     _list_dir_glimpse_files,
     _process_task_file,
+    _relative_path,
     compute_annotations,
     list_s3_dir,
 )
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
+
+
+def test_relative_path_nested_root_and_fallback():
+    assert _relative_path("/data/scan/dir1/.DS_Store", "/data/scan") == "dir1/.DS_Store"
+    assert _relative_path("/data/scan/file.txt", "/data/scan") == "file.txt"
+    # trailing slash on root is tolerated
+    assert _relative_path("/data/scan/dir1/f", "/data/scan/") == "dir1/f"
+    # uri not under root -> basename fallback
+    assert _relative_path("/elsewhere/f", "/data/scan") == "f"
+
+
+def test_build_file_items_emits_distinct_relpath_for_same_basename():
+    # Two distinct files sharing a basename in different directories (the .DS_Store case)
+    d1 = Descriptor(id="cryd:c1", hasType="cryd:md5-head", value="aaa", offset=0, coverage=1.0)
+    d2 = Descriptor(id="cryd:c2", hasType="cryd:md5-head", value="bbb", offset=0, coverage=1.0)
+    merged = {
+        "/scan/dir1/.DS_Store": [d1],
+        "/scan/dir2/.DS_Store": [d2],
+    }
+
+    items, relpaths = _build_file_items(merged, {}, "/scan")
+
+    # A relpath descriptor per file, each carrying the distinct relative path
+    assert sorted(d.value for d in relpaths) == ["dir1/.DS_Store", "dir2/.DS_Store"]
+    assert all(d.hasType == _TYPE_RELPATH for d in relpaths)
+    # Distinct content-addressed IDs (paths differ -> IDs differ)
+    assert len({d.id for d in relpaths}) == 2
+    # Each Item references exactly one of the relpath descriptors
+    relpath_ids = {d.id for d in relpaths}
+    for item in items:
+        assert len(set(item.hasDescriptor) & relpath_ids) == 1
 
 
 def _has_aws_credentials() -> bool:
