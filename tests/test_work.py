@@ -109,7 +109,8 @@ def test_process_task_file(data_dir, tmp_path):
         assert isinstance(desc, Descriptor)
         assert desc.hasType == "cryd:md5-8gb"
         assert desc.offset == 0
-        assert desc.coverage == 1.0
+        # FR-011: block_size > 0 makes coverage per-file; omitted on the shared node
+        assert desc.coverage is None
         assert len(desc.value) == 32  # md5 hex
 
     # Identical files should produce identical checksums

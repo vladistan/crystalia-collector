@@ -42,14 +42,17 @@ def _process_task_file(task_file_path: str) -> list[tuple[str, Descriptor]]:
             if not parts:
                 continue
             uri = parts[0]
-            size = int(parts[1])
+            # parts[1] = file size; no longer used (per-file coverage omitted, FR-011)
             method_id = parts[2]
             block_size = int(parts[3])
             offset = int(parts[4])
             length = block_size if block_size > 0 else None
             source = detect_source(uri)
             checksum = source.compute_checksum(uri, offset, length)
-            coverage = min(block_size / size, 1.0) if block_size > 0 and size > 0 else 1.0
+            # id = md5(type:checksum) is content-addressed and shared across files and
+            # chunk positions. With block_size > 0, block_size / size is per-file, so it
+            # is omitted (FR-011); whole-file md5 (block_size == 0) is a constant 1.0.
+            coverage = None if block_size > 0 else 1.0
             descriptor = Descriptor(
                 id=_content_id(f"cryd:{method_id}", checksum),
                 hasType=f"cryd:{method_id}",

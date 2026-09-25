@@ -128,9 +128,14 @@ slots:
     required: true
     multivalued: false
   coverage:
-    description: The coverage of the descriptor (0.0 to 1.0)
+    description: >-
+      The fraction (0.0 to 1.0) of the described item covered by this descriptor.
+      Optional: a content-addressed Descriptor (id derived from type and value) is
+      shared across items and must carry only facts that are a function of its type
+      and value; per-item coverage is omitted there and derived by consumers as
+      length / item file-size.
     range: float
-    required: true
+    required: false
     multivalued: false
   usesMethod:
     description: The method used to generate the descriptor

@@ -35,9 +35,15 @@ def _content_id(type_uri: str, value: str) -> str:
 def _build_child_descriptor(
     type_uri: str,
     value: str,
-    coverage: float,
+    coverage: float | None,
     length: int | None = None,
 ) -> Descriptor:
+    """Build a content-addressed child descriptor (id = md5(type_uri:value)).
+
+    The node is shared by every file with the same (type, value), so it may carry
+    only facts that are a function of (type, value). Pass coverage=None for any
+    per-file quantity (FR-011); consumers derive it from length / file-size.
+    """
     return Descriptor(
         id=_content_id(type_uri, value),
         hasType=type_uri,
@@ -94,12 +100,17 @@ def build_file_descriptor(
         type_uri = _FIELD_TYPE[field]
         value = field_raw[field]
         if field == "md5":
-            child = _build_child_descriptor(type_uri, value, md5_coverage, md5_length)
+            # coverage (block_size / file_size) is per-file, not a function of the
+            # head hash: omit it on the shared node. length stays (it is fixed by
+            # the hashed bytes); consumers derive coverage = length / file-size.
+            child = _build_child_descriptor(type_uri, value, None, md5_length)
         else:
             child = _build_child_descriptor(type_uri, value, 1.0)
         children.append(child)
 
     composite_value = _composite_v0(field_raw, method.fields)
+    # The top-level id hashes a composite that includes "size" for every md5
+    # variant, so per-file coverage is a function of this node's identity: keep.
     top_coverage = md5_coverage if method.has_md5 else 1.0
     top_hash = composite_value.removeprefix("v0:")
 
