@@ -3,6 +3,14 @@
 **Source:** `crystalia-data-model` v0.0.1 (`src/crystalia_data_model/`), the
 LinkML-generated Pydantic data model that lives at `../crystalia-data-model`.
 
+**Vendored at:** commit `57639cf634421c2b79f4a08edbebc02b61c7ae00`
+(branch `fr011-coverage-optional`, "feat: make Descriptor.coverage optional
+(FR-011 content-address invariant)"). The four files below are byte-identical
+to `git show 57639cf:src/crystalia_data_model/<path>`. This snapshot also
+carries upstream `86ec1e2` (`hasDescriptor` / `hasType` / `usesMethod` ranges
+changed from class references to `uriorcurie` in `linkml_meta`; Python
+annotations were already `str`, unchanged).
+
 **License:** MIT (crystalia-data-model upstream license). Compatible with this
 project's Apache-2.0 license.
 

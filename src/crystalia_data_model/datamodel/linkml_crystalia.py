@@ -237,27 +237,35 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
                            'range': 'string',
                            'required': False,
                            'slot_uri': 'rdfs:comment'},
-               'coverage': {'description': 'The coverage of the descriptor (0.0 to '
-                                           '1.0)',
+               'coverage': {'description': 'The fraction (0.0 to 1.0) of the '
+                                           'described item covered by this '
+                                           'descriptor. Optional: a '
+                                           'content-addressed Descriptor (id '
+                                           'derived from type and value) is shared '
+                                           'across items and must carry only facts '
+                                           'that are a function of its type and '
+                                           'value; per-item coverage is omitted '
+                                           'there and derived by consumers as '
+                                           'length / item file-size.',
                             'domain_of': ['Descriptor'],
                             'from_schema': 'https://w3id.org/crystalia',
                             'multivalued': False,
                             'name': 'coverage',
                             'range': 'float',
-                            'required': True},
+                            'required': False},
                'hasDescriptor': {'description': 'The descriptors associated with '
                                                 'an item',
                                  'domain_of': ['DescribableThing'],
                                  'from_schema': 'https://w3id.org/crystalia',
                                  'multivalued': True,
                                  'name': 'hasDescriptor',
-                                 'range': 'Descriptor'},
+                                 'range': 'uriorcurie'},
                'hasType': {'description': 'The type of the descriptor',
                            'domain_of': ['Descriptor'],
                            'from_schema': 'https://w3id.org/crystalia',
                            'multivalued': False,
                            'name': 'hasType',
-                           'range': 'DescriptorType',
+                           'range': 'uriorcurie',
                            'required': True},
                'id': {'description': 'A unique identifier',
                       'domain_of': ['Thing'],
@@ -324,7 +332,7 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
                               'from_schema': 'https://w3id.org/crystalia',
                               'multivalued': False,
                               'name': 'usesMethod',
-                              'range': 'Method',
+                              'range': 'uriorcurie',
                               'required': True},
                'value': {'description': 'The value of the descriptor',
                          'domain_of': ['Descriptor'],
@@ -408,7 +416,7 @@ class DescribableThing(Thing):
          'multivalued': True,
          'name': 'hasDescriptor',
          'owner': 'DescribableThing',
-         'range': 'Descriptor'} })
+         'range': 'uriorcurie'} })
     id: str = Field(default=..., description="""A unique identifier""", json_schema_extra = { "linkml_meta": {'alias': 'id',
          'description': 'A unique identifier',
          'domain_of': ['Thing'],
@@ -457,7 +465,7 @@ class Item(DescribableThing):
          'multivalued': True,
          'name': 'hasDescriptor',
          'owner': 'Item',
-         'range': 'Descriptor'} })
+         'range': 'uriorcurie'} })
     id: str = Field(default=..., description="""A unique identifier""", json_schema_extra = { "linkml_meta": {'alias': 'id',
          'description': 'A unique identifier',
          'domain_of': ['Thing'],
@@ -497,7 +505,7 @@ class Descriptor(DescribableThing):
          'multivalued': False,
          'name': 'hasType',
          'owner': 'Descriptor',
-         'range': 'DescriptorType',
+         'range': 'uriorcurie',
          'required': True} })
     value: str = Field(default=..., description="""The value of the descriptor""", json_schema_extra = { "linkml_meta": {'alias': 'value',
          'description': 'The value of the descriptor',
@@ -528,15 +536,20 @@ class Descriptor(DescribableThing):
          'range': 'integer',
          'required': False,
          'unit': {'ucum_code': 'byte'}} })
-    coverage: float = Field(default=..., description="""The coverage of the descriptor (0.0 to 1.0)""", json_schema_extra = { "linkml_meta": {'alias': 'coverage',
-         'description': 'The coverage of the descriptor (0.0 to 1.0)',
+    coverage: Optional[float] = Field(default=None, description="""The fraction (0.0 to 1.0) of the described item covered by this descriptor. Optional: a content-addressed Descriptor (id derived from type and value) is shared across items and must carry only facts that are a function of its type and value; per-item coverage is omitted there and derived by consumers as length / item file-size.""", json_schema_extra = { "linkml_meta": {'alias': 'coverage',
+         'description': 'The fraction (0.0 to 1.0) of the described item covered by '
+                        'this descriptor. Optional: a content-addressed Descriptor (id '
+                        'derived from type and value) is shared across items and must '
+                        'carry only facts that are a function of its type and value; '
+                        'per-item coverage is omitted there and derived by consumers '
+                        'as length / item file-size.',
          'domain_of': ['Descriptor'],
          'from_schema': 'https://w3id.org/crystalia',
          'multivalued': False,
          'name': 'coverage',
          'owner': 'Descriptor',
          'range': 'float',
-         'required': True} })
+         'required': False} })
     label: Optional[str] = Field(default=None, description="""A human-readable label""", json_schema_extra = { "linkml_meta": {'alias': 'label',
          'description': 'A human-readable label',
          'domain_of': ['Item', 'Descriptor', 'DescriptorType', 'Method'],
@@ -553,7 +566,7 @@ class Descriptor(DescribableThing):
          'multivalued': True,
          'name': 'hasDescriptor',
          'owner': 'Descriptor',
-         'range': 'Descriptor'} })
+         'range': 'uriorcurie'} })
     id: str = Field(default=..., description="""A unique identifier""", json_schema_extra = { "linkml_meta": {'alias': 'id',
          'description': 'A unique identifier',
          'domain_of': ['Thing'],
@@ -592,7 +605,7 @@ class DescriptorType(Thing):
          'multivalued': False,
          'name': 'usesMethod',
          'owner': 'DescriptorType',
-         'range': 'Method',
+         'range': 'uriorcurie',
          'required': True} })
     max_block_size: Optional[int] = Field(default=None, description="""The maximum size of the block of data described by the descriptor""", json_schema_extra = { "linkml_meta": {'alias': 'max_block_size',
          'description': 'The maximum size of the block of data described by the '
