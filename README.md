@@ -85,6 +85,33 @@ way: a structured error is logged, a Sentry event is captured when
 
 `--fail-fast` has been removed; every harvest is fail-closed by default.
 
+## Harvest provenance
+
+Every successful `run` emits two kinds of provenance node alongside its
+descriptors and items:
+
+- **Method** — one node per (method name, canonical parameters), minted by
+  `crystalia_data_model.types.provenance.mint_method`. A harvest reuses the
+  same `Method` IRI whenever it runs the same method with the same
+  parameters, so the node is shared across every harvest that used it. A
+  method's canonical parameters are whatever `GenericMethod.parameters()`
+  returns for it — block size for the `md5*` methods, field set and
+  robustness for `glimpse*`, plus rollup and pairing for `glimpse-dir*`.
+- **HarvestRecord** — one node per run, minted by
+  `crystalia_data_model.types.provenance.record_harvest` and linked to the
+  `Method` nodes used and the root `Item`s produced. It carries the run's
+  start and end time, the collector version, and the source root scanned.
+  It is emitted exactly once, after the write check succeeds, and only for a
+  fully successful harvest — a failed run (`HarvestIncompleteError`) writes
+  nothing to the central output, so no `HarvestRecord` for it exists anywhere.
+
+**Versioning rule:** a method's parameters are part of its content address.
+Changing an algorithm or its parameters without giving the method a new
+registry name would silently change what its existing `Method` IRI means for
+every harvest that already used it. `tests/method_params_snapshot.json` pins
+each registered method's canonical parameters and fails the build the moment
+they drift without a new name.
+
 ## Configuration
 
 Settings load in this order (highest priority first):

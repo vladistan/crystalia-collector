@@ -55,6 +55,20 @@ cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
     crys:hasType "cryd:desc-type/filename" ;
     crys:value "b.txt" .
 
+<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:collectorVersion "0.1.0" ;
+    crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:hasRoot "crys:recorded-item-0001",
+        "crys:recorded-item-0002" ;
+    crys:sourceRoot "/recorded/fixture/tree" ;
+    crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:usesMethod "cryd:method/be1811a5fc9694c2ef4ca5ec1d51f983" .
+
+<https://crystalia.link/data/method/be1811a5fc9694c2ef4ca5ec1d51f983> a crys:Method ;
+    rdfs:label "glimpse-slim" ;
+    crys:parameters """fields=23:filename,size,mtime,md5
+robustness=3:LOW""" .
+
 crys:recorded-item-0001 a crys:Item ;
     rdfs:label "a.txt" ;
     crys:hasDescriptor "cryd:4358326c78cad38ca05071c1b26a259c",

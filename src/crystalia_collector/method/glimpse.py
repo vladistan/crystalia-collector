@@ -26,6 +26,9 @@ class GlimpseBase(GenericMethod):
     def has_md5(self) -> bool:
         return "md5" in self.fields
 
+    def parameters(self) -> dict[str, str]:
+        return {"fields": ",".join(self.fields), "robustness": self.robustness}
+
 
 class Glimpse(GlimpseBase):
     """Full glimpse: filename, size, MD5-head, ctime, mtime. Robustness: LOW."""

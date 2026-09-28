@@ -24,6 +24,14 @@ class GlimpseDirBase(GenericMethod):
     def needs_offsets(self) -> bool:
         return False
 
+    def parameters(self) -> dict[str, str]:
+        return {
+            "fields": ",".join(self.fields),
+            "robustness": self.robustness,
+            "has_rollup": str(self.has_rollup),
+            "paired_file_method_id": self.paired_file_method_id,
+        }
+
 
 class GlimpseDir(GlimpseDirBase):
     """Full dir glimpse: filename, mtime, count + rollup from glimpse. Robustness: LOW."""

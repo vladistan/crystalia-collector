@@ -79,6 +79,22 @@ cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
     crys:hasType "cryd:desc-type/filename" ;
     crys:value "b.txt" .
 
+<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:collectorVersion "0.1.0" ;
+    crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:hasRoot "crys:recorded-item-0001",
+        "crys:recorded-item-0002" ;
+    crys:sourceRoot "/recorded/fixture/tree" ;
+    crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:usesMethod "cryd:method/98fb2cb1e147dd24b2f0bfe8f454b11b" .
+
+<https://crystalia.link/data/method/98fb2cb1e147dd24b2f0bfe8f454b11b> a crys:Method ;
+    rdfs:label "glimpse-dir-slim" ;
+    crys:parameters """fields=14:filename,mtime
+has_rollup=4:True
+paired_file_method_id=12:glimpse-slim
+robustness=3:LOW""" .
+
 crys:recorded-item-0001 a crys:Item ;
     rdfs:label "tree" ;
     crys:hasDescriptor "cryd:cc9f4e65b6bb75fedf5114940ee2a817" .

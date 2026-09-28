@@ -14,6 +14,7 @@ inspect the diff, and commit it as a reviewed change.
 import os
 import shutil
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -23,6 +24,19 @@ from crystalia_collector.work import run_pipeline
 FIXTURE_TREE = Path(__file__).parent / "recorded" / "tree"
 RECORDED_DIR = Path(__file__).parent / "recorded"
 _PINNED_TIMESTAMP = 1704067200.0  # 2024-01-01T00:00:00Z
+_PINNED_CLOCK = datetime(2024, 1, 1, tzinfo=UTC)
+_PINNED_HARVEST_ID = "cryd:harvest/00000000-0000-0000-0000-000000000000"
+# tmp_path is pytest-randomized per run; pin sourceRoot separately so recorded
+# fixtures stay byte-identical regardless of where the fixture tree was copied.
+_PINNED_SOURCE_ROOT = "/recorded/fixture/tree"
+
+
+def _pinned_clock() -> datetime:
+    return _PINNED_CLOCK
+
+
+def _pinned_harvest_id_factory() -> Callable[[], str]:
+    return lambda: _PINNED_HARVEST_ID
 
 
 class _PinnedStat:
@@ -86,8 +100,28 @@ def test_two_runs_produce_byte_identical_ttl(tmp_path, method):
     tree = _prepare_tree(tmp_path)
     out1, out2 = tmp_path / "out1.ttl", tmp_path / "out2.ttl"
 
-    run_pipeline(str(tree), [method], out1, workers=1, fmt="turtle", item_id_factory=_deterministic_id_factory())
-    run_pipeline(str(tree), [method], out2, workers=1, fmt="turtle", item_id_factory=_deterministic_id_factory())
+    run_pipeline(
+        str(tree),
+        [method],
+        out1,
+        workers=1,
+        fmt="turtle",
+        item_id_factory=_deterministic_id_factory(),
+        clock=_pinned_clock,
+        harvest_id_factory=_pinned_harvest_id_factory(),
+        source_root=_PINNED_SOURCE_ROOT,
+    )
+    run_pipeline(
+        str(tree),
+        [method],
+        out2,
+        workers=1,
+        fmt="turtle",
+        item_id_factory=_deterministic_id_factory(),
+        clock=_pinned_clock,
+        harvest_id_factory=_pinned_harvest_id_factory(),
+        source_root=_PINNED_SOURCE_ROOT,
+    )
 
     assert out1.read_bytes() == out2.read_bytes()
 
@@ -97,7 +131,17 @@ def test_run_matches_recorded_fixture_byte_for_byte(tmp_path, method, recorded_n
     tree = _prepare_tree(tmp_path)
     out = tmp_path / "out.ttl"
 
-    run_pipeline(str(tree), [method], out, workers=1, fmt="turtle", item_id_factory=_deterministic_id_factory())
+    run_pipeline(
+        str(tree),
+        [method],
+        out,
+        workers=1,
+        fmt="turtle",
+        item_id_factory=_deterministic_id_factory(),
+        clock=_pinned_clock,
+        harvest_id_factory=_pinned_harvest_id_factory(),
+        source_root=_PINNED_SOURCE_ROOT,
+    )
 
     assert out.read_bytes() == (RECORDED_DIR / recorded_name).read_bytes()
 
@@ -111,7 +155,17 @@ def _write_recorded() -> None:  # pragma: no cover - manual regeneration helper
             tmp_path = Path(tmp)
             tree = _prepare_tree(tmp_path)
             out = tmp_path / "out.ttl"
-            run_pipeline(str(tree), [method], out, workers=1, fmt="turtle", item_id_factory=_deterministic_id_factory())
+            run_pipeline(
+                str(tree),
+                [method],
+                out,
+                workers=1,
+                fmt="turtle",
+                item_id_factory=_deterministic_id_factory(),
+                clock=_pinned_clock,
+                harvest_id_factory=_pinned_harvest_id_factory(),
+                source_root=_PINNED_SOURCE_ROOT,
+            )
             (RECORDED_DIR / recorded_name).write_bytes(out.read_bytes())
 
 

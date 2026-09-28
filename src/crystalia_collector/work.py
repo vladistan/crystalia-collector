@@ -6,10 +6,12 @@ from collections import defaultdict
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 
 import structlog
 
+from crystalia_collector import __version__
 from crystalia_collector.method import method_by_id
 from crystalia_collector.method.generic import GenericMethod
 from crystalia_collector.method.glimpse import GlimpseBase
@@ -17,9 +19,10 @@ from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_files_in_s3_prefix
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, HarvestRecord, Item, Method
 from crystalia_data_model.types.coverage import mint_md5_chunked
 from crystalia_data_model.types.leaves import mint_md5, mint_md5_region, mint_relpath
+from crystalia_data_model.types.provenance import mint_method, record_harvest
 from crystalia_data_model.types.registry import default_registry
 from crystalia_data_model.types.validate import ensure_valid
 
@@ -306,6 +309,8 @@ def combine_descriptors(
     output_path: Path,
     fmt: str,
     descriptors: list[Descriptor] | None = None,
+    harvest_record: HarvestRecord | None = None,
+    methods: list[Method] | None = None,
 ) -> None:
     # local imports: defer the heavy RDF stack (rdflib + linkml_runtime) until
     # turtle output is actually requested, keeping CLI startup fast.
@@ -340,6 +345,18 @@ def combine_descriptors(
                     combined.bind(prefix, ns)
                 for triple in g:
                     combined.add(triple)
+        for method in methods or []:
+            g = rdf_from_model(method)
+            for prefix, ns in g.namespaces():
+                combined.bind(prefix, ns)
+            for triple in g:
+                combined.add(triple)
+        if harvest_record is not None:
+            g = rdf_from_model(harvest_record)
+            for prefix, ns in g.namespaces():
+                combined.bind(prefix, ns)
+            for triple in g:
+                combined.add(triple)
         output_path.write_text(combined.serialize(format="turtle"))
     elif fmt == "text":
         with open(output_path, "w") as f:
@@ -541,9 +558,14 @@ def run_pipeline(
     progress_callback: Callable[[int], None] | None = None,
     item_id_factory: ItemIdFactory | None = None,
     partials_dir: Path | None = None,
+    clock: Callable[[], datetime] | None = None,
+    harvest_id_factory: Callable[[], str] | None = None,
+    source_root: str | None = None,
 ) -> RunResult:
     log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
     id_factory = item_id_factory or _default_item_id
+    now = clock or (lambda: datetime.now(UTC))
+    started = now()
 
     # Collect descriptors per file URI across all methods
     merged_files: dict[str, list[Descriptor]] = defaultdict(list)
@@ -552,6 +574,7 @@ def run_pipeline(
     total_succeeded = 0
     total_failed = 0
     total_failed_lines: list[str] = []
+    methods: list[Method] = [mint_method(mid, method_by_id(mid).parameters()) for mid in method_ids]
 
     for method_id in method_ids:
         method = method_by_id(method_id)
@@ -595,10 +618,21 @@ def run_pipeline(
     file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, prefix, id_factory)
     items = dir_items + file_items
     all_descriptors.extend(relpath_descriptors)
+    roots = [item for item in items if item.isPartOf is None]
+    harvest_id = harvest_id_factory() if harvest_id_factory else None
+    harvest_record = record_harvest(
+        started,
+        now(),
+        __version__,
+        source_root or prefix,
+        methods=methods,
+        roots=roots,
+        harvest_id=harvest_id,
+    )
 
     tmp_output = output_path.with_name(output_path.name + ".tmp")
     try:
-        combine_descriptors(items, tmp_output, fmt, all_descriptors)
+        combine_descriptors(items, tmp_output, fmt, all_descriptors, harvest_record, methods)
     except Exception:
         tmp_output.unlink(missing_ok=True)
         raise

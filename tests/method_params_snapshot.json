@@ -1,0 +1,51 @@
+{
+  "glimpse": {
+    "fields": "filename,size,md5,ctime,mtime",
+    "robustness": "LOW"
+  },
+  "glimpse-dir": {
+    "fields": "filename,mtime,count",
+    "has_rollup": "True",
+    "paired_file_method_id": "glimpse",
+    "robustness": "LOW"
+  },
+  "glimpse-dir-light": {
+    "fields": "mtime",
+    "has_rollup": "True",
+    "paired_file_method_id": "glimpse-light",
+    "robustness": "VERY_LOW"
+  },
+  "glimpse-dir-meta": {
+    "fields": "filename,mtime,count",
+    "has_rollup": "False",
+    "paired_file_method_id": "glimpse-meta",
+    "robustness": "VERY_LOW"
+  },
+  "glimpse-dir-slim": {
+    "fields": "filename,mtime",
+    "has_rollup": "True",
+    "paired_file_method_id": "glimpse-slim",
+    "robustness": "LOW"
+  },
+  "glimpse-light": {
+    "fields": "size,md5,mtime",
+    "robustness": "VERY_LOW"
+  },
+  "glimpse-meta": {
+    "fields": "filename,size,mtime",
+    "robustness": "VERY_LOW"
+  },
+  "glimpse-slim": {
+    "fields": "filename,size,mtime,md5",
+    "robustness": "LOW"
+  },
+  "md5": {
+    "block_size": "0"
+  },
+  "md5-2gb": {
+    "block_size": "2147483648"
+  },
+  "md5-8gb": {
+    "block_size": "8589934592"
+  }
+}

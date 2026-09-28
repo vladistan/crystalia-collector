@@ -1,0 +1,108 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cryd:3691e2dfdd0f25b4bdf129e8dbeaafec a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/mtime" ;
+    crys:value "2024-01-01T00:00:00+00:00" .
+
+cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "a.txt" .
+
+cryd:55fbb7cfcfdf376838b37b773ef3041d a crys:Descriptor ;
+    crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
+        "cryd:675ca4e16f69c7400be18b271c31f99c",
+        "cryd:9ea2cd587145e9d6faf0b9ddf0887e84",
+        "cryd:af1b1c505a965bf230aa035e0460ca45",
+        "cryd:b95737913fbc32c0276b69b456b72d9a" ;
+    crys:hasType "cryd:desc-type/glimpse" ;
+    crys:value "55fbb7cfcfdf376838b37b773ef3041d" .
+
+cryd:5c4dc54cac7c7a98ce6d1a8eef2035b2 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
+        "cryd:6036eb39772bd39865b14c13f06f4f61",
+        "cryd:675ca4e16f69c7400be18b271c31f99c",
+        "cryd:8fb300f2d49a72c6945977d75f8abead",
+        "cryd:f2abdfd16dbe170d770f6d321cc080ef" ;
+    crys:hasType "cryd:desc-type/glimpse" ;
+    crys:value "5c4dc54cac7c7a98ce6d1a8eef2035b2" .
+
+cryd:6036eb39772bd39865b14c13f06f4f61 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 4 ;
+    crys:offset 0 ;
+    crys:value "987bcab01b929eb2c07877b224215c92" .
+
+cryd:675ca4e16f69c7400be18b271c31f99c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/ctime" ;
+    crys:value "2024-01-01T00:00:00+00:00" .
+
+cryd:8fb300f2d49a72c6945977d75f8abead a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "4" .
+
+cryd:9ea2cd587145e9d6faf0b9ddf0887e84 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "5" .
+
+cryd:af1b1c505a965bf230aa035e0460ca45 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 5 ;
+    crys:offset 0 ;
+    crys:value "2c1743a391305fbf367df8e4f069f9f9" .
+
+cryd:b4e73a08928000e4962096166b2dc8e0 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5" ;
+    crys:length 4 ;
+    crys:value "987bcab01b929eb2c07877b224215c92" .
+
+cryd:b95737913fbc32c0276b69b456b72d9a a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/filename" ;
+    crys:value "a.txt" .
+
+cryd:de5b40d70c9c249286058310fb5ff4c9 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5" ;
+    crys:length 5 ;
+    crys:value "2c1743a391305fbf367df8e4f069f9f9" .
+
+cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/filename" ;
+    crys:value "b.txt" .
+
+cryd:fe04b22e5c27956bb9875dff73decf9f a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "b.txt" .
+
+<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:collectorVersion "0.1.0" ;
+    crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:hasRoot "crys:recorded-item-0001",
+        "crys:recorded-item-0002" ;
+    crys:sourceRoot "/recorded/fixture/provenance-tree" ;
+    crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:usesMethod "cryd:method/5fb7b941e05048131b49a96dbe352fd5",
+        "cryd:method/aae805b8661eb7de19c6678bf4de322f" .
+
+<https://crystalia.link/data/method/5fb7b941e05048131b49a96dbe352fd5> a crys:Method ;
+    rdfs:label "md5" ;
+    crys:parameters "block_size=1:0" .
+
+<https://crystalia.link/data/method/aae805b8661eb7de19c6678bf4de322f> a crys:Method ;
+    rdfs:label "glimpse" ;
+    crys:parameters """fields=29:filename,size,md5,ctime,mtime
+robustness=3:LOW""" .
+
+crys:recorded-item-0001 a crys:Item ;
+    rdfs:label "a.txt" ;
+    crys:hasDescriptor "cryd:4358326c78cad38ca05071c1b26a259c",
+        "cryd:55fbb7cfcfdf376838b37b773ef3041d",
+        "cryd:de5b40d70c9c249286058310fb5ff4c9" .
+
+crys:recorded-item-0002 a crys:Item ;
+    rdfs:label "b.txt" ;
+    crys:hasDescriptor "cryd:5c4dc54cac7c7a98ce6d1a8eef2035b2",
+        "cryd:b4e73a08928000e4962096166b2dc8e0",
+        "cryd:fe04b22e5c27956bb9875dff73decf9f" .
+

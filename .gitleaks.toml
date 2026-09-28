@@ -1,0 +1,10 @@
+title = "gitleaks config"
+
+[allowlist]
+description = "Files whose content is expected high-entropy but is not a secret"
+paths = [
+  '''\.secrets\.baseline'''
+]
+
+[extend]
+useDefault = true

@@ -2,6 +2,7 @@
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 cryd:0597513182f4410cd85c4acd58aa1e05 a crys:Descriptor ;
     crys:hasType "cryd:desc-type/count" ;
@@ -70,6 +71,22 @@ cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
 cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
     crys:hasType "cryd:desc-type/filename" ;
     crys:value "b.txt" .
+
+<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:collectorVersion "0.1.0" ;
+    crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:hasRoot "crys:recorded-item-0001",
+        "crys:recorded-item-0002" ;
+    crys:sourceRoot "/recorded/fixture/tree" ;
+    crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:usesMethod "cryd:method/e3d11fe37da9e062ae36ca28a3187b8e" .
+
+<https://crystalia.link/data/method/e3d11fe37da9e062ae36ca28a3187b8e> a crys:Method ;
+    rdfs:label "glimpse-dir-meta" ;
+    crys:parameters """fields=20:filename,mtime,count
+has_rollup=5:False
+paired_file_method_id=12:glimpse-meta
+robustness=8:VERY_LOW""" .
 
 crys:recorded-item-0001 a crys:Item ;
     rdfs:label "tree" ;
