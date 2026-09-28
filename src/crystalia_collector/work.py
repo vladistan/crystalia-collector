@@ -1,3 +1,5 @@
+import contextlib
+import os
 import tempfile
 import uuid
 from collections import defaultdict
@@ -16,6 +18,7 @@ from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_fil
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
+from crystalia_data_model.types.coverage import mint_md5_chunked
 from crystalia_data_model.types.leaves import mint_md5, mint_md5_region, mint_relpath
 from crystalia_data_model.types.registry import default_registry
 from crystalia_data_model.types.validate import ensure_valid
@@ -23,6 +26,11 @@ from crystalia_data_model.types.validate import ensure_valid
 _dm_registry = default_registry()
 
 log = structlog.get_logger()
+
+
+class HarvestIncompleteError(Exception):
+    """A harvest ended without every expected byte or file hashed (fail-closed, Ph5)."""
+
 
 # Descriptor type for a file's path relative to the scan root. This is location
 # metadata and is deliberately NOT folded into any content-composite hash, so
@@ -38,27 +46,101 @@ class RunResult:
     failed: int
 
 
+def _mint_from_task_line(line: str) -> tuple[str, Descriptor]:
+    parts = line.strip().split()
+    uri = parts[0]
+    file_size = int(parts[1])
+    block_size = int(parts[3])
+    offset = int(parts[4])
+    true_length = min(block_size, file_size - offset) if block_size > 0 else file_size
+    source = detect_source(uri)
+    checksum = source.compute_checksum(uri, offset, true_length if block_size > 0 else None)
+    descriptor = (
+        mint_md5_region(offset, true_length, checksum) if block_size > 0 else mint_md5(checksum, length=file_size)
+    )
+    return uri, descriptor
+
+
 def _process_task_file(task_file_path: str) -> list[tuple[str, Descriptor]]:
     results: list[tuple[str, Descriptor]] = []
     with open(task_file_path) as f:
         for line in f:
-            parts = line.strip().split()
-            if not parts:
+            if not line.strip():
                 continue
-            uri = parts[0]
-            file_size = int(parts[1])
-            block_size = int(parts[3])
-            offset = int(parts[4])
-            length = block_size if block_size > 0 else None
-            source = detect_source(uri)
-            checksum = source.compute_checksum(uri, offset, length)
-            descriptor = (
-                mint_md5_region(offset, block_size, checksum)
-                if block_size > 0
-                else mint_md5(checksum, length=file_size)
-            )
-            results.append((uri, descriptor))
+            results.append(_mint_from_task_line(line))
     return results
+
+
+def _process_task_file_tolerant(task_file_path: str) -> tuple[list[tuple[str, Descriptor]], list[str]]:
+    """Per-line fault-tolerant task-file processing for ``annotate`` (Ph5).
+
+    One bad line does not lose the rest. Returns (results, raw failed lines) so a
+    failure can be reported as a re-feedable patch-up manifest.
+    """
+    results: list[tuple[str, Descriptor]] = []
+    failed_lines: list[str] = []
+    with open(task_file_path) as f:
+        for line in f:
+            if not line.strip():
+                continue
+            try:
+                results.append(_mint_from_task_line(line))
+            except Exception as exc:
+                log.error("task_line_failed", line=line.strip(), error=str(exc))
+                failed_lines.append(line.rstrip("\n"))
+    return results, failed_lines
+
+
+def _assemble_region_composite(uri: str, parts: list[Descriptor]) -> Descriptor:
+    """Assemble ordered chunk parts into one region composite (Ph5 Step 5.1).
+
+    Requires the parts to cover offsets ``0..size`` exactly once; a gap or
+    overlap is a broken harvest, not a publishable descriptor state.
+    """
+    ordered = sorted(parts, key=lambda d: int(d.offset))
+    expected_offset = 0
+    for part in ordered:
+        if int(part.offset) != expected_offset:
+            msg = f"{uri}: chunk region gap/overlap at offset {part.offset}, expected {expected_offset}"
+            raise HarvestIncompleteError(msg)
+        expected_offset += int(part.length)
+    return mint_md5_chunked(len(ordered), ordered)
+
+
+def write_partials_manifest(
+    partials_dir: Path,
+    output_path: Path,
+    unhashed_lines: list[str],
+    completed: list[Descriptor],
+) -> Path:
+    """Write a patch-up manifest for MY-NF-PIPELINE-01 (Ph5 Step 5.3).
+
+    ``unhashed_lines`` are task-file lines directly re-feedable to ``annotate``.
+    ``completed`` are the descriptors already minted before the harvest failed.
+    Never relayed, uploaded, or written to the central output.
+    """
+    _validate_partials_dir(partials_dir, output_path)
+    partials_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = partials_dir / "partials_manifest.txt"
+    with open(manifest_path, "w") as f:
+        f.write(f"# unhashed: {len(unhashed_lines)}\n")
+        for line in unhashed_lines:
+            f.write(f"{line}\n")
+        f.write(f"# completed: {len(completed)}\n")
+        for desc in completed:
+            f.write(f"{desc.id}\t{desc.hasType}\t{desc.value}\n")
+    return manifest_path
+
+
+def _validate_partials_dir(partials_dir: Path, output_path: Path) -> None:
+    if str(partials_dir).startswith("s3:"):
+        msg = "--partials-dir does not support S3 URIs"
+        raise ValueError(msg)
+    resolved_partials = Path(partials_dir).resolve()
+    resolved_output = Path(output_path).resolve()
+    if resolved_partials == resolved_output or resolved_output.is_relative_to(resolved_partials):
+        msg = f"--partials-dir ({partials_dir}) may not equal or contain the output path ({output_path})"
+        raise ValueError(msg)
 
 
 def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
@@ -275,9 +357,9 @@ def _run_md5_pipeline(
     prefix: str,
     method_id: str,
     workers: int,
-    fail_fast: bool,
     progress_callback: Callable[[int], None] | None,
-) -> tuple[dict[str, list[Descriptor]], list[str], int, int]:
+) -> tuple[dict[str, Descriptor], list[Descriptor], list[str], int, int, list[str]]:
+    method = method_by_id(method_id)
     with tempfile.TemporaryDirectory() as temp_dir:
         task_dir_path = Path(temp_dir)
         num_files, _total_size = list_dir(prefix, method_id, task_dir_path)
@@ -288,6 +370,7 @@ def _run_md5_pipeline(
         all_results: list[tuple[str, Descriptor]] = []
         succeeded = 0
         failed = 0
+        failed_lines: list[str] = []
 
         if task_files:
             with ProcessPoolExecutor(max_workers=workers) as executor:
@@ -301,15 +384,30 @@ def _run_md5_pipeline(
                             progress_callback(len(results))
                     except Exception as exc:
                         failed += 1
-                        if fail_fast:
-                            raise
-                        log.error("task_failed", task_file=str(futures[future]), error=str(exc))
+                        tf_path = futures[future]
+                        with contextlib.suppress(OSError):
+                            failed_lines.extend(line.rstrip("\n") for line in tf_path.read_text().splitlines())
+                        log.error("task_failed", task_file=str(tf_path), error=str(exc))
 
         by_uri: dict[str, list[Descriptor]] = defaultdict(list)
         for uri, descriptor in all_results:
             by_uri[uri].append(descriptor)
 
-        return by_uri, list(by_uri), succeeded, failed
+        top_by_uri: dict[str, Descriptor] = {}
+        extra_descriptors: list[Descriptor] = []
+        if method.needs_offsets:
+            for uri, parts in by_uri.items():
+                composite = _assemble_region_composite(uri, parts)
+                top_by_uri[uri] = composite
+                extra_descriptors.append(composite)
+                extra_descriptors.extend(parts)
+        else:
+            for uri, parts in by_uri.items():
+                (part,) = parts
+                top_by_uri[uri] = part
+                extra_descriptors.append(part)
+
+        return top_by_uri, extra_descriptors, list(by_uri), succeeded, failed, failed_lines
 
 
 def _collect_glimpse(
@@ -439,10 +537,10 @@ def run_pipeline(
     output_path: Path,
     workers: int,
     fmt: str,
-    fail_fast: bool = False,
     verbose: bool = False,
     progress_callback: Callable[[int], None] | None = None,
     item_id_factory: ItemIdFactory | None = None,
+    partials_dir: Path | None = None,
 ) -> RunResult:
     log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
     id_factory = item_id_factory or _default_item_id
@@ -453,6 +551,7 @@ def run_pipeline(
     all_descriptors: list[Descriptor] = []
     total_succeeded = 0
     total_failed = 0
+    total_failed_lines: list[str] = []
 
     for method_id in method_ids:
         method = method_by_id(method_id)
@@ -472,18 +571,24 @@ def run_pipeline(
             all_descriptors.extend(extras)
             total_succeeded += len(by_uri)
         else:
-            md5_by_uri, _uris, succeeded, failed = _run_md5_pipeline(
+            top_by_uri, extras, _uris, succeeded, failed, failed_lines = _run_md5_pipeline(
                 prefix,
                 method_id,
                 workers,
-                fail_fast,
                 progress_callback,
             )
-            for uri, descs in md5_by_uri.items():
-                merged_files[uri].extend(descs)
-            all_descriptors.extend(d for descs in md5_by_uri.values() for d in descs)
+            for uri, desc in top_by_uri.items():
+                merged_files[uri].append(desc)
+            all_descriptors.extend(extras)
             total_succeeded += succeeded
             total_failed += failed
+            total_failed_lines.extend(failed_lines)
+
+    if total_failed > 0:
+        if partials_dir:
+            write_partials_manifest(partials_dir, output_path, total_failed_lines, all_descriptors)
+        msg = f"{total_failed} of {total_succeeded + total_failed} tasks failed; harvest incomplete"
+        raise HarvestIncompleteError(msg)
 
     # Build directory Items first so file Items can reference them via isPartOf
     dir_items, dir_item_ids = _build_directory_items(merged_dirs, id_factory)
@@ -491,7 +596,13 @@ def run_pipeline(
     items = dir_items + file_items
     all_descriptors.extend(relpath_descriptors)
 
-    combine_descriptors(items, output_path, fmt, all_descriptors)
+    tmp_output = output_path.with_name(output_path.name + ".tmp")
+    try:
+        combine_descriptors(items, tmp_output, fmt, all_descriptors)
+    except Exception:
+        tmp_output.unlink(missing_ok=True)
+        raise
+    os.replace(tmp_output, output_path)
 
     total = total_succeeded + total_failed
     log.info("pipeline_complete", total=total, succeeded=total_succeeded, failed=total_failed)

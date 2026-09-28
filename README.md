@@ -61,6 +61,30 @@ dataset comparison, but not a cryptographic proof of content over the full
 file (only the file's head bytes are hashed). Use `md5`, `md5-2gb` or
 `md5-8gb` where a full-content checksum is required.
 
+## Failure policy
+
+`run` and `annotate` are fail-closed: a harvest with any unhashed entry never
+reaches the central output. `run` collects every task outcome and, if any task
+failed, raises before combining descriptors — the output path is untouched (it
+is written to a temp file beside the target and renamed only on success).
+`annotate` (task-file mode, the primary consumer of a failed harvest's
+patch-up) reports the same way per line.
+
+Pass `--partials-dir <dir>` to either command to capture a patch-up manifest
+on failure — `partials_manifest.txt`, holding the task-file lines that were
+not hashed (directly re-feedable to `annotate` for MY-NF-PIPELINE-01's
+patch-up job) followed by the descriptors already completed before the
+failure. Nothing is written to the central output on failure, and the
+partials manifest is never relayed or uploaded on its own. `--partials-dir`
+may not equal or contain the output path, and does not accept an S3 URI.
+
+An internal inconsistency (an unknown descriptor type, or a descriptor whose
+stored id does not match its recomputed identity) aborts the harvest the same
+way: a structured error is logged, a Sentry event is captured when
+`SENTRY_DSN` is configured, and the process exits non-zero.
+
+`--fail-fast` has been removed; every harvest is fail-closed by default.
+
 ## Configuration
 
 Settings load in this order (highest priority first):

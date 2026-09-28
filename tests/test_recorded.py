@@ -74,6 +74,8 @@ _METHODS = [
     "glimpse-dir-light",
     "glimpse-dir-meta",
     "md5",
+    "md5-2gb",
+    "md5-8gb",
 ]
 
 _RECORDED_NAMES = [(m, f"{m}.ttl") for m in _METHODS]

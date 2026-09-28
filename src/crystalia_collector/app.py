@@ -1,8 +1,10 @@
+import os
 import sys
 from enum import IntEnum
 from pathlib import Path
 from typing import Annotated
 
+import sentry_sdk
 import structlog
 import typer
 
@@ -10,7 +12,14 @@ from crystalia_collector.config import get_settings
 from crystalia_collector.monitoring import configure_logging, init_monitoring
 from crystalia_collector.source import detect_source
 from crystalia_collector.util import human_readable_size
-from crystalia_collector.work import combine_descriptors, compute_annotations, list_dir, run_pipeline
+from crystalia_collector.work import (
+    HarvestIncompleteError,
+    _process_task_file_tolerant,
+    combine_descriptors,
+    list_dir,
+    run_pipeline,
+    write_partials_manifest,
+)
 
 GB = 2**30
 
@@ -44,13 +53,31 @@ def list_files(prefix: str, task_dir: Path | None = None, method_id: str = get_s
 
 
 @app.command()
-def annotate(task_file: str, output_file: str = get_settings().default_output_file) -> None:
-    """Annotate files with metadata."""
+def annotate(
+    task_file: str,
+    output_file: str = get_settings().default_output_file,
+    partials_dir: Annotated[
+        Path | None,
+        typer.Option("--partials-dir", help="Write a patch-up manifest here on failure"),
+    ] = None,
+) -> None:
+    """Annotate files with metadata from a task file (local or S3 entries)."""
     try:
-        compute_annotations(output_file, task_file)
+        results, failed_lines = _process_task_file_tolerant(task_file)
+        if failed_lines:
+            if partials_dir:
+                write_partials_manifest(partials_dir, Path(output_file), failed_lines, [d for _, d in results])
+            msg = f"{len(failed_lines)} entries failed to hash; harvest incomplete"
+            raise HarvestIncompleteError(msg)
+        tmp_output = Path(f"{output_file}.tmp")
+        with open(tmp_output, "w") as f:
+            for uri, desc in results:
+                f.write(f"{uri}\t{desc.id}\t{desc.value}\n")
+        os.replace(tmp_output, output_file)
         log.info("annotations_complete", output_file=output_file)
     except Exception as exc:
         log.error("annotations_failed", error=str(exc))
+        sentry_sdk.capture_exception(exc)
         raise typer.Exit(code=ExitCode.ERROR) from exc
 
 
@@ -115,8 +142,11 @@ def run(
         str,
         typer.Option("-f", "--format", help="Output format (turtle or text)"),
     ] = get_settings().default_format,
-    fail_fast: Annotated[bool, typer.Option("--fail-fast", help="Stop on first error")] = False,
     verbose: Annotated[bool, typer.Option("-v", "--verbose", help="Enable verbose per-file logging")] = False,
+    partials_dir: Annotated[
+        Path | None,
+        typer.Option("--partials-dir", help="Write a patch-up manifest here on failure"),
+    ] = None,
 ) -> None:
     """Run the full pipeline: list, process, and combine files into a catalog."""
     if source.startswith("s3://"):
@@ -151,14 +181,15 @@ def run(
                 output,
                 workers,
                 fmt,
-                fail_fast=fail_fast,
                 verbose=verbose,
                 progress_callback=update_progress,
+                partials_dir=partials_dir,
             )
 
         typer.echo(f"Processed {result.succeeded} files, {result.failed} failed, output: {output}")
     except Exception as exc:
         log.error("run_failed", error=str(exc))
+        sentry_sdk.capture_exception(exc)
         raise typer.Exit(code=ExitCode.ERROR) from exc
 
 

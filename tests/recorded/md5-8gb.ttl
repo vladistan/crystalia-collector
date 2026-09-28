@@ -1,0 +1,47 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cryd:07971468bf5ab6c3b712da0bbf91fac0 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
+
+cryd:1d426f622da010be3e1e3ab82c56626e a crys:Descriptor ;
+    crys:hasDescriptor "cryd:bee39b0831d451a779781fcde6eaac1b" ;
+    crys:hasType "cryd:desc-type/md5-chunked" ;
+    crys:total 1 ;
+    crys:value "1d426f622da010be3e1e3ab82c56626e" .
+
+cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "a.txt" .
+
+cryd:ab651beb47ec804d913c55904053d390 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:07971468bf5ab6c3b712da0bbf91fac0" ;
+    crys:hasType "cryd:desc-type/md5-chunked" ;
+    crys:total 1 ;
+    crys:value "ab651beb47ec804d913c55904053d390" .
+
+cryd:bee39b0831d451a779781fcde6eaac1b a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
+
+cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "sub/b.txt" .
+
+crys:recorded-item-0001 a crys:Item ;
+    rdfs:label "a.txt" ;
+    crys:hasDescriptor "cryd:4358326c78cad38ca05071c1b26a259c",
+        "cryd:ab651beb47ec804d913c55904053d390" .
+
+crys:recorded-item-0002 a crys:Item ;
+    rdfs:label "b.txt" ;
+    crys:hasDescriptor "cryd:1d426f622da010be3e1e3ab82c56626e",
+        "cryd:eefa9d5fd964e8a64649c19ae15d0929" .
+
