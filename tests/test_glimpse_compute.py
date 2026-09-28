@@ -10,7 +10,7 @@ from crystalia_collector.source import FileObject
 from crystalia_collector.source.local import LocalSource
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.errors import InvalidDescriptor
-from crystalia_data_model.types.leaves import mint_glimpse, mint_md5
+from crystalia_data_model.types.leaves import mint_glimpse, mint_md5_region
 from crystalia_data_model.types.validate import ensure_valid
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
@@ -31,7 +31,7 @@ def test_glimpse_top_iri_equals_dm_mint(tmp_path):
     expected = mint_glimpse(
         filename=by_type["cryd:desc-type/filename"],
         file_size=by_type["cryd:desc-type/file-size"],
-        head=by_type["cryd:desc-type/md5"],
+        head=by_type["cryd:desc-type/md5-region"],
         ctime=by_type["cryd:desc-type/ctime"],
         mtime=by_type["cryd:desc-type/mtime"],
     )
@@ -47,13 +47,13 @@ def test_glimpse_child_leaves_equal_dm_leaf_mint(tmp_path):
 
     _, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
-    expected = mint_md5(hashlib.md5(data).hexdigest(), length=100)
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
+    expected = mint_md5_region(0, 100, hashlib.md5(data).hexdigest())
     assert md5_child.id == expected.id
     assert md5_child.value == expected.value
 
 
-# --- head md5 leaf shape (FR-011: no coverage, no offset) ---
+# --- head leaf shape (md5-region: offset/length are part of its identity) ---
 
 
 def test_glimpse_zero_byte_file(tmp_path):
@@ -65,10 +65,10 @@ def test_glimpse_zero_byte_file(tmp_path):
 
     assert top.offset is None
     assert top.hasType == "cryd:desc-type/glimpse"
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
     assert md5_child.value == "d41d8cd98f00b204e9800998ecf8427e"  # pragma: allowlist secret
     assert md5_child.length == 0
-    assert md5_child.offset is None
+    assert md5_child.offset == 0
 
 
 def test_glimpse_small_file_full_coverage(tmp_path):
@@ -79,9 +79,9 @@ def test_glimpse_small_file_full_coverage(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
     assert md5_child.length == 100
-    assert md5_child.offset is None
+    assert md5_child.offset == 0
     assert md5_child.value == hashlib.md5(data).hexdigest()
 
 
@@ -93,9 +93,9 @@ def test_glimpse_large_file_partial_coverage(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
     assert md5_child.length == 2048
-    assert md5_child.offset is None
+    assert md5_child.offset == 0
     assert md5_child.value == hashlib.md5(data[:2048]).hexdigest()
 
 
@@ -120,7 +120,7 @@ def test_glimpse_meta_has_no_md5_child(tmp_path):
 
     _, children = build_file_descriptor(file_obj, GlimpseMeta(), source)
 
-    assert not any(c.hasType == "cryd:desc-type/md5" for c in children)
+    assert not any(c.hasType == "cryd:desc-type/md5-region" for c in children)
 
 
 def test_glimpse_light_has_no_filename_child(tmp_path):

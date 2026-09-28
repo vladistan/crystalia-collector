@@ -26,6 +26,7 @@ repos:
       - id: debug-statements
       - id: destroyed-symlinks
       - id: end-of-file-fixer
+        exclude: ^tests/recorded/.*\.ttl$
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: name-tests-test

@@ -249,11 +249,16 @@ def combine_descriptors(
             for triple in g:
                 combined.add(triple)
         if descriptors:
+            by_id = {str(d.id): d for d in descriptors}
+
+            def resolve(iri: str) -> Descriptor:
+                return by_id[iri]
+
             for desc in descriptors:
                 # Only types the DM registry knows are checked here; methods not yet
                 # migrated to DM minting (md5-chunk, relpath) mint their own IRIs (Ph1 note).
                 if desc.hasType in _dm_registry:
-                    ensure_valid(desc)
+                    ensure_valid(desc, resolve=resolve)
                 g = rdf_from_model(desc)
                 for prefix, ns in g.namespaces():
                     combined.bind(prefix, ns)

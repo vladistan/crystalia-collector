@@ -19,7 +19,7 @@ from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.validate import ensure_valid
 
 CRYS = Namespace("https://w3id.org/crystalia/")
-_MD5_HEAD = "cryd:desc-type/md5"
+_MD5_HEAD = "cryd:desc-type/md5-region"
 _FILE_SIZE = "cryd:desc-type/file-size"
 _HEAD = bytes(range(256)) * 8  # 2048 bytes
 _SIZES = {"a.bin": 3000, "b.bin": 7000}

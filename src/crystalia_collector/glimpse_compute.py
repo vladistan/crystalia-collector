@@ -13,7 +13,7 @@ from crystalia_data_model.types.leaves import (
     mint_glimpse_light,
     mint_glimpse_meta,
     mint_glimpse_slim,
-    mint_md5,
+    mint_md5_region,
     mint_mtime,
 )
 
@@ -73,7 +73,7 @@ def build_file_descriptor(
         elif field == "size":
             leaf = mint_file_size(file_obj.size)
         elif field == "md5":
-            leaf = mint_md5(md5_hex, length=md5_length)
+            leaf = mint_md5_region(0, md5_length, md5_hex)
         elif field == "ctime":
             leaf = mint_ctime(ctime_str)
         elif field == "mtime":

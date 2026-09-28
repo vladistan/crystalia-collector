@@ -3,6 +3,12 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+cryd:07971468bf5ab6c3b712da0bbf91fac0 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
+
 cryd:3691e2dfdd0f25b4bdf129e8dbeaafec a crys:Descriptor ;
     crys:hasType "cryd:desc-type/mtime" ;
     crys:value "2024-01-01T00:00:00+00:00" .
@@ -11,41 +17,37 @@ cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
     crys:hasType "cryd:desc-type/relpath" ;
     crys:value "a.txt" .
 
+cryd:45d7ce05715eaaadeb1f681f5d1de7b5 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:07971468bf5ab6c3b712da0bbf91fac0",
+        "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
+        "cryd:675ca4e16f69c7400be18b271c31f99c",
+        "cryd:b95737913fbc32c0276b69b456b72d9a",
+        "cryd:c857d1752124a07d91f702123cc939a8" ;
+    crys:hasType "cryd:desc-type/glimpse" ;
+    crys:value "45d7ce05715eaaadeb1f681f5d1de7b5" .
+
 cryd:675ca4e16f69c7400be18b271c31f99c a crys:Descriptor ;
     crys:hasType "cryd:desc-type/ctime" ;
     crys:value "2024-01-01T00:00:00+00:00" .
 
-cryd:9a8d9094d8931f2e6d81f69cef0626a8 a crys:Descriptor ;
+cryd:85418c3e9fcd3450966235978289c5d3 a crys:Descriptor ;
     crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
         "cryd:675ca4e16f69c7400be18b271c31f99c",
-        "cryd:b92da49f63d9a889ea4a7d984ac09f3f",
+        "cryd:bee39b0831d451a779781fcde6eaac1b",
         "cryd:c857d1752124a07d91f702123cc939a8",
         "cryd:f2abdfd16dbe170d770f6d321cc080ef" ;
     crys:hasType "cryd:desc-type/glimpse" ;
-    crys:value "9a8d9094d8931f2e6d81f69cef0626a8" .
-
-cryd:b06ddfb493a6e1533ab9847ee81ae467 a crys:Descriptor ;
-    crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
-        "cryd:675ca4e16f69c7400be18b271c31f99c",
-        "cryd:b700c6d438c53d43c95f8907fc6f9737",
-        "cryd:b95737913fbc32c0276b69b456b72d9a",
-        "cryd:c857d1752124a07d91f702123cc939a8" ;
-    crys:hasType "cryd:desc-type/glimpse" ;
-    crys:value "b06ddfb493a6e1533ab9847ee81ae467" .
-
-cryd:b700c6d438c53d43c95f8907fc6f9737 a crys:Descriptor ;
-    crys:hasType "cryd:desc-type/md5" ;
-    crys:length 23 ;
-    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
-
-cryd:b92da49f63d9a889ea4a7d984ac09f3f a crys:Descriptor ;
-    crys:hasType "cryd:desc-type/md5" ;
-    crys:length 23 ;
-    crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
+    crys:value "85418c3e9fcd3450966235978289c5d3" .
 
 cryd:b95737913fbc32c0276b69b456b72d9a a crys:Descriptor ;
     crys:hasType "cryd:desc-type/filename" ;
     crys:value "a.txt" .
+
+cryd:bee39b0831d451a779781fcde6eaac1b a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
 
 cryd:c857d1752124a07d91f702123cc939a8 a crys:Descriptor ;
     crys:hasType "cryd:desc-type/file-size" ;
@@ -62,10 +64,10 @@ cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
 crys:recorded-item-0001 a crys:Item ;
     rdfs:label "a.txt" ;
     crys:hasDescriptor "cryd:4358326c78cad38ca05071c1b26a259c",
-        "cryd:b06ddfb493a6e1533ab9847ee81ae467" .
+        "cryd:45d7ce05715eaaadeb1f681f5d1de7b5" .
 
 crys:recorded-item-0002 a crys:Item ;
     rdfs:label "b.txt" ;
-    crys:hasDescriptor "cryd:9a8d9094d8931f2e6d81f69cef0626a8",
+    crys:hasDescriptor "cryd:85418c3e9fcd3450966235978289c5d3",
         "cryd:eefa9d5fd964e8a64649c19ae15d0929" .
 
