@@ -7,6 +7,7 @@ _GLIMPSE_DIR_FIELDS: tuple[str, ...] = ("filename", "mtime", "count")
 _GLIMPSE_DIR_SLIM_FIELDS: tuple[str, ...] = ("filename", "mtime")
 _GLIMPSE_DIR_LIGHT_FIELDS: tuple[str, ...] = ("mtime",)
 _GLIMPSE_DIR_META_FIELDS: tuple[str, ...] = ("filename", "mtime", "count")
+_GLIMPSE_DIR_CONTENT_FIELDS: tuple[str, ...] = ()
 
 
 class GlimpseDirBase(GenericMethod):
@@ -77,3 +78,13 @@ class GlimpseDirMeta(GlimpseDirBase):
         # only used for the child count, never folded into the directory hash.
         self.paired_file_method_id = "glimpse-meta"
         self.robustness = "VERY_LOW"
+
+
+class GlimpseDirContent(GlimpseDirBase):
+    """Content dir glimpse: no own fields, rollup from glimpse-content only. Robustness: LOW."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.id = "glimpse-dir-content"
+        self.fields = _GLIMPSE_DIR_CONTENT_FIELDS
+        self.paired_file_method_id = "glimpse-content"

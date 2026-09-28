@@ -1,0 +1,65 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cryd:07971468bf5ab6c3b712da0bbf91fac0 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
+
+cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "a.txt" .
+
+cryd:8924a59c211e6a769074b3dbf1e05826 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:07971468bf5ab6c3b712da0bbf91fac0",
+        "cryd:c857d1752124a07d91f702123cc939a8" ;
+    crys:hasType "cryd:desc-type/glimpse-content" ;
+    crys:value "8924a59c211e6a769074b3dbf1e05826" .
+
+cryd:bee39b0831d451a779781fcde6eaac1b a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
+
+cryd:c857d1752124a07d91f702123cc939a8 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "23" .
+
+cryd:d3bd1e9efc98813ba5b73ee08ebf5df1 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:bee39b0831d451a779781fcde6eaac1b",
+        "cryd:c857d1752124a07d91f702123cc939a8" ;
+    crys:hasType "cryd:desc-type/glimpse-content" ;
+    crys:value "d3bd1e9efc98813ba5b73ee08ebf5df1" .
+
+cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "sub/b.txt" .
+
+<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:collectorVersion "0.1.0" ;
+    crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:hasRoot "crys:recorded-item-0001",
+        "crys:recorded-item-0002" ;
+    crys:sourceRoot "/recorded/fixture/tree" ;
+    crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:usesMethod "cryd:method/1287a2530043fe0782ba461e1991cee6" .
+
+<https://crystalia.link/data/method/1287a2530043fe0782ba461e1991cee6> a crys:Method ;
+    rdfs:label "glimpse-content" ;
+    crys:parameters """fields=8:size,md5
+robustness=3:LOW""" .
+
+crys:recorded-item-0001 a crys:Item ;
+    rdfs:label "a.txt" ;
+    crys:hasDescriptor "cryd:4358326c78cad38ca05071c1b26a259c",
+        "cryd:8924a59c211e6a769074b3dbf1e05826" .
+
+crys:recorded-item-0002 a crys:Item ;
+    rdfs:label "b.txt" ;
+    crys:hasDescriptor "cryd:d3bd1e9efc98813ba5b73ee08ebf5df1",
+        "cryd:eefa9d5fd964e8a64649c19ae15d0929" .
+

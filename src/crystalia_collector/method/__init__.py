@@ -1,9 +1,10 @@
 """Method registry: factory for all descriptor computation methods."""
 
 from crystalia_collector.method.generic import GenericMethod
-from crystalia_collector.method.glimpse import Glimpse, GlimpseLight, GlimpseMeta, GlimpseSlim
+from crystalia_collector.method.glimpse import Glimpse, GlimpseContent, GlimpseLight, GlimpseMeta, GlimpseSlim
 from crystalia_collector.method.glimpse_dir import (
     GlimpseDir,
+    GlimpseDirContent,
     GlimpseDirLight,
     GlimpseDirMeta,
     GlimpseDirSlim,
@@ -18,10 +19,12 @@ _METHODS: dict[str, type[GenericMethod]] = {
     "glimpse-slim": GlimpseSlim,
     "glimpse-light": GlimpseLight,
     "glimpse-meta": GlimpseMeta,
+    "glimpse-content": GlimpseContent,
     "glimpse-dir": GlimpseDir,
     "glimpse-dir-slim": GlimpseDirSlim,
     "glimpse-dir-light": GlimpseDirLight,
     "glimpse-dir-meta": GlimpseDirMeta,
+    "glimpse-dir-content": GlimpseDirContent,
 }
 
 

@@ -5,13 +5,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from crystalia_collector.glimpse_compute import build_file_descriptor
-from crystalia_collector.method.glimpse import Glimpse, GlimpseLight, GlimpseMeta, GlimpseSlim
+from crystalia_collector.method.glimpse import Glimpse, GlimpseContent, GlimpseLight, GlimpseMeta, GlimpseSlim
 from crystalia_collector.source import FileObject
 from crystalia_collector.source.local import LocalSource
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.errors import InvalidDescriptor
 from crystalia_data_model.types.leaves import (
     mint_glimpse,
+    mint_glimpse_content,
     mint_glimpse_light,
     mint_glimpse_meta,
     mint_glimpse_slim,
@@ -372,6 +373,73 @@ def test_glimpse_s3_ctime_absent_uses_empty_string(mock_boto3):
 
     ctime_child = next(c for c in children if c.hasType == "cryd:desc-type/ctime")
     assert ctime_child.value == ""
+
+
+# --- glimpse-content (Phase 6, Step 6.2): comparison-grade, mtime-free ---
+
+
+def test_glimpse_content_top_iri_equals_dm_mint(tmp_path):
+    data = b"content bytes"
+    (tmp_path / "file.txt").write_bytes(data)
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    top, children = build_file_descriptor(file_obj, GlimpseContent(), source)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_content(
+        file_size=by_type["cryd:desc-type/file-size"],
+        head=by_type["cryd:desc-type/md5-region"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_content_has_no_filename_ctime_mtime_children(tmp_path):
+    (tmp_path / "file.txt").write_bytes(b"hello")
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    _, children = build_file_descriptor(file_obj, GlimpseContent(), source)
+
+    types = {c.hasType for c in children}
+    assert types == {"cryd:desc-type/file-size", "cryd:desc-type/md5-region"}
+
+
+def test_glimpse_content_iri_unchanged_by_mtime_ctime_or_rename(tmp_path):
+    source = LocalSource()
+
+    (tmp_path / "a.txt").write_bytes(b"same bytes")
+    (tmp_path / "b.txt").write_bytes(b"same bytes")
+    file_a, file_b = source.list_files(str(tmp_path))
+
+    top_a, _ = build_file_descriptor(file_a, GlimpseContent(), source)
+    # Different name, and a different mtime/ctime, same content
+    renamed = FileObject(uri=file_b.uri, basename="b.txt", size=file_b.size, mtime=_NOW, ctime=_NOW)
+    top_b, _ = build_file_descriptor(renamed, GlimpseContent(), source)
+
+    assert top_a.id == top_b.id
+    assert top_a.value == top_b.value
+
+
+def test_glimpse_content_is_valid(tmp_path):
+    (tmp_path / "file.txt").write_bytes(b"hello")
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    top, _ = build_file_descriptor(file_obj, GlimpseContent(), source)
+
+    assert ensure_valid(top) is top
+
+
+def test_glimpse_content_included_in_all_variants_valid_top(tmp_path):
+    (tmp_path / "file.txt").write_bytes(b"hello")
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    for method in [Glimpse(), GlimpseSlim(), GlimpseLight(), GlimpseMeta(), GlimpseContent()]:
+        top, _ = build_file_descriptor(file_obj, method, source)
+        assert ensure_valid(top) is top, f"{method.id} top failed ensure_valid"
 
 
 def test_glimpse_compute_has_no_local_iri_minting():

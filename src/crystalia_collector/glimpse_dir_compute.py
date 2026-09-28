@@ -5,12 +5,18 @@ from datetime import datetime
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.leaves import mint_count, mint_filename, mint_glimpse_dir_meta, mint_mtime
-from crystalia_data_model.types.rollup import mint_glimpse_dir, mint_glimpse_dir_light, mint_glimpse_dir_slim
+from crystalia_data_model.types.rollup import (
+    mint_glimpse_dir,
+    mint_glimpse_dir_content,
+    mint_glimpse_dir_light,
+    mint_glimpse_dir_slim,
+)
 
 _ROLLUP_MINTERS = {
     "glimpse-dir": mint_glimpse_dir,
     "glimpse-dir-slim": mint_glimpse_dir_slim,
     "glimpse-dir-light": mint_glimpse_dir_light,
+    "glimpse-dir-content": mint_glimpse_dir_content,
 }
 
 

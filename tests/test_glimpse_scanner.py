@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 from crystalia_collector.glimpse_scanner import scan_files, scan_with_dirs
-from crystalia_collector.method.glimpse import Glimpse, GlimpseMeta
-from crystalia_collector.method.glimpse_dir import GlimpseDir
+from crystalia_collector.method.glimpse import Glimpse, GlimpseContent, GlimpseMeta
+from crystalia_collector.method.glimpse_dir import GlimpseDir, GlimpseDirContent
 from crystalia_collector.source.local import LocalSource
 from crystalia_data_model.types.validate import ensure_valid
 
@@ -100,6 +100,33 @@ def test_scan_files_s3(mock_boto3):
 
     assert len(results) == 2
     assert all(ensure_valid(r[1]) is r[1] for r in results)
+
+
+# --- declared child-method relation (Phase 6, Step 6.1) ---
+
+
+def test_dir_method_declaring_child_method_receives_its_top_descriptors_as_rollup_children(tmp_path):
+    (tmp_path / "file.txt").write_bytes(b"hello")
+
+    dir_method = GlimpseDirContent()
+    assert dir_method.paired_file_method_id == GlimpseContent().id
+
+    file_results, dir_results = scan_with_dirs(str(tmp_path), LocalSource(), GlimpseContent(), dir_method)
+
+    file_top_ids = {top.id for (_, top, _) in file_results}
+    dir_top = next(r[1] for r in dir_results if r[0] == str(tmp_path))
+    # glimpse-dir-content has no own-field children; the rollup is over the file tops directly
+    assert set(dir_top.hasDescriptor) == file_top_ids
+
+
+def test_legacy_glimpse_dir_pairing_unchanged_by_content_addition(tmp_path):
+    (tmp_path / "file.txt").write_bytes(b"hello")
+
+    assert GlimpseDir().paired_file_method_id == Glimpse().id
+
+    _, dir_results = scan_with_dirs(str(tmp_path), LocalSource(), Glimpse(), GlimpseDir())
+
+    assert all(ensure_valid(r[1]) is r[1] for r in dir_results)
 
 
 @patch("crystalia_collector.source.s3.boto3")

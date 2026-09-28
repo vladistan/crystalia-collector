@@ -3,11 +3,21 @@
     "fields": "filename,size,md5,ctime,mtime",
     "robustness": "LOW"
   },
+  "glimpse-content": {
+    "fields": "size,md5",
+    "robustness": "LOW"
+  },
   "glimpse-dir": {
     "fields": "filename,mtime,count",
     "has_rollup": "True",
     "paired_file_method_id": "glimpse",
     "robustness": "LOW"
+  },
+  "glimpse-dir-content": {
+    "fields": "",
+    "robustness": "LOW",
+    "has_rollup": "True",
+    "paired_file_method_id": "glimpse-content"
   },
   "glimpse-dir-light": {
     "fields": "mtime",

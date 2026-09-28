@@ -8,6 +8,7 @@ from crystalia_data_model.types.leaves import (
     mint_file_size,
     mint_filename,
     mint_glimpse,
+    mint_glimpse_content,
     mint_glimpse_light,
     mint_glimpse_meta,
     mint_glimpse_slim,
@@ -29,6 +30,7 @@ _COMPOSITE_MINTERS = {
     "glimpse-slim": mint_glimpse_slim,
     "glimpse-light": mint_glimpse_light,
     "glimpse-meta": mint_glimpse_meta,
+    "glimpse-content": mint_glimpse_content,
 }
 
 

@@ -7,6 +7,7 @@ _GLIMPSE_FIELDS: tuple[str, ...] = ("filename", "size", "md5", "ctime", "mtime")
 _GLIMPSE_SLIM_FIELDS: tuple[str, ...] = ("filename", "size", "mtime", "md5")
 _GLIMPSE_LIGHT_FIELDS: tuple[str, ...] = ("size", "md5", "mtime")
 _GLIMPSE_META_FIELDS: tuple[str, ...] = ("filename", "size", "mtime")
+_GLIMPSE_CONTENT_FIELDS: tuple[str, ...] = ("size", "md5")
 
 
 class GlimpseBase(GenericMethod):
@@ -66,3 +67,12 @@ class GlimpseMeta(GlimpseBase):
         self.id = "glimpse-meta"
         self.fields = _GLIMPSE_META_FIELDS
         self.robustness = "VERY_LOW"
+
+
+class GlimpseContent(GlimpseBase):
+    """Content glimpse: size, MD5-head only. No filename/ctime/mtime. Robustness: LOW."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.id = "glimpse-content"
+        self.fields = _GLIMPSE_CONTENT_FIELDS

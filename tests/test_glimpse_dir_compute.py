@@ -5,13 +5,19 @@ import pytest
 from crystalia_collector.glimpse_dir_compute import build_dir_descriptor
 from crystalia_collector.method.glimpse_dir import (
     GlimpseDir,
+    GlimpseDirContent,
     GlimpseDirLight,
     GlimpseDirMeta,
     GlimpseDirSlim,
 )
 from crystalia_data_model.types.errors import IncompleteRollup
 from crystalia_data_model.types.leaves import mint_filename
-from crystalia_data_model.types.rollup import mint_glimpse_dir, mint_glimpse_dir_light, mint_glimpse_dir_slim
+from crystalia_data_model.types.rollup import (
+    mint_glimpse_dir,
+    mint_glimpse_dir_content,
+    mint_glimpse_dir_light,
+    mint_glimpse_dir_slim,
+)
 from crystalia_data_model.types.validate import ensure_valid
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
@@ -76,7 +82,7 @@ def test_glimpse_dir_meta_ignores_child_content():
 
 
 def test_all_dir_variants_mint_a_valid_top():
-    for method in [GlimpseDir(), GlimpseDirSlim(), GlimpseDirLight(), GlimpseDirMeta()]:
+    for method in [GlimpseDir(), GlimpseDirSlim(), GlimpseDirLight(), GlimpseDirMeta(), GlimpseDirContent()]:
         top, _ = build_dir_descriptor("dir", _NOW, method, [])
         assert ensure_valid(top) is top, f"{method.id} top failed ensure_valid"
 
@@ -179,6 +185,58 @@ def test_expected_larger_than_collected_children_raises_incomplete_rollup():
 
     with pytest.raises(IncompleteRollup):
         build_dir_descriptor("dir", _NOW, GlimpseDir(), child_descs, expected=2)
+
+
+# --- glimpse-dir-content (Phase 6, Step 6.3): name-aware rollup, no own filename/mtime ---
+
+
+def test_glimpse_dir_content_has_no_own_fields():
+    top, children = build_dir_descriptor("results", _NOW, GlimpseDirContent(), [])
+
+    assert children == []
+    assert ensure_valid(top) is top
+
+
+def test_glimpse_dir_content_iri_equals_dm_rollup_dir_result():
+    child_descs = [("a.txt", _fake_desc("aaa")), ("b.txt", _fake_desc("bbb"))]
+
+    top, _ = build_dir_descriptor("data", _NOW, GlimpseDirContent(), child_descs)
+
+    expected = mint_glimpse_dir_content(len(child_descs), child_descs)
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_dir_content_renaming_child_changes_iri():
+    children_a = [("a.txt", _fake_desc("same"))]
+    children_b = [("renamed.txt", _fake_desc("same"))]
+
+    top_a, _ = build_dir_descriptor("dir", _NOW, GlimpseDirContent(), children_a)
+    top_b, _ = build_dir_descriptor("dir", _NOW, GlimpseDirContent(), children_b)
+
+    assert top_a.id != top_b.id
+
+
+def test_glimpse_dir_content_renaming_dir_itself_does_not_change_iri():
+    children = [("a.txt", _fake_desc("aaa"))]
+
+    top_a, _ = build_dir_descriptor("dir-one", _NOW, GlimpseDirContent(), children)
+    top_b, _ = build_dir_descriptor("dir-two", _NOW, GlimpseDirContent(), children)
+
+    assert top_a.id == top_b.id
+    assert top_a.value == top_b.value
+
+
+def test_glimpse_dir_content_touching_own_mtime_does_not_change_iri():
+    from datetime import timedelta
+
+    children = [("a.txt", _fake_desc("aaa"))]
+
+    top_a, _ = build_dir_descriptor("dir", _NOW, GlimpseDirContent(), children)
+    top_b, _ = build_dir_descriptor("dir", _NOW + timedelta(days=1), GlimpseDirContent(), children)
+
+    assert top_a.id == top_b.id
+    assert top_a.value == top_b.value
 
 
 def test_nested_rollup_is_bottom_up_and_order_independent():

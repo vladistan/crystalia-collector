@@ -61,6 +61,30 @@ dataset comparison, but not a cryptographic proof of content over the full
 file (only the file's head bytes are hashed). Use `md5`, `md5-2gb` or
 `md5-8gb` where a full-content checksum is required.
 
+`glimpse-content` and `glimpse-dir-content` are comparison-grade instead; see
+[Content-comparison methods](#content-comparison-methods).
+
+## Content-comparison methods
+
+`glimpse-content` and `glimpse-dir-content` let the viz judge "same content?"
+across a timestamp rewrite — neither method's identity depends on a filename,
+`ctime` or `mtime`.
+
+| Method | Identity IS sensitive to | Identity is NOT sensitive to |
+|--------|---------------------------|-------------------------------|
+| `glimpse-content` | file size; MD5 of the first 2 KB | filename, `ctime`, `mtime`; bytes after the first 2 KB |
+| `glimpse-dir-content` | count and name of each direct child; each child's `glimpse-content` identity | the directory's own name or `mtime` |
+
+`glimpse-dir-content` is a count + name-aware (git-tree style) rollup over
+`glimpse-content` children: renaming a child changes the directory's IRI;
+renaming the directory itself, or touching any mtime in the tree, does not.
+
+Both methods are comparison-grade: safe for a "same content?" judgement
+across a timestamp rewrite, but not a cryptographic proof of full-file content
+(`glimpse-content` hashes only the first 2 KB). The legacy `glimpse` /
+`glimpse-dir*` family (see [Output format](#output-format)) is
+authority/recency-grade instead, because its identity embeds `mtime`.
+
 ## Failure policy
 
 `run` and `annotate` are fail-closed: a harvest with any unhashed entry never
