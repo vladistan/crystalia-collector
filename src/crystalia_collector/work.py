@@ -50,15 +50,12 @@ def _process_task_file(task_file_path: str) -> list[tuple[str, Descriptor]]:
             source = detect_source(uri)
             checksum = source.compute_checksum(uri, offset, length)
             # id = md5(type:checksum) is content-addressed and shared across files and
-            # chunk positions. With block_size > 0, block_size / size is per-file, so it
-            # is omitted (FR-011); whole-file md5 (block_size == 0) is a constant 1.0.
-            coverage = None if block_size > 0 else 1.0
+            # chunk positions.
             descriptor = Descriptor(
                 id=_content_id(f"cryd:{method_id}", checksum),
                 hasType=f"cryd:{method_id}",
                 value=checksum,
-                offset=offset,
-                coverage=coverage,
+                offset=offset if block_size > 0 else None,
                 length=block_size if block_size > 0 else None,
             )
             results.append((uri, descriptor))
@@ -408,8 +405,6 @@ def _build_file_items(
             id=_content_id(_TYPE_RELPATH, relpath),
             hasType=_TYPE_RELPATH,
             value=relpath,
-            offset=0,
-            coverage=1.0,
         )
         relpath_descriptors.append(relpath_desc)
 

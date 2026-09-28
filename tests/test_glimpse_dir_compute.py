@@ -17,8 +17,6 @@ def _fake_desc(value_suffix: str) -> Descriptor:
         id=f"cryd:{value_suffix}",
         hasType="cryd:glimpse",
         value=f"v0:{value_suffix}",
-        offset=0,
-        coverage=1.0,
     )
 
 

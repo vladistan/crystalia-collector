@@ -84,7 +84,6 @@ def test_combine_descriptors_with_descriptor_objects(tmp_path):
         hasType="cryd:md5-8gb",
         value="abc123def456",  # pragma: allowlist secret
         offset=0,
-        coverage=1.0,
         length=8589934592,
     )
     items = [Item(id="crys:test.txt", label="test.txt", hasDescriptor=["cryd:abc123"])]

@@ -39,13 +39,12 @@ def test_crystalia_data_model_item_imports():
 def test_crystalia_data_model_all_types_import():
     from crystalia_data_model.datamodel.linkml_crystalia import (
         Descriptor,
-        DescriptorType,
         Item,
         Method,
         Thing,
     )
 
-    assert all(cls is not None for cls in [Descriptor, DescriptorType, Item, Method, Thing])
+    assert all(cls is not None for cls in [Descriptor, Item, Method, Thing])
 
 
 def test_schema_loads_from_new_location():

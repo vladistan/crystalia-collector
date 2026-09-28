@@ -35,21 +35,17 @@ def _content_id(type_uri: str, value: str) -> str:
 def _build_child_descriptor(
     type_uri: str,
     value: str,
-    coverage: float | None,
     length: int | None = None,
 ) -> Descriptor:
     """Build a content-addressed child descriptor (id = md5(type_uri:value)).
 
     The node is shared by every file with the same (type, value), so it may carry
-    only facts that are a function of (type, value). Pass coverage=None for any
-    per-file quantity (FR-011); consumers derive it from length / file-size.
+    only facts that are a function of (type, value).
     """
     return Descriptor(
         id=_content_id(type_uri, value),
         hasType=type_uri,
         value=value,
-        offset=0,
-        coverage=coverage,
         length=length,
     )
 
@@ -80,7 +76,6 @@ def build_file_descriptor(
 
     # Read first block_size bytes only if the variant includes md5
     md5_hex = source.compute_checksum(file_obj.uri, 0, block_size) if method.has_md5 else ""
-    md5_coverage = min(block_size / file_size, 1.0) if file_size > 0 else 1.0
     md5_length = min(block_size, file_size)
 
     mtime_str = file_obj.mtime.isoformat()
@@ -100,26 +95,18 @@ def build_file_descriptor(
         type_uri = _FIELD_TYPE[field]
         value = field_raw[field]
         if field == "md5":
-            # coverage (block_size / file_size) is per-file, not a function of the
-            # head hash: omit it on the shared node. length stays (it is fixed by
-            # the hashed bytes); consumers derive coverage = length / file-size.
-            child = _build_child_descriptor(type_uri, value, None, md5_length)
+            child = _build_child_descriptor(type_uri, value, md5_length)
         else:
-            child = _build_child_descriptor(type_uri, value, 1.0)
+            child = _build_child_descriptor(type_uri, value)
         children.append(child)
 
     composite_value = _composite_v0(field_raw, method.fields)
-    # The top-level id hashes a composite that includes "size" for every md5
-    # variant, so per-file coverage is a function of this node's identity: keep.
-    top_coverage = md5_coverage if method.has_md5 else 1.0
     top_hash = composite_value.removeprefix("v0:")
 
     top = Descriptor(
         id=_descriptor_id(top_hash),
         hasType=f"cryd:{method.id}",
         value=composite_value,
-        offset=0,
-        coverage=top_coverage,
         hasDescriptor=[c.id for c in children],
     )
     return top, children

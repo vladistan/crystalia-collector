@@ -1,34 +1,35 @@
 # Vendored package: `crystalia_data_model`
 
-**Source:** `crystalia-data-model` v0.0.1 (`src/crystalia_data_model/`), the
-LinkML-generated Pydantic data model that lives at `../crystalia-data-model`.
+**Source:** `crystalia-data-model` tag `v2.0.0`, commit
+`385b7c04332c68f2ac8edb033fd99602b875ca85`
+(`src/crystalia_data_model/`, the LinkML-generated Pydantic data model plus
+the `types/` behaviour package, at `../crystalia-data-model`).
 
-**Vendored at:** commit `57639cf634421c2b79f4a08edbebc02b61c7ae00`
-(branch `fr011-coverage-optional`, "feat: make Descriptor.coverage optional
-(FR-011 content-address invariant)"). The four files below are byte-identical
-to `git show 57639cf:src/crystalia_data_model/<path>`. This snapshot also
-carries upstream `86ec1e2` (`hasDescriptor` / `hasType` / `usesMethod` ranges
-changed from class references to `uriorcurie` in `linkml_meta`; Python
-annotations were already `str`, unchanged).
+**Tree hash:** `acc5bdd5449bbd06977623fd06267c6f9a06a3f2814701077239bab7b728f010`
+(`tests/test_vendored_dm.py::vendored_tree_hash`, sorted relative paths and
+file bytes fed into one SHA-256 digest, `__pycache__` excluded).
 
 **License:** MIT (crystalia-data-model upstream license). Compatible with this
 project's Apache-2.0 license.
 
-**Why vendored:** `crystalia-data-model` is not published on PyPI, so it cannot
-be resolved as a normal dependency of a public `crystalia-collector` release.
-The generated model (`datamodel/linkml_crystalia.py`) depends only on the
-standard library and `pydantic`, so inlining it is self-contained.
+**Why vendored:** `crystalia-data-model` is not published on PyPI, so it
+cannot be resolved as a normal dependency of a public `crystalia-collector`
+release. The vendored tree depends only on the standard library and
+`pydantic`, so inlining it is self-contained.
 
-## Contents (do not hand-edit — generated)
+## Contents (do not hand-edit — generated or type-hierarchy source)
 
 - `__init__.py`, `__about__.py`
-- `datamodel/__init__.py`
-- `datamodel/linkml_crystalia.py` — generated Pydantic model
+- `datamodel/__init__.py`, `datamodel/linkml_crystalia.py` — generated Pydantic model
+- `schema/linkml_crystalia.yaml` — LinkML schema, single source for `rdf.py` CURIE expansion
+- `types/` — descriptor type hierarchy, canonical content-addressed identity,
+  coverage/robustness, format detection, inference, provenance, rollup
 
-## TODO — keep in sync / remove this vendoring
+## Re-vendor procedure
 
-- [ ] Source of truth is `../crystalia-data-model` (schema:
-      `src/crystalia_data_model/schema/linkml_crystalia.yaml`). Regenerate there,
-      then re-copy the four files above if the model changes.
-- [ ] If `crystalia-data-model` is ever published to PyPI, delete this directory
-      and depend on it normally.
+1. In `../crystalia-data-model`, cut and tag the new release.
+2. `git archive <tag> -- src/crystalia_data_model | tar -x` into a scratch dir,
+   copy its contents over `src/crystalia_data_model/` here (this file excluded).
+3. Recompute the tree hash and update the **Tree hash:** line above and the
+   **Source:** tag/commit above.
+4. `uv run pytest tests/test_vendored_dm.py`.

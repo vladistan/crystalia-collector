@@ -2,8 +2,6 @@ import hashlib
 from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from crystalia_collector.glimpse_compute import build_file_descriptor
 from crystalia_collector.method.glimpse import Glimpse, GlimpseLight, GlimpseMeta, GlimpseSlim
 from crystalia_collector.source import FileObject
@@ -23,12 +21,10 @@ def test_glimpse_zero_byte_file(tmp_path):
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
     assert top.value.startswith("v0:")
-    assert top.coverage == 1.0
-    assert top.offset == 0
+    assert top.offset is None
     assert top.hasType == "cryd:glimpse"
     md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-head")
     assert md5_child.value == "d41d8cd98f00b204e9800998ecf8427e"  # pragma: allowlist secret
-    assert md5_child.coverage is None  # FR-011: per-file coverage omitted on shared node
     assert md5_child.length == 0
 
 
@@ -41,7 +37,6 @@ def test_glimpse_small_file_full_coverage(tmp_path):
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
     md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-head")
-    assert md5_child.coverage is None  # FR-011: derived by consumers as length / size
     assert md5_child.length == 100
     assert md5_child.value == hashlib.md5(data).hexdigest()
 
@@ -55,9 +50,7 @@ def test_glimpse_large_file_partial_coverage(tmp_path):
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
     md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-head")
-    assert md5_child.coverage is None  # FR-011: per-file, not a function of (type, value)
     assert md5_child.length == 2048
-    assert top.coverage == pytest.approx(2048 / 4096)
     assert md5_child.value == hashlib.md5(data[:2048]).hexdigest()
 
 

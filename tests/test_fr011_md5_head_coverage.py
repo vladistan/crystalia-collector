@@ -51,11 +51,10 @@ def test_shared_md5_head_node_has_no_coverage_and_loads(collision_dir: Path, tmp
 
     desc = model_from_rdf(g, Descriptor, subject=str(head))
     assert isinstance(desc, Descriptor)
-    assert desc.coverage is None
     assert desc.length == 2048
 
 
-def test_consumer_derivation_matches_old_per_file_coverage(collision_dir: Path) -> None:
+def test_consumer_derivation_matches_expected_coverage(collision_dir: Path) -> None:
     source = LocalSource()
     head_ids = set()
     for file_obj in source.list_files(str(collision_dir)):
@@ -63,9 +62,8 @@ def test_consumer_derivation_matches_old_per_file_coverage(collision_dir: Path) 
         by_type = {c.hasType: c for c in children}
         head = by_type[_MD5_HEAD]
         head_ids.add(head.id)
-        old_coverage = min(2048 / file_obj.size, 1.0)
+        expected_coverage = min(2048 / file_obj.size, 1.0)
         derived = head.length / int(by_type[_FILE_SIZE].value)
-        assert derived == pytest.approx(old_coverage)
-        # top-level coverage is per-file-identity (size is in its composite id): unchanged
-        assert top.coverage == pytest.approx(old_coverage)
+        assert derived == pytest.approx(expected_coverage)
+        assert top.value.startswith("v0:")
     assert len(head_ids) == 1

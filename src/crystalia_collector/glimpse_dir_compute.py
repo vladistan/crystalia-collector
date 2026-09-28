@@ -25,8 +25,6 @@ def _build_child_descriptor(type_uri: str, value: str) -> Descriptor:
         id=_content_id(type_uri, value),
         hasType=type_uri,
         value=value,
-        offset=0,
-        coverage=1.0,
     )
 
 
@@ -98,8 +96,6 @@ def build_dir_descriptor(
         id=_descriptor_id(top_hash),
         hasType=f"cryd:{method.id}",
         value=composite_value,
-        offset=0,
-        coverage=1.0,
         hasDescriptor=[c.id for c in children],
     )
     return top, children

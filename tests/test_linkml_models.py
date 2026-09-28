@@ -2,13 +2,7 @@ import pytest
 from rdflib import Graph
 
 from crystalia_collector.rdf import model_from_rdf, rdf_from_model
-from crystalia_data_model.datamodel.linkml_crystalia import (
-    Descriptor,
-    DescriptorRobustness,
-    DescriptorType,
-    Item,
-    Method,
-)
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item, Method
 
 
 @pytest.fixture
@@ -25,27 +19,15 @@ def method_sha256():
     return Method(
         id="cryd:sha256",
         label="SHA256",
-        robustness=DescriptorRobustness.EXTREMELY_HIGH,
     )
 
 
 @pytest.fixture
-def descriptor_type_sha256_full(method_sha256):
-    return DescriptorType(
-        id="cryd:sha256_whole_file",
-        label="SHA256 full file checksum",
-        usesMethod=method_sha256.id,
-    )
-
-
-@pytest.fixture
-def descriptor_short_file_full_hash(descriptor_type_sha256_full):
+def descriptor_short_file_full_hash(method_sha256):
     descriptor = Descriptor(
         id="cryd:desc/bob.txt/sha256_whole_file/1",
-        hasType=descriptor_type_sha256_full.id,
+        hasType="cryd:sha256_whole_file",
         value="02342342aaa223",
-        offset=0,
-        coverage=1.0,
         length=4096,
     )
 
@@ -64,25 +46,17 @@ def test_descriptor_model(item, descriptor_short_file_full_hash):
     descriptor_short_file_full_hash.hasDescriptor = [descriptor_short_file_full_hash.id]
 
 
-def test_create_descriptor_type(descriptor_type_sha256_full):
-    dtype = descriptor_type_sha256_full
-    assert dtype.label == "SHA256 full file checksum"
-    assert dtype.id == "cryd:sha256_whole_file"
-
-
 def test_rdf_from_model(
     item,
-    descriptor_type_sha256_full,
     method_sha256,
     descriptor_short_file_full_hash,
 ):
     item.hasDescriptor = [descriptor_short_file_full_hash.id]
     item_rdf = rdf_from_model(item)
-    dtype_rdf = rdf_from_model(descriptor_type_sha256_full)
     method_rdf = rdf_from_model(method_sha256)
     descriptor_rdf = rdf_from_model(descriptor_short_file_full_hash)
 
-    g = item_rdf + dtype_rdf + method_rdf + descriptor_rdf
+    g = item_rdf + method_rdf + descriptor_rdf
 
     g.serialize(destination="test.ttl", format="ttl")
 
@@ -105,17 +79,8 @@ def test_model_from_rdf(short_file_single_descriptor):
     descriptor = model_from_rdf(rdf_graph, Descriptor, subject=item.hasDescriptor[0])
     assert descriptor.hasType == "cryd:sha256_whole_file"
 
-    desc_type = model_from_rdf(
-        rdf_graph,
-        DescriptorType,
-        subject=str(descriptor.hasType),
-    )
-    assert desc_type.label == "SHA256 full file checksum"
-    assert desc_type.usesMethod == "cryd:sha256"
-
-    method = model_from_rdf(rdf_graph, Method, subject=str(desc_type.usesMethod))
+    method = model_from_rdf(rdf_graph, Method, subject="cryd:sha256")
     assert method.label == "SHA256"
-    assert method.robustness == DescriptorRobustness.EXTREMELY_HIGH
 
 
 def test_model_from_rdf_without_subject_resolves_item_by_type(test_dir):
