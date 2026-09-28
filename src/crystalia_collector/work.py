@@ -364,15 +364,23 @@ def _collect_glimpse_dir(
     return file_descs, dir_descs, extra_descriptors
 
 
+ItemIdFactory = Callable[[], str]
+
+
+def _default_item_id() -> str:
+    return f"crys:{uuid.uuid4()}"
+
+
 def _build_directory_items(
     merged_dirs: dict[str, list[Descriptor]],
+    item_id_factory: ItemIdFactory,
 ) -> tuple[list[Item], dict[str, str]]:
     """Build directory Items and return them with a {dir_uri: item_id} map."""
     dir_item_ids: dict[str, str] = {}
     items: list[Item] = []
     for dir_uri in sorted(merged_dirs):
         basename = Path(dir_uri).name or dir_uri
-        item_id = f"crys:{uuid.uuid4()}"
+        item_id = item_id_factory()
         dir_item_ids[dir_uri] = item_id
         desc_ids = [d.id for d in merged_dirs[dir_uri]]
         items.append(Item(id=item_id, label=basename, hasDescriptor=desc_ids))
@@ -395,6 +403,7 @@ def _build_file_items(
     merged_files: dict[str, list[Descriptor]],
     dir_item_ids: dict[str, str],
     root: str,
+    item_id_factory: ItemIdFactory,
 ) -> tuple[list[Item], list[Descriptor]]:
     """Build file Items, each with a relpath descriptor and an isPartOf link to its parent dir.
 
@@ -416,7 +425,7 @@ def _build_file_items(
         desc_ids = [d.id for d in merged_files[uri]] + [relpath_desc.id]
         items.append(
             Item(
-                id=f"crys:{uuid.uuid4()}",
+                id=item_id_factory(),
                 label=basename,
                 hasDescriptor=desc_ids,
                 isPartOf=parent_id,
@@ -434,8 +443,10 @@ def run_pipeline(
     fail_fast: bool = False,
     verbose: bool = False,
     progress_callback: Callable[[int], None] | None = None,
+    item_id_factory: ItemIdFactory | None = None,
 ) -> RunResult:
     log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
+    id_factory = item_id_factory or _default_item_id
 
     # Collect descriptors per file URI across all methods
     merged_files: dict[str, list[Descriptor]] = defaultdict(list)
@@ -476,8 +487,8 @@ def run_pipeline(
             total_failed += failed
 
     # Build directory Items first so file Items can reference them via isPartOf
-    dir_items, dir_item_ids = _build_directory_items(merged_dirs)
-    file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, prefix)
+    dir_items, dir_item_ids = _build_directory_items(merged_dirs, id_factory)
+    file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, prefix, id_factory)
     items = dir_items + file_items
     all_descriptors.extend(relpath_descriptors)
 

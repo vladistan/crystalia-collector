@@ -9,6 +9,7 @@ from crystalia_collector.work import (
     _TYPE_RELPATH,
     _build_file_items,
     _collect_glimpse_dir,
+    _default_item_id,
     _list_dir_glimpse_files,
     _process_task_file,
     _relative_path,
@@ -36,7 +37,7 @@ def test_build_file_items_emits_distinct_relpath_for_same_basename():
         "/scan/dir2/.DS_Store": [d2],
     }
 
-    items, relpaths = _build_file_items(merged, {}, "/scan")
+    items, relpaths = _build_file_items(merged, {}, "/scan", _default_item_id)
 
     # A relpath descriptor per file, each carrying the distinct relative path
     assert sorted(d.value for d in relpaths) == ["dir1/.DS_Store", "dir2/.DS_Store"]
