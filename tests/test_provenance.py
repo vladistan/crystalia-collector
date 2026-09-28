@@ -3,6 +3,7 @@
 import contextlib
 import json
 import os
+import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import patch
@@ -17,6 +18,7 @@ SNAPSHOT_PATH = Path(__file__).parent / "method_params_snapshot.json"
 CRYS_NS = "https://w3id.org/crystalia/"
 HARVEST_RECORD = URIRef(f"{CRYS_NS}HarvestRecord")
 _PINNED_TIMESTAMP = 1704067200.0  # 2024-01-01T00:00:00Z
+_PINNED_UUID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 
 
 class _PinnedStat:
@@ -39,6 +41,11 @@ def _pin_filesystem_times(monkeypatch):
         return _PinnedStat(real_stat(path, *args, **kwargs))
 
     monkeypatch.setattr(os, "stat", pinned_stat)
+
+
+@pytest.fixture(autouse=True)
+def _pin_harvest_uuid(monkeypatch):
+    monkeypatch.setattr("crystalia_data_model.types.provenance.uuid4", lambda: _PINNED_UUID)
 
 
 def _tree(tmp_path: Path) -> Path:
@@ -133,7 +140,6 @@ def test_recorded_harvest_record_ttl_byte_identical(tmp_path):
         fmt="turtle",
         item_id_factory=next_item_id,
         clock=lambda: fixed_clock,
-        harvest_id_factory=lambda: "cryd:harvest/00000000-0000-0000-0000-000000000000",
         source_root="/recorded/fixture/provenance-tree",
     )
 

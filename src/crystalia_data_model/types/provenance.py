@@ -49,14 +49,9 @@ def record_harvest(
     source_root: str | None,
     methods: Iterable[Method] = (),
     roots: Iterable[Item] = (),
-    *,
-    harvest_id: str | None = None,
 ) -> HarvestRecord:
-    """A new, uniquely-IRI'd ``HarvestRecord`` linking the methods used and the root items produced (AC-20).
-
-    ``harvest_id`` overrides the default random IRI; used by tests that need deterministic output.
-    """
-    harvest_id = harvest_id or f"{CRYD_CURIE_PREFIX}{_HARVEST_NAMESPACE}{uuid4()}"
+    """A new, uniquely-IRI'd ``HarvestRecord`` linking the methods used and the root items produced (AC-20)."""
+    harvest_id = f"{CRYD_CURIE_PREFIX}{_HARVEST_NAMESPACE}{uuid4()}"
     uses_method = [str(m.id) for m in methods]
     has_root = [str(r.id) for r in roots]
     return HarvestRecord(

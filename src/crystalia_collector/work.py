@@ -559,7 +559,6 @@ def run_pipeline(
     item_id_factory: ItemIdFactory | None = None,
     partials_dir: Path | None = None,
     clock: Callable[[], datetime] | None = None,
-    harvest_id_factory: Callable[[], str] | None = None,
     source_root: str | None = None,
 ) -> RunResult:
     log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
@@ -619,7 +618,6 @@ def run_pipeline(
     items = dir_items + file_items
     all_descriptors.extend(relpath_descriptors)
     roots = [item for item in items if item.isPartOf is None]
-    harvest_id = harvest_id_factory() if harvest_id_factory else None
     harvest_record = record_harvest(
         started,
         now(),
@@ -627,7 +625,6 @@ def run_pipeline(
         source_root or prefix,
         methods=methods,
         roots=roots,
-        harvest_id=harvest_id,
     )
 
     tmp_output = output_path.with_name(output_path.name + ".tmp")

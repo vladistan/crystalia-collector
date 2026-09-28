@@ -5,7 +5,7 @@
 (`src/crystalia_data_model/`, the LinkML-generated Pydantic data model plus
 the `types/` behaviour package, at `../crystalia-data-model`).
 
-**Tree hash:** `b0268c8ca6103c4b22fad905711f8cccd479a45bba448accb6e78adb6ac4a51f`
+**Tree hash:** `acc5bdd5449bbd06977623fd06267c6f9a06a3f2814701077239bab7b728f010`
 (`tests/test_vendored_dm.py::vendored_tree_hash`, sorted relative paths and
 file bytes fed into one SHA-256 digest, `__pycache__` excluded).
 

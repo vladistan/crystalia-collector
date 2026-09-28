@@ -13,6 +13,7 @@ inspect the diff, and commit it as a reviewed change.
 
 import os
 import shutil
+import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -25,7 +26,7 @@ FIXTURE_TREE = Path(__file__).parent / "recorded" / "tree"
 RECORDED_DIR = Path(__file__).parent / "recorded"
 _PINNED_TIMESTAMP = 1704067200.0  # 2024-01-01T00:00:00Z
 _PINNED_CLOCK = datetime(2024, 1, 1, tzinfo=UTC)
-_PINNED_HARVEST_ID = "cryd:harvest/00000000-0000-0000-0000-000000000000"
+_PINNED_UUID = uuid.UUID("00000000-0000-0000-0000-000000000000")
 # tmp_path is pytest-randomized per run; pin sourceRoot separately so recorded
 # fixtures stay byte-identical regardless of where the fixture tree was copied.
 _PINNED_SOURCE_ROOT = "/recorded/fixture/tree"
@@ -33,10 +34,6 @@ _PINNED_SOURCE_ROOT = "/recorded/fixture/tree"
 
 def _pinned_clock() -> datetime:
     return _PINNED_CLOCK
-
-
-def _pinned_harvest_id_factory() -> Callable[[], str]:
-    return lambda: _PINNED_HARVEST_ID
 
 
 class _PinnedStat:
@@ -68,6 +65,11 @@ def _pin_filesystem_times(monkeypatch):
         return _PinnedStat(real_stat(path, *args, **kwargs))
 
     monkeypatch.setattr(os, "stat", pinned_stat)
+
+
+@pytest.fixture(autouse=True)
+def _pin_harvest_uuid(monkeypatch):
+    monkeypatch.setattr("crystalia_data_model.types.provenance.uuid4", lambda: _PINNED_UUID)
 
 
 def _prepare_tree(tmp_path: Path) -> Path:
@@ -108,7 +110,6 @@ def test_two_runs_produce_byte_identical_ttl(tmp_path, method):
         fmt="turtle",
         item_id_factory=_deterministic_id_factory(),
         clock=_pinned_clock,
-        harvest_id_factory=_pinned_harvest_id_factory(),
         source_root=_PINNED_SOURCE_ROOT,
     )
     run_pipeline(
@@ -119,7 +120,6 @@ def test_two_runs_produce_byte_identical_ttl(tmp_path, method):
         fmt="turtle",
         item_id_factory=_deterministic_id_factory(),
         clock=_pinned_clock,
-        harvest_id_factory=_pinned_harvest_id_factory(),
         source_root=_PINNED_SOURCE_ROOT,
     )
 
@@ -139,7 +139,6 @@ def test_run_matches_recorded_fixture_byte_for_byte(tmp_path, method, recorded_n
         fmt="turtle",
         item_id_factory=_deterministic_id_factory(),
         clock=_pinned_clock,
-        harvest_id_factory=_pinned_harvest_id_factory(),
         source_root=_PINNED_SOURCE_ROOT,
     )
 
@@ -163,7 +162,6 @@ def _write_recorded() -> None:  # pragma: no cover - manual regeneration helper
                 fmt="turtle",
                 item_id_factory=_deterministic_id_factory(),
                 clock=_pinned_clock,
-                harvest_id_factory=_pinned_harvest_id_factory(),
                 source_root=_PINNED_SOURCE_ROOT,
             )
             (RECORDED_DIR / recorded_name).write_bytes(out.read_bytes())
@@ -178,5 +176,8 @@ if __name__ == "__main__":  # pragma: no cover
         def _pinned(path: object, *a: object, **kw: object) -> _PinnedStat:
             return _PinnedStat(real_stat(path, *a, **kw))  # type: ignore[arg-type]
 
-        with unittest.mock.patch("os.stat", new=_pinned):
+        with (
+            unittest.mock.patch("os.stat", new=_pinned),
+            unittest.mock.patch("crystalia_data_model.types.provenance.uuid4", new=lambda: _PINNED_UUID),
+        ):
             _write_recorded()
