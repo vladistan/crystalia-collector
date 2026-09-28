@@ -11,7 +11,7 @@ from crystalia_collector.method.glimpse_dir import (
 )
 from crystalia_data_model.types.errors import IncompleteRollup
 from crystalia_data_model.types.leaves import mint_filename
-from crystalia_data_model.types.rollup import mint_glimpse_dir
+from crystalia_data_model.types.rollup import mint_glimpse_dir, mint_glimpse_dir_light, mint_glimpse_dir_slim
 from crystalia_data_model.types.validate import ensure_valid
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
@@ -120,6 +120,52 @@ def test_glimpse_dir_iri_equals_dm_rollup_dir_result():
     expected = mint_glimpse_dir(
         len(child_descs),
         child_descs,
+        filename=by_type["cryd:desc-type/filename"],
+        mtime=by_type["cryd:desc-type/mtime"],
+        count=by_type["cryd:desc-type/count"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_dir_slim_iri_equals_dm_rollup_dir_result():
+    child_descs = [("a.txt", _fake_desc("aaa")), ("b.txt", _fake_desc("bbb"))]
+
+    top, children = build_dir_descriptor("data", _NOW, GlimpseDirSlim(), child_descs)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_dir_slim(
+        len(child_descs),
+        child_descs,
+        filename=by_type["cryd:desc-type/filename"],
+        mtime=by_type["cryd:desc-type/mtime"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_dir_light_iri_equals_dm_rollup_dir_result():
+    child_descs = [("a.txt", _fake_desc("aaa")), ("b.txt", _fake_desc("bbb"))]
+
+    top, children = build_dir_descriptor("data", _NOW, GlimpseDirLight(), child_descs)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_dir_light(
+        len(child_descs),
+        child_descs,
+        mtime=by_type["cryd:desc-type/mtime"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_dir_meta_iri_equals_dm_mint():
+    from crystalia_data_model.types.leaves import mint_glimpse_dir_meta
+
+    top, children = build_dir_descriptor("data", _NOW, GlimpseDirMeta(), [])
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_dir_meta(
         filename=by_type["cryd:desc-type/filename"],
         mtime=by_type["cryd:desc-type/mtime"],
         count=by_type["cryd:desc-type/count"],

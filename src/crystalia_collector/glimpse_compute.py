@@ -1,7 +1,5 @@
 """Build Glimpse file descriptors from a FileObject and a Source, via the DM leaf/composite mints."""
 
-import hashlib
-
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.source import FileObject, Source
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
@@ -32,15 +30,6 @@ _COMPOSITE_MINTERS = {
     "glimpse-light": mint_glimpse_light,
     "glimpse-meta": mint_glimpse_meta,
 }
-
-
-def _descriptor_id(hash_hex: str) -> str:
-    return f"cryd:{hash_hex}"
-
-
-def _content_id(type_uri: str, value: str) -> str:
-    """Stable content-addressable ID: cryd:<md5(type_uri:value)>."""
-    return _descriptor_id(hashlib.md5(f"{type_uri}:{value}".encode()).hexdigest())
 
 
 def build_file_descriptor(

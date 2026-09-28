@@ -8,7 +8,6 @@ from pathlib import Path
 
 import structlog
 
-from crystalia_collector.glimpse_compute import _content_id
 from crystalia_collector.method import method_by_id
 from crystalia_collector.method.generic import GenericMethod
 from crystalia_collector.method.glimpse import GlimpseBase
@@ -17,7 +16,7 @@ from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_fil
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
-from crystalia_data_model.types.leaves import mint_relpath
+from crystalia_data_model.types.leaves import mint_md5, mint_md5_region, mint_relpath
 from crystalia_data_model.types.registry import default_registry
 from crystalia_data_model.types.validate import ensure_valid
 
@@ -47,21 +46,16 @@ def _process_task_file(task_file_path: str) -> list[tuple[str, Descriptor]]:
             if not parts:
                 continue
             uri = parts[0]
-            # parts[1] = file size; no longer used (per-file coverage omitted, FR-011)
-            method_id = parts[2]
+            file_size = int(parts[1])
             block_size = int(parts[3])
             offset = int(parts[4])
             length = block_size if block_size > 0 else None
             source = detect_source(uri)
             checksum = source.compute_checksum(uri, offset, length)
-            # id = md5(type:checksum) is content-addressed and shared across files and
-            # chunk positions.
-            descriptor = Descriptor(
-                id=_content_id(f"cryd:{method_id}", checksum),
-                hasType=f"cryd:{method_id}",
-                value=checksum,
-                offset=offset if block_size > 0 else None,
-                length=block_size if block_size > 0 else None,
+            descriptor = (
+                mint_md5_region(offset, block_size, checksum)
+                if block_size > 0
+                else mint_md5(checksum, length=file_size)
             )
             results.append((uri, descriptor))
     return results

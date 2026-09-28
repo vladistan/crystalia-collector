@@ -17,6 +17,7 @@ from crystalia_collector.work import (
     list_s3_dir,
 )
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
+from crystalia_data_model.types.leaves import mint_md5
 
 
 def test_relative_path_nested_root_and_fallback():
@@ -108,7 +109,7 @@ def test_process_task_file(data_dir, tmp_path):
 
     for _uri, desc in results:
         assert isinstance(desc, Descriptor)
-        assert desc.hasType == "cryd:md5-8gb"
+        assert desc.hasType == "cryd:desc-type/md5-region"
         assert desc.offset == 0
         assert len(desc.value) == 32  # md5 hex
 
@@ -116,6 +117,20 @@ def test_process_task_file(data_dir, tmp_path):
     dir1_checksum = next(d.value for u, d in results if "dir1/chr22_small" in u)
     nested_checksum = next(d.value for u, d in results if "dir3/nested/chr22_small" in u)
     assert dir1_checksum == nested_checksum
+
+
+def test_process_task_file_whole_file_md5_via_dm(data_dir, tmp_path):
+    f = data_dir / "dir1" / "chr22_small.txt"
+    task_file = tmp_path / "task.txt"
+    task_file.write_text(f"{f} {f.stat().st_size} md5 0 0\n")
+
+    ((uri, desc),) = _process_task_file(str(task_file))
+
+    assert desc.hasType == "cryd:desc-type/md5"
+    assert desc.offset is None
+    assert desc.length == f.stat().st_size
+    expected = mint_md5(desc.value, length=f.stat().st_size)
+    assert desc.id == expected.id
 
 
 def test_list_dir_glimpse_files(data_dir):

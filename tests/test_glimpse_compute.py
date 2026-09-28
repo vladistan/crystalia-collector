@@ -10,7 +10,13 @@ from crystalia_collector.source import FileObject
 from crystalia_collector.source.local import LocalSource
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.errors import InvalidDescriptor
-from crystalia_data_model.types.leaves import mint_glimpse, mint_md5_region
+from crystalia_data_model.types.leaves import (
+    mint_glimpse,
+    mint_glimpse_light,
+    mint_glimpse_meta,
+    mint_glimpse_slim,
+    mint_md5_region,
+)
 from crystalia_data_model.types.validate import ensure_valid
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
@@ -51,6 +57,90 @@ def test_glimpse_child_leaves_equal_dm_leaf_mint(tmp_path):
     expected = mint_md5_region(0, 100, hashlib.md5(data).hexdigest())
     assert md5_child.id == expected.id
     assert md5_child.value == expected.value
+
+
+def test_glimpse_slim_top_iri_equals_dm_mint(tmp_path):
+    data = b"slim"
+    (tmp_path / "file.txt").write_bytes(data)
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    top, children = build_file_descriptor(file_obj, GlimpseSlim(), source)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_slim(
+        filename=by_type["cryd:desc-type/filename"],
+        file_size=by_type["cryd:desc-type/file-size"],
+        mtime=by_type["cryd:desc-type/mtime"],
+        head=by_type["cryd:desc-type/md5-region"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_light_top_iri_equals_dm_mint(tmp_path):
+    data = b"light"
+    (tmp_path / "file.txt").write_bytes(data)
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    top, children = build_file_descriptor(file_obj, GlimpseLight(), source)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_light(
+        file_size=by_type["cryd:desc-type/file-size"],
+        head=by_type["cryd:desc-type/md5-region"],
+        mtime=by_type["cryd:desc-type/mtime"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_meta_top_iri_equals_dm_mint(tmp_path):
+    data = b"meta"
+    (tmp_path / "file.txt").write_bytes(data)
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    top, children = build_file_descriptor(file_obj, GlimpseMeta(), source)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse_meta(
+        filename=by_type["cryd:desc-type/filename"],
+        file_size=by_type["cryd:desc-type/file-size"],
+        mtime=by_type["cryd:desc-type/mtime"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_variants_reject_wrong_role_head_with_resolve():
+    """Every glimpse* variant's head role must resolve to md5-region, not md5."""
+    from crystalia_data_model.types.leaves import mint_ctime, mint_file_size, mint_filename, mint_md5, mint_mtime
+
+    filename = mint_filename("bad.txt")
+    file_size = mint_file_size(10)
+    ctime = mint_ctime("2024-01-01T00:00:00")
+    mtime = mint_mtime("2024-01-01T00:00:00")
+    wrong_head = mint_md5("deadbeef", length=10)
+
+    for top, all_children in (
+        (
+            mint_glimpse(filename=filename, file_size=file_size, head=wrong_head, ctime=ctime, mtime=mtime),
+            [filename, file_size, ctime, mtime, wrong_head],
+        ),
+        (
+            mint_glimpse_slim(filename=filename, file_size=file_size, mtime=mtime, head=wrong_head),
+            [filename, file_size, mtime, wrong_head],
+        ),
+        (
+            mint_glimpse_light(file_size=file_size, head=wrong_head, mtime=mtime),
+            [file_size, mtime, wrong_head],
+        ),
+    ):
+        by_id = {str(d.id): d for d in [top, *all_children]}
+        with pytest.raises(InvalidDescriptor):
+            ensure_valid(top, resolve=by_id.__getitem__)
 
 
 # --- head leaf shape (md5-region: offset/length are part of its identity) ---
@@ -282,3 +372,15 @@ def test_glimpse_s3_ctime_absent_uses_empty_string(mock_boto3):
 
     ctime_child = next(c for c in children if c.hasType == "cryd:desc-type/ctime")
     assert ctime_child.value == ""
+
+
+def test_glimpse_compute_has_no_local_iri_minting():
+    """glimpse_compute.py mints only via the DM; no collector-local hashlib-based IRI helper remains."""
+    import inspect
+
+    import crystalia_collector.glimpse_compute as mod
+
+    source = inspect.getsource(mod)
+    assert "_content_id" not in source
+    assert "_composite_v0" not in source
+    assert "_descriptor_id" not in source
