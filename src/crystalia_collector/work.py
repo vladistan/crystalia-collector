@@ -1,4 +1,5 @@
 import contextlib
+import json
 import os
 import tempfile
 import uuid
@@ -94,6 +95,19 @@ def _process_task_file_tolerant(task_file_path: str) -> tuple[list[tuple[str, De
     return results, failed_lines
 
 
+def write_sidecar(sidecar_path: Path, entries: list[tuple[str, Descriptor]]) -> Path:
+    """Write a (dir, name, child IRI) sidecar per annotated entry (Ph9 Step 9.1).
+
+    RDF carries no rollup (name, child) pairs (DM consumer contract, known deviation
+    1), so `merge` reads this to reconstruct directory membership.
+    """
+    with open(sidecar_path, "w") as f:
+        for uri, desc in entries:
+            p = Path(uri)
+            f.write(f"{p.parent}\t{p.name}\t{desc.id}\n")
+    return sidecar_path
+
+
 def _assemble_region_composite(uri: str, parts: list[Descriptor]) -> Descriptor:
     """Assemble ordered chunk parts into one region composite (Ph5 Step 5.1).
 
@@ -146,12 +160,32 @@ def _validate_partials_dir(partials_dir: Path, output_path: Path) -> None:
         raise ValueError(msg)
 
 
+_LISTING_MANIFEST_NAME = "listing_manifest.json"
+
+
+def write_listing_manifest(task_dir: Path, dir_counts: dict[str, int]) -> Path:
+    """Write, per directory, the expected entry count from a `list` pass (Ph9 Step 9.1).
+
+    `merge` reads this to detect a partition harvest short of what the listing found.
+    """
+    task_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = task_dir / _LISTING_MANIFEST_NAME
+    manifest_path.write_text(json.dumps(dir_counts, sort_keys=True, indent=2))
+    return manifest_path
+
+
+def load_listing_manifest(manifest_path: Path) -> dict[str, int]:
+    data: dict[str, int] = json.loads(manifest_path.read_text())
+    return data
+
+
 def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
     bucket, prefix = prefix.split("/", 1)
 
     total_size, num_files, task_num = 0, 0, 1
     small_files: list[S3Object] = []
     method = method_by_id(method_id)
+    dir_counts: dict[str, int] = defaultdict(int)
 
     for file in list_files_in_s3_prefix(bucket, prefix):
         size_str = human_readable_size(file.size)
@@ -165,6 +199,7 @@ def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int
         )
         total_size += file.size
         num_files += 1
+        dir_counts[f"s3://{bucket}/{str(Path(file.key).parent)}"] += 1
 
         if task_dir:
             task_num = process_file(
@@ -178,6 +213,7 @@ def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int
 
     if task_dir:
         write_task_file(task_dir, task_num, method, bucket, small_files)
+        write_listing_manifest(task_dir, dict(dir_counts))
 
     return num_files, total_size
 
@@ -193,6 +229,7 @@ def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, i
     source = detect_source(prefix)
     total_size, num_files, task_num = 0, 0, 1
     small_files: list[FileObject] = []
+    dir_counts: dict[str, int] = defaultdict(int)
 
     for file_obj in source.list_files(prefix):
         log.info(
@@ -203,12 +240,16 @@ def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, i
         )
         total_size += file_obj.size
         num_files += 1
+        dir_counts[str(Path(file_obj.uri).parent)] += 1
 
         if task_dir:
             task_num = _process_file_object(file_obj, method, task_dir, task_num, small_files)
 
     if task_dir and small_files:
         _write_task_entries(task_dir, task_num, method, small_files)
+
+    if task_dir:
+        write_listing_manifest(task_dir, dict(dir_counts))
 
     return num_files, total_size
 

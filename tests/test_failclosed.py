@@ -208,7 +208,10 @@ def test_cli_annotate_succeeds_without_partials(tmp_path):
 
     assert result.exit_code == 0
     assert output.exists()
-    assert str(f) in output.read_text()
+    assert "cryd:desc-type/md5" in output.read_text()
+    sidecar = Path(f"{output}.sidecar")
+    assert sidecar.exists()
+    assert f"{f.parent}\t{f.name}\t" in sidecar.read_text()
 
 
 # --- Step 5.4: abort on internal inconsistency ---

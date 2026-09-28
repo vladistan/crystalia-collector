@@ -19,6 +19,7 @@ from crystalia_collector.work import (
     list_dir,
     run_pipeline,
     write_partials_manifest,
+    write_sidecar,
 )
 
 GB = 2**30
@@ -61,7 +62,13 @@ def annotate(
         typer.Option("--partials-dir", help="Write a patch-up manifest here on failure"),
     ] = None,
 ) -> None:
-    """Annotate files with metadata from a task file (local or S3 entries)."""
+    """Annotate files with metadata from a task file (local or S3 entries).
+
+    Writes DM v2 descriptors to `output_file` (Turtle, no Items, no harvest record --
+    partition output is intermediate, Ph9 Step 9.1) and a `(dir, name, child IRI)`
+    sidecar to `output_file + ".sidecar"` for `merge` to reconstruct directory
+    membership.
+    """
     try:
         results, failed_lines = _process_task_file_tolerant(task_file)
         if failed_lines:
@@ -70,10 +77,9 @@ def annotate(
             msg = f"{len(failed_lines)} entries failed to hash; harvest incomplete"
             raise HarvestIncompleteError(msg)
         tmp_output = Path(f"{output_file}.tmp")
-        with open(tmp_output, "w") as f:
-            for uri, desc in results:
-                f.write(f"{uri}\t{desc.id}\t{desc.value}\n")
+        combine_descriptors([], tmp_output, "turtle", descriptors=[d for _, d in results])
         os.replace(tmp_output, output_file)
+        write_sidecar(Path(f"{output_file}.sidecar"), results)
         log.info("annotations_complete", output_file=output_file)
     except Exception as exc:
         log.error("annotations_failed", error=str(exc))
@@ -189,6 +195,32 @@ def run(
         typer.echo(f"Processed {result.succeeded} files, {result.failed} failed, output: {output}")
     except Exception as exc:
         log.error("run_failed", error=str(exc))
+        sentry_sdk.capture_exception(exc)
+        raise typer.Exit(code=ExitCode.ERROR) from exc
+
+
+@app.command()
+def merge(
+    listing_manifest: Annotated[Path, typer.Argument(help="Listing manifest written by `list`")],
+    partition_output: Annotated[
+        list[Path],
+        typer.Argument(help="Turtle output(s) from `annotate`; each needs a matching .sidecar"),
+    ],
+    output: Annotated[Path, typer.Option("-o", "--output", help="Output file path")] = Path("catalog.ttl"),
+    root: Annotated[str, typer.Option("--root", help="Source root recorded on the harvest record")] = "",
+    method: Annotated[
+        list[str] | None,
+        typer.Option("--method", help="Method id(s) used to produce the partitions (repeatable)"),
+    ] = None,
+) -> None:
+    """Merge `annotate` partition outputs into one DM-valid catalog with one harvest record."""
+    try:
+        from crystalia_collector.merge import merge as merge_impl
+
+        merge_impl(listing_manifest, partition_output, output, root, method or [])
+        log.info("merge_complete", output=str(output))
+    except Exception as exc:
+        log.error("merge_failed", error=str(exc))
         sentry_sdk.capture_exception(exc)
         raise typer.Exit(code=ExitCode.ERROR) from exc
 

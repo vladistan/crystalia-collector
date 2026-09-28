@@ -32,7 +32,7 @@ def test_list_dir_local_creates_task_file_with_absolute_paths(tmp_path):
     assert num_files == 1
     assert total_size == 11
 
-    task_files = sorted(task_dir.iterdir())
+    task_files = sorted(task_dir.glob("task_*"))
     assert len(task_files) >= 1
     content = task_files[0].read_text()
     assert "s3://" not in content
@@ -47,7 +47,7 @@ def test_list_dir_basenames_have_no_path_separators(tmp_path):
     task_dir = tmp_path / "tasks"
     list_dir(str(tmp_path), "md5", task_dir)
 
-    content = sorted(task_dir.iterdir())[0].read_text().strip()
+    content = sorted(task_dir.glob("task_*"))[0].read_text().strip()
     uri = content.split()[0]
     basename = uri.rsplit("/", 1)[-1]
     assert basename == "report.csv"
