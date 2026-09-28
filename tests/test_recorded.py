@@ -64,7 +64,22 @@ def _prepare_tree(tmp_path: Path) -> Path:
     return dest.resolve()
 
 
-@pytest.mark.parametrize("method", ["glimpse", "glimpse-dir"])
+_METHODS = [
+    "glimpse",
+    "glimpse-slim",
+    "glimpse-light",
+    "glimpse-meta",
+    "glimpse-dir",
+    "glimpse-dir-slim",
+    "glimpse-dir-light",
+    "glimpse-dir-meta",
+    "md5",
+]
+
+_RECORDED_NAMES = [(m, f"{m}.ttl") for m in _METHODS]
+
+
+@pytest.mark.parametrize("method", _METHODS)
 def test_two_runs_produce_byte_identical_ttl(tmp_path, method):
     tree = _prepare_tree(tmp_path)
     out1, out2 = tmp_path / "out1.ttl", tmp_path / "out2.ttl"
@@ -75,7 +90,7 @@ def test_two_runs_produce_byte_identical_ttl(tmp_path, method):
     assert out1.read_bytes() == out2.read_bytes()
 
 
-@pytest.mark.parametrize(("method", "recorded_name"), [("glimpse", "glimpse.ttl"), ("glimpse-dir", "glimpse-dir.ttl")])
+@pytest.mark.parametrize(("method", "recorded_name"), _RECORDED_NAMES)
 def test_run_matches_recorded_fixture_byte_for_byte(tmp_path, method, recorded_name):
     tree = _prepare_tree(tmp_path)
     out = tmp_path / "out.ttl"
@@ -89,7 +104,7 @@ def _write_recorded() -> None:  # pragma: no cover - manual regeneration helper
     """Regenerate the recorded fixtures. Run only on an intentional change; review the diff."""
     import tempfile
 
-    for method, recorded_name in [("glimpse", "glimpse.ttl"), ("glimpse-dir", "glimpse-dir.ttl")]:
+    for method, recorded_name in _RECORDED_NAMES:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             tree = _prepare_tree(tmp_path)

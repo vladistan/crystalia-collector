@@ -1,0 +1,33 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "a.txt" .
+
+cryd:b700c6d438c53d43c95f8907fc6f9737 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5" ;
+    crys:length 23 ;
+    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
+
+cryd:b92da49f63d9a889ea4a7d984ac09f3f a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5" ;
+    crys:length 23 ;
+    crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
+
+cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "sub/b.txt" .
+
+crys:recorded-item-0001 a crys:Item ;
+    rdfs:label "a.txt" ;
+    crys:hasDescriptor "cryd:4358326c78cad38ca05071c1b26a259c",
+        "cryd:b700c6d438c53d43c95f8907fc6f9737" .
+
+crys:recorded-item-0002 a crys:Item ;
+    rdfs:label "b.txt" ;
+    crys:hasDescriptor "cryd:b92da49f63d9a889ea4a7d984ac09f3f",
+        "cryd:eefa9d5fd964e8a64649c19ae15d0929" .
+

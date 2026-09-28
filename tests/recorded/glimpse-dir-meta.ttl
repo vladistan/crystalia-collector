@@ -1,0 +1,93 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+cryd:0597513182f4410cd85c4acd58aa1e05 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/count" ;
+    crys:value "1" .
+
+cryd:0d7eaa173f18b3437a8c096385c47cb7 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/count" ;
+    crys:value "2" .
+
+cryd:176f65b76560d349db564e05be34a680 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/filename" ;
+    crys:value "tree" .
+
+cryd:27444a7b249416207c854f3e620bd873 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
+        "cryd:c857d1752124a07d91f702123cc939a8",
+        "cryd:f2abdfd16dbe170d770f6d321cc080ef" ;
+    crys:hasType "cryd:desc-type/glimpse-meta" ;
+    crys:value "27444a7b249416207c854f3e620bd873" .
+
+cryd:2767ebdff9c979deb57309cb0ca5f02b a crys:Descriptor ;
+    crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
+        "cryd:b95737913fbc32c0276b69b456b72d9a",
+        "cryd:c857d1752124a07d91f702123cc939a8" ;
+    crys:hasType "cryd:desc-type/glimpse-meta" ;
+    crys:value "2767ebdff9c979deb57309cb0ca5f02b" .
+
+cryd:3691e2dfdd0f25b4bdf129e8dbeaafec a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/mtime" ;
+    crys:value "2024-01-01T00:00:00+00:00" .
+
+cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "a.txt" .
+
+cryd:b95737913fbc32c0276b69b456b72d9a a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/filename" ;
+    crys:value "a.txt" .
+
+cryd:bce6d3ef9fcdc4eed5514978a653266a a crys:Descriptor ;
+    crys:hasDescriptor "cryd:0597513182f4410cd85c4acd58aa1e05",
+        "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
+        "cryd:c66dac3cb956791fa345d66932786e98" ;
+    crys:hasType "cryd:desc-type/glimpse-dir-meta" ;
+    crys:value "bce6d3ef9fcdc4eed5514978a653266a" .
+
+cryd:c66dac3cb956791fa345d66932786e98 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/filename" ;
+    crys:value "sub" .
+
+cryd:c857d1752124a07d91f702123cc939a8 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "23" .
+
+cryd:d317d92c1c6d516fb37ca7512669a6d5 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:0d7eaa173f18b3437a8c096385c47cb7",
+        "cryd:176f65b76560d349db564e05be34a680",
+        "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec" ;
+    crys:hasType "cryd:desc-type/glimpse-dir-meta" ;
+    crys:value "d317d92c1c6d516fb37ca7512669a6d5" .
+
+cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "sub/b.txt" .
+
+cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/filename" ;
+    crys:value "b.txt" .
+
+crys:recorded-item-0001 a crys:Item ;
+    rdfs:label "tree" ;
+    crys:hasDescriptor "cryd:d317d92c1c6d516fb37ca7512669a6d5" .
+
+crys:recorded-item-0002 a crys:Item ;
+    rdfs:label "sub" ;
+    crys:hasDescriptor "cryd:bce6d3ef9fcdc4eed5514978a653266a" .
+
+crys:recorded-item-0003 a crys:Item ;
+    rdfs:label "a.txt" ;
+    dct:isPartOf "crys:recorded-item-0001" ;
+    crys:hasDescriptor "cryd:2767ebdff9c979deb57309cb0ca5f02b",
+        "cryd:4358326c78cad38ca05071c1b26a259c" .
+
+crys:recorded-item-0004 a crys:Item ;
+    rdfs:label "b.txt" ;
+    dct:isPartOf "crys:recorded-item-0002" ;
+    crys:hasDescriptor "cryd:27444a7b249416207c854f3e620bd873",
+        "cryd:eefa9d5fd964e8a64649c19ae15d0929" .
+
