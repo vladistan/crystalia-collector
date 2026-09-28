@@ -42,6 +42,25 @@ crystalia-collector combine
 
 Block-based methods split large files into offset/length pairs in task files, enabling parallel checksum computation.
 
+## Output format
+
+Every descriptor's IRI is content-addressed and minted by `crystalia-data-model`
+(the DM), the single source of identity for the RDF output. Two descriptors of
+the same type and value are the same IRI, regardless of which file or run
+produced them.
+
+The DM does not store a `coverage` field on descriptors. Consumers derive
+coverage from `length` and the file's own size via the DM API
+(`crystalia_data_model.types`), rather than reading a stored value that could
+drift from the bytes actually hashed.
+
+The `glimpse`, `glimpse-slim`, `glimpse-light`, `glimpse-meta` and
+`glimpse-dir*` methods are classified by the DM registry as
+authority/recency-grade: fast to compute, useful for change detection and
+dataset comparison, but not a cryptographic proof of content over the full
+file (only the file's head bytes are hashed). Use `md5`, `md5-2gb` or
+`md5-8gb` where a full-content checksum is required.
+
 ## Configuration
 
 Settings load in this order (highest priority first):
