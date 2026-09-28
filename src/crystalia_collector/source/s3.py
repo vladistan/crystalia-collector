@@ -46,6 +46,21 @@ class S3Source:
 
         return hasher.hexdigest()
 
+    def read_range(self, uri: str, offset: int, length: int) -> bytes:
+        bucket, key = self.parse_s3_uri(uri)
+        range_str = f"bytes={offset}-{offset + length - 1}"
+        response = self._client.get_object(Bucket=bucket, Key=key, Range=range_str)
+        return b"".join(response["Body"].iter_chunks(chunk_size=8192))
+
+    def read_head(self, uri: str, n: int) -> bytes:
+        return self.read_range(uri, 0, n)
+
+    def read_tail(self, uri: str, n: int) -> bytes:
+        # Suffix byte range (RFC 7233 §2.1): last n bytes without a separate size lookup.
+        bucket, key = self.parse_s3_uri(uri)
+        response = self._client.get_object(Bucket=bucket, Key=key, Range=f"bytes=-{n}")
+        return b"".join(response["Body"].iter_chunks(chunk_size=8192))
+
     @staticmethod
     def _to_file_object(bucket: str, obj: dict[str, str | int | datetime]) -> FileObject:
         key = str(obj["Key"])

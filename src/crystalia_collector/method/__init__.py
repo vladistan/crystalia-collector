@@ -1,5 +1,6 @@
 """Method registry: factory for all descriptor computation methods."""
 
+from crystalia_collector.method.bookend import Bookend, BookendDir, ZipCd, ZipManifest
 from crystalia_collector.method.generic import GenericMethod
 from crystalia_collector.method.glimpse import Glimpse, GlimpseContent, GlimpseLight, GlimpseMeta, GlimpseSlim
 from crystalia_collector.method.glimpse_dir import (
@@ -25,6 +26,10 @@ _METHODS: dict[str, type[GenericMethod]] = {
     "glimpse-dir-light": GlimpseDirLight,
     "glimpse-dir-meta": GlimpseDirMeta,
     "glimpse-dir-content": GlimpseDirContent,
+    "bookend": Bookend,
+    "zip-cd": ZipCd,
+    "zip-manifest": ZipManifest,
+    "bookend-dir": BookendDir,
 }
 
 

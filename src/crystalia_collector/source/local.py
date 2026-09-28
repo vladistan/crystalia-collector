@@ -50,3 +50,16 @@ class LocalSource:
                     if remaining <= 0:
                         break
         return hasher.hexdigest()
+
+    def read_range(self, uri: str, offset: int, length: int) -> bytes:
+        with open(uri, "rb") as f:
+            f.seek(offset)
+            return f.read(length)
+
+    def read_head(self, uri: str, n: int) -> bytes:
+        return self.read_range(uri, 0, n)
+
+    def read_tail(self, uri: str, n: int) -> bytes:
+        size = os.stat(uri).st_size
+        start = max(0, size - n)
+        return self.read_range(uri, start, size - start)

@@ -14,6 +14,7 @@ import structlog
 
 from crystalia_collector import __version__
 from crystalia_collector.method import method_by_id
+from crystalia_collector.method.bookend import BookendBase, BookendDirBase
 from crystalia_collector.method.generic import GenericMethod
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
@@ -225,6 +226,10 @@ def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, i
         return _list_dir_glimpse_dirs(prefix, method, task_dir)
     if isinstance(method, GlimpseBase):
         return _list_dir_glimpse_files(prefix, method)
+    if isinstance(method, BookendDirBase):
+        return _list_dir_bookend_dirs(prefix, method)
+    if isinstance(method, BookendBase):
+        return _list_dir_bookend_files(prefix, method)
 
     source = detect_source(prefix)
     total_size, num_files, task_num = 0, 0, 1
@@ -297,6 +302,68 @@ def _list_dir_glimpse_dirs(
     for dir_uri, top, _ in dir_results:
         log.info(
             "glimpse_dir",
+            uri=dir_uri,
+            method=method.id,
+            descriptor_id=top.id,
+            value=top.value,
+        )
+
+    return len(file_results), total_size
+
+
+def _build_bookend_family_descriptor(
+    file_obj: FileObject, source: object, method: BookendBase
+) -> tuple[Descriptor, list[Descriptor]] | None:
+    # local import: defers the bookend/zip stack until a bookend-family method runs
+    from crystalia_collector.bookend_compute import (
+        build_bookend_descriptor,
+        build_zip_cd_descriptor,
+        build_zip_manifest_descriptor,
+    )
+
+    if method.id == "zip-cd":
+        desc = build_zip_cd_descriptor(file_obj, source)  # type: ignore[arg-type]
+        return (desc, []) if desc is not None else None
+    if method.id == "zip-manifest":
+        desc = build_zip_manifest_descriptor(file_obj, source)  # type: ignore[arg-type]
+        return (desc, []) if desc is not None else None
+    return build_bookend_descriptor(file_obj, source)  # type: ignore[arg-type]
+
+
+def _list_dir_bookend_files(prefix: str, method: BookendBase) -> tuple[int, int]:
+    """Scan files with a bookend-family file method and log descriptor summaries."""
+    source = detect_source(prefix)
+    total_size, num_files = 0, 0
+    for file_obj in source.list_files(prefix):
+        result = _build_bookend_family_descriptor(file_obj, source, method)
+        if result is not None:
+            top, _children = result
+            log.info(
+                "bookend_file",
+                uri=file_obj.uri,
+                basename=file_obj.basename,
+                method=method.id,
+                descriptor_id=top.id,
+                value=top.value,
+            )
+        total_size += file_obj.size
+        num_files += 1
+    return num_files, total_size
+
+
+def _list_dir_bookend_dirs(prefix: str, method: BookendDirBase) -> tuple[int, int]:
+    """Scan files and directories with the bookend-dir method and log directory descriptors."""
+    # local import: defers the bookend scanning stack until bookend-dir runs
+    from crystalia_collector.bookend_scanner import scan_bookend_dirs
+
+    source = detect_source(prefix)
+    file_results, dir_results = scan_bookend_dirs(prefix, source)
+
+    total_size = sum(r[0].size for r in file_results)
+
+    for dir_uri, top, _ in dir_results:
+        log.info(
+            "bookend_dir",
             uri=dir_uri,
             method=method.id,
             descriptor_id=top.id,
@@ -519,6 +586,52 @@ def _collect_glimpse_dir(
     return file_descs, dir_descs, extra_descriptors
 
 
+def _collect_bookend(
+    prefix: str,
+    method: BookendBase,
+) -> tuple[dict[str, list[Descriptor]], list[Descriptor]]:
+    source = detect_source(prefix)
+    by_uri: dict[str, list[Descriptor]] = {}
+    extra_descriptors: list[Descriptor] = []
+    for file_obj in source.list_files(prefix):
+        result = _build_bookend_family_descriptor(file_obj, source, method)
+        if result is not None:
+            top, children = result
+            by_uri[file_obj.uri] = [top]
+            extra_descriptors.append(top)
+            extra_descriptors.extend(children)
+    return by_uri, extra_descriptors
+
+
+def _collect_bookend_dir(
+    prefix: str,
+    method: BookendDirBase,
+) -> tuple[dict[str, list[Descriptor]], dict[str, list[Descriptor]], list[Descriptor]]:
+    # local import: defers the bookend scanning stack until bookend-dir runs
+    from crystalia_collector.bookend_scanner import scan_bookend_dirs
+
+    source = detect_source(prefix)
+    file_results, dir_results = scan_bookend_dirs(prefix, source)
+
+    file_descs: dict[str, list[Descriptor]] = {}
+    dir_descs: dict[str, list[Descriptor]] = {}
+    extra_descriptors: list[Descriptor] = []
+
+    for file_obj, bookend_top, bookend_children, manifest in file_results:
+        file_descs[file_obj.uri] = [bookend_top]
+        extra_descriptors.append(bookend_top)
+        extra_descriptors.extend(bookend_children)
+        if manifest is not None:
+            extra_descriptors.append(manifest)
+
+    for dir_uri, top, children in dir_results:
+        dir_descs[dir_uri] = [top]
+        extra_descriptors.append(top)
+        extra_descriptors.extend(children)
+
+    return file_descs, dir_descs, extra_descriptors
+
+
 ItemIdFactory = Callable[[], str]
 
 
@@ -629,6 +742,20 @@ def run_pipeline(
             total_succeeded += len(file_descs)
         elif isinstance(method, GlimpseBase):
             by_uri, extras = _collect_glimpse(prefix, method)
+            for uri, descs in by_uri.items():
+                merged_files[uri].extend(descs)
+            all_descriptors.extend(extras)
+            total_succeeded += len(by_uri)
+        elif isinstance(method, BookendDirBase):
+            file_descs, dir_descs, extras = _collect_bookend_dir(prefix, method)
+            for uri, descs in file_descs.items():
+                merged_files[uri].extend(descs)
+            for uri, descs in dir_descs.items():
+                merged_dirs[uri].extend(descs)
+            all_descriptors.extend(extras)
+            total_succeeded += len(file_descs)
+        elif isinstance(method, BookendBase):
+            by_uri, extras = _collect_bookend(prefix, method)
             for uri, descs in by_uri.items():
                 merged_files[uri].extend(descs)
             all_descriptors.extend(extras)

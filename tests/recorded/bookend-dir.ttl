@@ -1,0 +1,133 @@
+@prefix cryd: <https://crystalia.link/data/> .
+@prefix crys: <https://w3id.org/crystalia/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+cryd:0c8c810755b658fef547b3e34c8ce110 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "big.jpg" .
+
+cryd:364d9f1ce63a0ba6f8c6ff96575e4817 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 16384 ;
+    crys:offset 0 ;
+    crys:value "714e897d2bb4041f8b48a8d3d433c1e4" .
+
+cryd:3b3eb0577a32b62568c6a25f809261e1 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "a.zip" .
+
+cryd:3c7e68bbe7394be9e550f81d86baac3b a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "small.bin" .
+
+cryd:3d0f1e457de301c06067b22157f503f0 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 16384 ;
+    crys:offset 23619 ;
+    crys:value "ce338fe6899778aacfc28414f2d9498b" .
+
+cryd:75fc21da77d0ee40b0aa9b9c4c1eccef a crys:Descriptor ;
+    crys:hasDescriptor "cryd:c108782f26f4c6d6bd6687af63603d0c",
+        "cryd:d503ee62b38f28e7f07354fbabad5f68",
+        "cryd:f231a125e29cc1f21cbf305c4cdd9e77" ;
+    crys:hasType "cryd:desc-type/bookend-strong" ;
+    crys:value "75fc21da77d0ee40b0aa9b9c4c1eccef" .
+
+cryd:7d38d20d747a73207938f76ddbcfee92 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:c0d49dd9bdbc783951bc291a1cddfc41",
+        "cryd:cd0280a968563b6c7531c96fed5e2794",
+        "cryd:dc5a683ae1458d7b82c394d9e7b12963" ;
+    crys:hasType "cryd:desc-type/bookend-strong" ;
+    crys:value "7d38d20d747a73207938f76ddbcfee92" .
+
+cryd:931768d9d12f132259aef0a3f0a20aa7 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/zip-manifest" ;
+    crys:value "68bef5d4856c0ad0d86ddf0d1a0564ea" .
+
+cryd:a5969a6476c1db78570e5f4bcf4a2ecf a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/format" ;
+    crys:value "jpeg" .
+
+cryd:c0d49dd9bdbc783951bc291a1cddfc41 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/format" ;
+    crys:value "" .
+
+cryd:c108782f26f4c6d6bd6687af63603d0c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "208" .
+
+cryd:cd0280a968563b6c7531c96fed5e2794 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 35 ;
+    crys:offset 0 ;
+    crys:value "e48d7852921ec41f017358c655f69f33" .
+
+cryd:ceb9cb30b2b9725b44f0e4a40ae9dfc4 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:7d38d20d747a73207938f76ddbcfee92",
+        "cryd:931768d9d12f132259aef0a3f0a20aa7",
+        "cryd:cf05b6784045de1673e54b8f026a6445" ;
+    crys:hasType "cryd:desc-type/bookend-dir-weak" ;
+    crys:value "ceb9cb30b2b9725b44f0e4a40ae9dfc4" .
+
+cryd:cf05b6784045de1673e54b8f026a6445 a crys:Descriptor ;
+    crys:hasDescriptor "cryd:364d9f1ce63a0ba6f8c6ff96575e4817",
+        "cryd:3d0f1e457de301c06067b22157f503f0",
+        "cryd:a5969a6476c1db78570e5f4bcf4a2ecf",
+        "cryd:fa5fba3644cc5f255c5bda6ca70c6f5c" ;
+    crys:hasType "cryd:desc-type/bookend-weak" ;
+    crys:value "cf05b6784045de1673e54b8f026a6445" .
+
+cryd:d503ee62b38f28e7f07354fbabad5f68 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/format" ;
+    crys:value "zip" .
+
+cryd:dc5a683ae1458d7b82c394d9e7b12963 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "35" .
+
+cryd:f231a125e29cc1f21cbf305c4cdd9e77 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/md5-region" ;
+    crys:length 208 ;
+    crys:offset 0 ;
+    crys:value "5d8ac4e1c49dcfd602f1ba02ec567c70" .
+
+cryd:fa5fba3644cc5f255c5bda6ca70c6f5c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/file-size" ;
+    crys:value "40003" .
+
+<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:collectorVersion "0.1.0" ;
+    crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:hasRoot "crys:recorded-item-0001" ;
+    crys:sourceRoot "/recorded/fixture/formats" ;
+    crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
+    crys:usesMethod "cryd:method/c3261032ba95fc345967a99eba3ae737" .
+
+<https://crystalia.link/data/method/c3261032ba95fc345967a99eba3ae737> a crys:Method ;
+    rdfs:label "bookend-dir" ;
+    crys:parameters "block_size=1:0" .
+
+crys:recorded-item-0001 a crys:Item ;
+    rdfs:label "formats" ;
+    crys:hasDescriptor "cryd:ceb9cb30b2b9725b44f0e4a40ae9dfc4" .
+
+crys:recorded-item-0002 a crys:Item ;
+    rdfs:label "a.zip" ;
+    dct:isPartOf "crys:recorded-item-0001" ;
+    crys:hasDescriptor "cryd:3b3eb0577a32b62568c6a25f809261e1",
+        "cryd:75fc21da77d0ee40b0aa9b9c4c1eccef" .
+
+crys:recorded-item-0003 a crys:Item ;
+    rdfs:label "big.jpg" ;
+    dct:isPartOf "crys:recorded-item-0001" ;
+    crys:hasDescriptor "cryd:0c8c810755b658fef547b3e34c8ce110",
+        "cryd:cf05b6784045de1673e54b8f026a6445" .
+
+crys:recorded-item-0004 a crys:Item ;
+    rdfs:label "small.bin" ;
+    dct:isPartOf "crys:recorded-item-0001" ;
+    crys:hasDescriptor "cryd:3c7e68bbe7394be9e550f81d86baac3b",
+        "cryd:7d38d20d747a73207938f76ddbcfee92" .
+

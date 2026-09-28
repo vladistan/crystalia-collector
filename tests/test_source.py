@@ -94,6 +94,15 @@ def test_source_protocol_conforming_class_satisfies_isinstance():
         def compute_checksum(self, uri: str, offset: int, length: int | None) -> str:
             return ""
 
+        def read_range(self, uri: str, offset: int, length: int) -> bytes:
+            return b""
+
+        def read_head(self, uri: str, n: int) -> bytes:
+            return b""
+
+        def read_tail(self, uri: str, n: int) -> bytes:
+            return b""
+
     assert isinstance(GoodSource(), Source)
 
 

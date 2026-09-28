@@ -1,4 +1,10 @@
 {
+  "bookend": {
+    "block_size": "16384"
+  },
+  "bookend-dir": {
+    "block_size": "0"
+  },
   "glimpse": {
     "fields": "filename,size,md5,ctime,mtime",
     "robustness": "LOW"
@@ -57,5 +63,11 @@
   },
   "md5-8gb": {
     "block_size": "8589934592"
+  },
+  "zip-cd": {
+    "block_size": "16384"
+  },
+  "zip-manifest": {
+    "block_size": "16384"
   }
 }

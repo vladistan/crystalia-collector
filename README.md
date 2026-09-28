@@ -85,6 +85,36 @@ across a timestamp rewrite, but not a cryptographic proof of full-file content
 `glimpse-dir*` family (see [Output format](#output-format)) is
 authority/recency-grade instead, because its identity embeds `mtime`.
 
+See [Bookend and zip methods](#bookend-and-zip-methods) for large-file and
+archive identity, cheaper than a full-content checksum and strength-graded.
+
+## Bookend and zip methods
+
+`bookend`, `bookend-dir`, `zip-cd` and `zip-manifest` give large files and
+zip-family archives cheap comparison identity without hashing the whole
+object.
+
+| Method | Identity IS sensitive to | Identity is NOT sensitive to |
+|--------|---------------------------|-------------------------------|
+| `bookend` | the first 16 KB, the last 16 KB, detected format, file size | every byte strictly between the head and tail windows; filename; `ctime`/`mtime` |
+| `bookend-dir` | each direct child's chosen candidate (`zip-manifest` for a zip-family child, else that child's own `bookend`/`bookend-dir`) | the directory's own name or `mtime` |
+| `zip-cd` | the raw Central Directory bytes only | file size; every byte outside the archive |
+| `zip-manifest` | sorted NFC member name + CRC-32 + uncompressed size, per member | file length; compression method |
+
+`bookend` is stored as `bookend-strong` when every byte is captured outright
+(file size ≤ 32 KB) or the captured head/tail wholly pin a verified format
+rule (a zip whose End-Of-Central-Directory record and Central Directory lie
+entirely inside the 16 KB tail); otherwise `bookend-weak`, with `gzip` always
+weak once the file exceeds 32 KB (gzip carries no strong rule at all).
+`bookend-dir` is `bookend-dir-strong` iff every one of its children is strong,
+else `bookend-dir-weak`.
+
+`zip-cd` is authority-grade (its identity moves under a re-zip that changes
+per-member timestamps); `zip-manifest` is comparison-grade instead, so
+re-zipping or recompressing identical member content reproduces the same IRI.
+`zip-cd` and `zip-manifest` apply only to zip-family files (including `npz`);
+a non-zip file yields neither descriptor.
+
 ## Failure policy
 
 `run` and `annotate` are fail-closed: a harvest with any unhashed entry never
