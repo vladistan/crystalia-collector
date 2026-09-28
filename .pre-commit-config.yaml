@@ -1,4 +1,4 @@
-exclude: (pipelines/report-.*)|(pipelines/.*.txt)|(data_model/src/linkml_crystalia/datamodel/.*.py)
+exclude: (pipelines/report-.*)|(pipelines/.*.txt)|(data_model/src/linkml_crystalia/datamodel/.*.py)|(src/crystalia_data_model/.*)|(src/crystalia_collector/_vendor/.*)
 repos:
   - repo: meta
     hooks:

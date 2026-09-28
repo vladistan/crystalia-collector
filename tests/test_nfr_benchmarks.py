@@ -95,7 +95,7 @@ def test_nfr_run_pipeline_1k_files_under_500mb(tmp_path: Path) -> None:
 
     print(
         f"\n[NFR] run_pipeline {_PIPELINE_FILES} files, peak={peak / (1024 * 1024):.1f}MB "
-        f"(SLA <{_PIPELINE_MEMORY_SLA_BYTES // (1024 * 1024)}MB)"
+        f"(SLA <{_PIPELINE_MEMORY_SLA_BYTES // (1024 * 1024)}MB)",
     )
     assert result.succeeded == _PIPELINE_FILES
     assert output_path.exists()

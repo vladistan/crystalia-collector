@@ -50,9 +50,7 @@ def test_crystalia_data_model_all_types_import():
 def test_schema_loads_from_vendored_location():
     from linkml_runtime import SchemaView
 
-    schema_path = (
-        Path(__file__).parent.parent / "src" / "crystalia_data_model" / "schema" / "linkml_crystalia.yaml"
-    )
+    schema_path = Path(__file__).parent.parent / "src" / "crystalia_data_model" / "schema" / "linkml_crystalia.yaml"
     sv = SchemaView(schema=str(schema_path))
     assert "Item" in sv.all_classes()
     assert "Descriptor" in sv.all_classes()

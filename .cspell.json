@@ -9,7 +9,9 @@
     "pipelines/report-*",
     "pipelines/timeline-*",
     "pipelines/*.txt",
-    "pipelines/trace-*"
+    "pipelines/trace-*",
+    "src/crystalia_data_model/**",
+    "src/crystalia_collector/_vendor/**"
   ],
   "language": "en",
   "noConfigSearch": true,

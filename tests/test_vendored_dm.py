@@ -11,9 +11,7 @@ VENDORED_MD = VENDOR_ROOT / "VENDORED.md"
 
 def vendored_tree_hash(root: Path) -> str:
     files = sorted(
-        p
-        for p in root.rglob("*")
-        if p.is_file() and "__pycache__" not in p.parts and p.name != "VENDORED.md"
+        p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts and p.name != "VENDORED.md"
     )
     digest = hashlib.sha256()
     for path in files:
