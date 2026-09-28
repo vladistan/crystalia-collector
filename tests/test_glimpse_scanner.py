@@ -5,6 +5,7 @@ from crystalia_collector.glimpse_scanner import scan_files, scan_with_dirs
 from crystalia_collector.method.glimpse import Glimpse, GlimpseMeta
 from crystalia_collector.method.glimpse_dir import GlimpseDir
 from crystalia_collector.source.local import LocalSource
+from crystalia_data_model.types.validate import ensure_valid
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
 
@@ -28,7 +29,7 @@ def test_scan_files_all_descriptors_have_v0_prefix(tmp_path):
 
     results = scan_files(str(tmp_path), LocalSource(), Glimpse())
 
-    assert all(r[1].value.startswith("v0:") for r in results)
+    assert all(ensure_valid(r[1]) is r[1] for r in results)
 
 
 def test_scan_with_dirs_produces_dir_descriptor(tmp_path):
@@ -75,7 +76,7 @@ def test_scan_with_dirs_dir_descriptor_v0_prefix(tmp_path):
 
     _, dir_results = scan_with_dirs(str(tmp_path), LocalSource(), Glimpse(), GlimpseDir())
 
-    assert all(r[1].value.startswith("v0:") for r in dir_results)
+    assert all(ensure_valid(r[1]) is r[1] for r in dir_results)
 
 
 @patch("crystalia_collector.source.s3.boto3")
@@ -98,7 +99,7 @@ def test_scan_files_s3(mock_boto3):
     results = scan_files("s3://bucket/prefix/", S3Source(), Glimpse())
 
     assert len(results) == 2
-    assert all(r[1].value.startswith("v0:") for r in results)
+    assert all(ensure_valid(r[1]) is r[1] for r in results)
 
 
 @patch("crystalia_collector.source.s3.boto3")

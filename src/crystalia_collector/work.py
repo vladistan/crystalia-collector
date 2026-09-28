@@ -17,6 +17,11 @@ from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_fil
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item
+from crystalia_data_model.types.leaves import mint_relpath
+from crystalia_data_model.types.registry import default_registry
+from crystalia_data_model.types.validate import ensure_valid
+
+_dm_registry = default_registry()
 
 log = structlog.get_logger()
 
@@ -245,6 +250,10 @@ def combine_descriptors(
                 combined.add(triple)
         if descriptors:
             for desc in descriptors:
+                # Only types the DM registry knows are checked here; methods not yet
+                # migrated to DM minting (md5-chunk, relpath) mint their own IRIs (Ph1 note).
+                if desc.hasType in _dm_registry:
+                    ensure_valid(desc)
                 g = rdf_from_model(desc)
                 for prefix, ns in g.namespaces():
                     combined.bind(prefix, ns)
@@ -401,11 +410,7 @@ def _build_file_items(
         parent_id = dir_item_ids.get(parent_dir)
 
         relpath = _relative_path(uri, root)
-        relpath_desc = Descriptor(
-            id=_content_id(_TYPE_RELPATH, relpath),
-            hasType=_TYPE_RELPATH,
-            value=relpath,
-        )
+        relpath_desc = mint_relpath(relpath)
         relpath_descriptors.append(relpath_desc)
 
         desc_ids = [d.id for d in merged_files[uri]] + [relpath_desc.id]

@@ -137,6 +137,7 @@ def scan_with_dirs(
             dir_mtime=mtime,
             method=dir_method,
             child_descriptors=all_children,
+            expected=len(all_children),
         )
         computed_dir_tops[dir_uri] = top
         dir_results.append((dir_uri, top, dir_children))

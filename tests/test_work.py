@@ -141,13 +141,13 @@ def test_collect_glimpse_dir(data_dir):
     for _uri, descs in file_descs.items():
         assert len(descs) == 1
         assert isinstance(descs[0], Descriptor)
-        assert descs[0].hasType == "cryd:glimpse"
+        assert descs[0].hasType == "cryd:desc-type/glimpse"
 
     # Every dir URI maps to a list with one top-level descriptor
     for _uri, descs in dir_descs.items():
         assert len(descs) == 1
         assert isinstance(descs[0], Descriptor)
-        assert descs[0].hasType == "cryd:glimpse-dir"
+        assert descs[0].hasType == "cryd:desc-type/glimpse-dir"
 
     # Extras include top + children for all files and dirs
     assert len(extras) > len(file_descs) + len(dir_descs)

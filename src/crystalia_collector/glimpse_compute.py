@@ -1,25 +1,36 @@
-"""Build Glimpse file descriptors from a FileObject and a Source."""
+"""Build Glimpse file descriptors from a FileObject and a Source, via the DM leaf/composite mints."""
 
 import hashlib
-from collections.abc import Sequence
 
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.source import FileObject, Source
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
+from crystalia_data_model.types.leaves import (
+    mint_ctime,
+    mint_file_size,
+    mint_filename,
+    mint_glimpse,
+    mint_glimpse_light,
+    mint_glimpse_meta,
+    mint_glimpse_slim,
+    mint_md5,
+    mint_mtime,
+)
 
-# Child descriptor type URIs (cryd: = data-instance namespace)
-_TYPE_FILENAME = "cryd:desc-type/filename"
-_TYPE_FILE_SIZE = "cryd:desc-type/file-size"
-_TYPE_MTIME = "cryd:desc-type/mtime"
-_TYPE_CTIME = "cryd:desc-type/ctime"
-_TYPE_MD5_HEAD = "cryd:desc-type/md5-head"
+# field name (collector's variant field order) -> DM composite role kwarg name
+_FIELD_TO_ROLE: dict[str, str] = {
+    "filename": "filename",
+    "size": "file_size",
+    "md5": "head",
+    "ctime": "ctime",
+    "mtime": "mtime",
+}
 
-_FIELD_TYPE: dict[str, str] = {
-    "filename": _TYPE_FILENAME,
-    "size": _TYPE_FILE_SIZE,
-    "mtime": _TYPE_MTIME,
-    "ctime": _TYPE_CTIME,
-    "md5": _TYPE_MD5_HEAD,
+_COMPOSITE_MINTERS = {
+    "glimpse": mint_glimpse,
+    "glimpse-slim": mint_glimpse_slim,
+    "glimpse-light": mint_glimpse_light,
+    "glimpse-meta": mint_glimpse_meta,
 }
 
 
@@ -32,44 +43,16 @@ def _content_id(type_uri: str, value: str) -> str:
     return _descriptor_id(hashlib.md5(f"{type_uri}:{value}".encode()).hexdigest())
 
 
-def _build_child_descriptor(
-    type_uri: str,
-    value: str,
-    length: int | None = None,
-) -> Descriptor:
-    """Build a content-addressed child descriptor (id = md5(type_uri:value)).
-
-    The node is shared by every file with the same (type, value), so it may carry
-    only facts that are a function of (type, value).
-    """
-    return Descriptor(
-        id=_content_id(type_uri, value),
-        hasType=type_uri,
-        value=value,
-        length=length,
-    )
-
-
-def _composite_v0(field_values: dict[str, str], field_order: Sequence[str]) -> str:
-    """Compute v0 composite hash over field_values in fixed field_order.
-
-    Input format: one 'fieldname:value\\n' line per field, in the given order.
-    Returns 'v0:<md5_hex>'.
-    """
-    lines = "".join(f"{f}:{field_values[f]}\n" for f in field_order)
-    return f"v0:{hashlib.md5(lines.encode()).hexdigest()}"
-
-
 def build_file_descriptor(
     file_obj: FileObject,
     method: GlimpseBase,
     source: Source,
 ) -> tuple[Descriptor, list[Descriptor]]:
-    """Compute a Glimpse descriptor tree for a single file.
+    """Compute a Glimpse descriptor tree for a single file, minted by the DM.
 
     Returns (top_level_descriptor, child_descriptors). The caller is
     responsible for persisting both; hasDescriptor on the top level
-    references child IDs.
+    references child IDs (set by the DM composite mint).
     """
     file_size = file_obj.size
     block_size = method.block_size
@@ -82,31 +65,24 @@ def build_file_descriptor(
     # ctime is filesystem-only; absent on S3 objects
     ctime_str = file_obj.ctime.isoformat() if file_obj.ctime is not None else ""
 
-    field_raw: dict[str, str] = {
-        "filename": file_obj.basename,
-        "size": str(file_obj.size),
-        "md5": md5_hex,
-        "mtime": mtime_str,
-        "ctime": ctime_str,
-    }
-
     children: list[Descriptor] = []
+    role_kwargs: dict[str, Descriptor] = {}
     for field in method.fields:
-        type_uri = _FIELD_TYPE[field]
-        value = field_raw[field]
-        if field == "md5":
-            child = _build_child_descriptor(type_uri, value, md5_length)
+        if field == "filename":
+            leaf = mint_filename(file_obj.basename)
+        elif field == "size":
+            leaf = mint_file_size(file_obj.size)
+        elif field == "md5":
+            leaf = mint_md5(md5_hex, length=md5_length)
+        elif field == "ctime":
+            leaf = mint_ctime(ctime_str)
+        elif field == "mtime":
+            leaf = mint_mtime(mtime_str)
         else:
-            child = _build_child_descriptor(type_uri, value)
-        children.append(child)
+            msg = f"unknown glimpse field {field!r}"
+            raise ValueError(msg)
+        children.append(leaf)
+        role_kwargs[_FIELD_TO_ROLE[field]] = leaf
 
-    composite_value = _composite_v0(field_raw, method.fields)
-    top_hash = composite_value.removeprefix("v0:")
-
-    top = Descriptor(
-        id=_descriptor_id(top_hash),
-        hasType=f"cryd:{method.id}",
-        value=composite_value,
-        hasDescriptor=[c.id for c in children],
-    )
+    top = _COMPOSITE_MINTERS[str(method.id)](**role_kwargs)
     return top, children

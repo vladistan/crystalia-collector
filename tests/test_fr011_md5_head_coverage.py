@@ -16,9 +16,10 @@ from crystalia_collector.rdf import model_from_rdf
 from crystalia_collector.source.local import LocalSource
 from crystalia_collector.work import run_pipeline
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
+from crystalia_data_model.types.validate import ensure_valid
 
 CRYS = Namespace("https://w3id.org/crystalia/")
-_MD5_HEAD = "cryd:desc-type/md5-head"
+_MD5_HEAD = "cryd:desc-type/md5"
 _FILE_SIZE = "cryd:desc-type/file-size"
 _HEAD = bytes(range(256)) * 8  # 2048 bytes
 _SIZES = {"a.bin": 3000, "b.bin": 7000}
@@ -65,5 +66,5 @@ def test_consumer_derivation_matches_expected_coverage(collision_dir: Path) -> N
         expected_coverage = min(2048 / file_obj.size, 1.0)
         derived = head.length / int(by_type[_FILE_SIZE].value)
         assert derived == pytest.approx(expected_coverage)
-        assert top.value.startswith("v0:")
+        assert ensure_valid(top) is top
     assert len(head_ids) == 1

@@ -2,15 +2,58 @@ import hashlib
 from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from crystalia_collector.glimpse_compute import build_file_descriptor
 from crystalia_collector.method.glimpse import Glimpse, GlimpseLight, GlimpseMeta, GlimpseSlim
 from crystalia_collector.source import FileObject
 from crystalia_collector.source.local import LocalSource
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
+from crystalia_data_model.types.errors import InvalidDescriptor
+from crystalia_data_model.types.leaves import mint_glimpse, mint_md5
+from crystalia_data_model.types.validate import ensure_valid
 
 _NOW = datetime(2024, 6, 1, tzinfo=UTC)
 
 
-# --- local file variant tests ---
+# --- DM-minted IRI equivalence ---
+
+
+def test_glimpse_top_iri_equals_dm_mint(tmp_path):
+    data = b"hello"
+    (tmp_path / "file.txt").write_bytes(data)
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    top, children = build_file_descriptor(file_obj, Glimpse(), source)
+
+    by_type = {c.hasType: c for c in children}
+    expected = mint_glimpse(
+        filename=by_type["cryd:desc-type/filename"],
+        file_size=by_type["cryd:desc-type/file-size"],
+        head=by_type["cryd:desc-type/md5"],
+        ctime=by_type["cryd:desc-type/ctime"],
+        mtime=by_type["cryd:desc-type/mtime"],
+    )
+    assert top.id == expected.id
+    assert top.value == expected.value
+
+
+def test_glimpse_child_leaves_equal_dm_leaf_mint(tmp_path):
+    data = b"x" * 100
+    (tmp_path / "small.txt").write_bytes(data)
+    source = LocalSource()
+    file_obj = list(source.list_files(str(tmp_path)))[0]
+
+    _, children = build_file_descriptor(file_obj, Glimpse(), source)
+
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
+    expected = mint_md5(hashlib.md5(data).hexdigest(), length=100)
+    assert md5_child.id == expected.id
+    assert md5_child.value == expected.value
+
+
+# --- head md5 leaf shape (FR-011: no coverage, no offset) ---
 
 
 def test_glimpse_zero_byte_file(tmp_path):
@@ -20,12 +63,12 @@ def test_glimpse_zero_byte_file(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    assert top.value.startswith("v0:")
     assert top.offset is None
-    assert top.hasType == "cryd:glimpse"
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-head")
+    assert top.hasType == "cryd:desc-type/glimpse"
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
     assert md5_child.value == "d41d8cd98f00b204e9800998ecf8427e"  # pragma: allowlist secret
     assert md5_child.length == 0
+    assert md5_child.offset is None
 
 
 def test_glimpse_small_file_full_coverage(tmp_path):
@@ -36,8 +79,9 @@ def test_glimpse_small_file_full_coverage(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-head")
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
     assert md5_child.length == 100
+    assert md5_child.offset is None
     assert md5_child.value == hashlib.md5(data).hexdigest()
 
 
@@ -49,8 +93,9 @@ def test_glimpse_large_file_partial_coverage(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-head")
+    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5")
     assert md5_child.length == 2048
+    assert md5_child.offset is None
     assert md5_child.value == hashlib.md5(data[:2048]).hexdigest()
 
 
@@ -75,7 +120,7 @@ def test_glimpse_meta_has_no_md5_child(tmp_path):
 
     _, children = build_file_descriptor(file_obj, GlimpseMeta(), source)
 
-    assert not any(c.hasType == "cryd:desc-type/md5-head" for c in children)
+    assert not any(c.hasType == "cryd:desc-type/md5" for c in children)
 
 
 def test_glimpse_light_has_no_filename_child(tmp_path):
@@ -88,14 +133,14 @@ def test_glimpse_light_has_no_filename_child(tmp_path):
     assert not any(c.hasType == "cryd:desc-type/filename" for c in children)
 
 
-def test_all_variants_top_value_starts_with_v0(tmp_path):
+def test_all_variants_mint_a_valid_top(tmp_path):
     (tmp_path / "file.txt").write_bytes(b"hello")
     source = LocalSource()
     file_obj = list(source.list_files(str(tmp_path)))[0]
 
     for method in [Glimpse(), GlimpseSlim(), GlimpseLight(), GlimpseMeta()]:
         top, _ = build_file_descriptor(file_obj, method, source)
-        assert top.value.startswith("v0:"), f"{method.id} top value missing v0: prefix"
+        assert ensure_valid(top) is top, f"{method.id} top failed ensure_valid"
 
 
 def test_composite_hash_is_deterministic(tmp_path):
@@ -147,6 +192,25 @@ def test_top_descriptor_references_all_child_ids(tmp_path):
     assert set(top.hasDescriptor) == {c.id for c in children}
 
 
+# --- single write point: ensure_valid rejects a hand-built wrong-IRI descriptor ---
+
+
+def test_ensure_valid_rejects_wrong_iri_descriptor():
+    bad = Descriptor(id="cryd:00000000000000000000000000000000", hasType="cryd:desc-type/filename", value="x")
+    with pytest.raises(InvalidDescriptor):
+        ensure_valid(bad)
+
+
+def test_combine_descriptors_rejects_wrong_iri_descriptor(tmp_path):
+    from crystalia_collector.work import combine_descriptors
+    from crystalia_data_model.datamodel.linkml_crystalia import Item
+
+    bad = Descriptor(id="cryd:00000000000000000000000000000000", hasType="cryd:desc-type/filename", value="x")
+    item = Item(id="crys:test", label="test", hasDescriptor=[bad.id])
+    with pytest.raises(InvalidDescriptor):
+        combine_descriptors([item], tmp_path / "out.ttl", "turtle", descriptors=[bad])
+
+
 # --- S3 tests ---
 
 
@@ -174,7 +238,7 @@ def test_glimpse_s3_sends_correct_byte_range(mock_boto3):
         Key="data/output.csv",
         Range="bytes=0-2047",
     )
-    assert top.value.startswith("v0:")
+    assert ensure_valid(top) is top
 
 
 @patch("crystalia_collector.source.s3.boto3")
