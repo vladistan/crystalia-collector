@@ -47,10 +47,12 @@ def test_crystalia_data_model_all_types_import():
     assert all(cls is not None for cls in [Descriptor, Item, Method, Thing])
 
 
-def test_schema_loads_from_new_location():
+def test_schema_loads_from_vendored_location():
     from linkml_runtime import SchemaView
 
-    schema_path = Path(__file__).parent.parent / "src" / "crystalia_collector" / "schema" / "crystalia.yaml"
+    schema_path = (
+        Path(__file__).parent.parent / "src" / "crystalia_data_model" / "schema" / "linkml_crystalia.yaml"
+    )
     sv = SchemaView(schema=str(schema_path))
     assert "Item" in sv.all_classes()
     assert "Descriptor" in sv.all_classes()
@@ -63,28 +65,12 @@ def test_rdf_module_schema_loads():
     assert "Item" in schema.all_classes()
 
 
-def test_schema_dir_points_to_existing_file():
-    from crystalia_collector.rdf import SCHEMA_DIR
+def test_get_schema_curies_expand_to_same_iris():
+    from crystalia_collector.rdf import get_schema
 
-    schema_file = SCHEMA_DIR / "crystalia.yaml"
-    assert schema_file.exists(), f"Schema file not found at {schema_file}"
-
-
-def test_schema_dir_is_under_package():
-    from crystalia_collector.rdf import SCHEMA_DIR
-
-    assert "crystalia_collector" in SCHEMA_DIR.parts
-
-
-def test_get_schema_missing_file_raises(tmp_path, monkeypatch):
-    import crystalia_collector.rdf as rdf_mod
-
-    rdf_mod.get_schema.cache_clear()
-    monkeypatch.setattr(rdf_mod, "SCHEMA_DIR", tmp_path)
-    with pytest.raises(FileNotFoundError):
-        rdf_mod.get_schema()
-    monkeypatch.undo()
-    rdf_mod.get_schema.cache_clear()
+    schema = get_schema()
+    assert schema.expand_curie("crys:Item") == "https://w3id.org/crystalia/Item"
+    assert schema.expand_curie("cryd:abc123") == "https://crystalia.link/data/abc123"
 
 
 # --- Step 1.2: Configuration extension ---

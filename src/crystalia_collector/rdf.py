@@ -7,7 +7,7 @@
 # _vendor/VENDORED.md for provenance and the upstreaming TODO). SchemaView and the
 # vendored classes' base classes are all provided by public `linkml-runtime`.
 from functools import lru_cache
-from pathlib import Path
+from importlib.resources import as_file, files
 
 from linkml_runtime import SchemaView
 from pydantic import BaseModel
@@ -17,13 +17,12 @@ from crystalia_collector._vendor.pydantic_rdf_dumper import PydanticRDFDumper
 from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
 from crystalia_data_model.datamodel.linkml_crystalia import Thing
 
-SCHEMA_DIR = Path(__file__).parent / "schema"
-
 
 @lru_cache
 def get_schema() -> SchemaView:
-    schema_file = SCHEMA_DIR / "crystalia.yaml"
-    return SchemaView(schema=schema_file)
+    schema_resource = files("crystalia_data_model.schema").joinpath("linkml_crystalia.yaml")
+    with as_file(schema_resource) as schema_file:
+        return SchemaView(schema=schema_file)
 
 
 def rdf_from_model(thing: Thing) -> Graph:

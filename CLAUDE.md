@@ -29,7 +29,6 @@ src/crystalia_collector/
     glimpse.py      # Glimpse variants (full, slim, light, meta)
     glimpse_dir.py  # GlimpseDir variants (directory-level descriptors)
     md5.py          # MD5 variants (unbounded, 2GB, 8GB)
-  schema/           # Local LinkML schema (crystalia.yaml, used for CURIE expansion)
 ```
 
 ## Data Model
