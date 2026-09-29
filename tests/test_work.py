@@ -133,6 +133,22 @@ def test_process_task_file_whole_file_md5_via_dm(data_dir, tmp_path):
     assert desc.id == expected.id
 
 
+def test_process_task_file_filename_with_spaces(tmp_path):
+    # Real-world filenames (invoices, exports) routinely contain spaces, e.g.
+    # "Project_ BCG-Micro (BM)_2019-06-01_2019-06-30.xlsx". A naive
+    # line.split() misaligns the trailing numeric fields.
+    src = tmp_path / "Project_ BCG-Micro (BM)_2019-06-01_2019-06-30.xlsx"
+    src.write_bytes(b"content")
+    task_file = tmp_path / "task.txt"
+    task_file.write_text(f"{src} {src.stat().st_size} md5 0 0\n")
+
+    ((uri, desc),) = _process_task_file(str(task_file))
+
+    assert uri == str(src)
+    assert desc.hasType == "cryd:desc-type/md5"
+    assert desc.length == src.stat().st_size
+
+
 def test_list_dir_glimpse_files(data_dir):
     method = method_by_id("glimpse")
     assert isinstance(method, GlimpseBase)

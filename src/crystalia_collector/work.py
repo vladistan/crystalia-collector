@@ -52,11 +52,13 @@ class RunResult:
 
 
 def _mint_from_task_line(line: str) -> tuple[str, Descriptor]:
-    parts = line.strip().split()
-    uri = parts[0]
-    file_size = int(parts[1])
-    block_size = int(parts[3])
-    offset = int(parts[4])
+    # The URI is field 0 and may contain spaces (real filenames routinely do); the
+    # trailing 4 fields (size, method id, block size, offset) never do, so split
+    # from the right to keep the URI intact regardless of its content.
+    uri, size_str, _method_id, block_size_str, offset_str = line.strip().rsplit(maxsplit=4)
+    file_size = int(size_str)
+    block_size = int(block_size_str)
+    offset = int(offset_str)
     true_length = min(block_size, file_size - offset) if block_size > 0 else file_size
     source = detect_source(uri)
     checksum = source.compute_checksum(uri, offset, true_length if block_size > 0 else None)
@@ -811,24 +813,19 @@ def run_pipeline(
 def compute_annotations(output_file: str, task_file: str) -> None:
     with open(task_file) as f, open(output_file, "w") as out:
         for line in f:
-            components = line.strip().split()
-            if not components:
+            stripped = line.strip()
+            if not stripped:
                 continue
-            file = components[0]
+            try:
+                # See _mint_from_task_line: the URI (field 0) may contain spaces,
+                # so split from the right to keep it intact.
+                file, size_str, _method, block_size_str, offset_str = stripped.rsplit(maxsplit=4)
+            except ValueError as exc:
+                msg = f"Invalid task line {line!r}: {exc}"
+                raise ValueError(msg) from exc
             log.info("annotating_file", file=file)
             bucket, key = file.replace("s3://", "").split("/", 1)
-
-            if len(components) == 5:
-                _size, _method, block_size, offset = (
-                    int(components[1]),
-                    components[2],
-                    int(components[3]),
-                    int(components[4]),
-                )
-            else:
-                raise ValueError(
-                    f"Invalid number of components: {len(components)} for file {file} line {line}",
-                )
+            _size, block_size, offset = int(size_str), int(block_size_str), int(offset_str)
 
             log.info(
                 "computing_file_checksum",
