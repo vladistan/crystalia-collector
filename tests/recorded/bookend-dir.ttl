@@ -8,6 +8,10 @@ cryd:0c8c810755b658fef547b3e34c8ce110 a crys:Descriptor ;
     crys:hasType "cryd:desc-type/relpath" ;
     crys:value "big.jpg" .
 
+cryd:23ab19776e9ec028cdc15e1c32e82b29 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "." .
+
 cryd:364d9f1ce63a0ba6f8c6ff96575e4817 a crys:Descriptor ;
     crys:hasType "cryd:desc-type/md5-region" ;
     crys:length 16384 ;
@@ -111,7 +115,8 @@ cryd:fa5fba3644cc5f255c5bda6ca70c6f5c a crys:Descriptor ;
 
 crys:recorded-item-0001 a crys:Item ;
     rdfs:label "formats" ;
-    crys:hasDescriptor "cryd:ceb9cb30b2b9725b44f0e4a40ae9dfc4" .
+    crys:hasDescriptor "cryd:23ab19776e9ec028cdc15e1c32e82b29",
+        "cryd:ceb9cb30b2b9725b44f0e4a40ae9dfc4" .
 
 crys:recorded-item-0002 a crys:Item ;
     rdfs:label "a.zip" ;

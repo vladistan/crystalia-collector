@@ -261,19 +261,39 @@ def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
     # 2 files + 2 dirs (data_dir + sub)
     assert len(items) == 4
 
-    # File Items each have 3 descriptors (md5-8gb + glimpse-dir + item-level relpath)
-    file_items = [s for s in items if (s, DCTERMS.isPartOf, None) in g]
+    # Both files and the "sub" dir (non-root) have isPartOf; only the scan root does not.
+    items_with_parent = [s for s in items if (s, DCTERMS.isPartOf, None) in g]
+    assert len(items_with_parent) == 3
+    roots = [s for s in items if s not in items_with_parent]
+    assert len(roots) == 1
+
+    # File Items each have 3 descriptors (md5-8gb + glimpse-dir + item-level relpath).
+    # hasDescriptor holds literal "cryd:<hex>" CURIE strings, not linked URIRefs, so
+    # resolve each Item's descriptor type via the CURIE's bare hex against the actual
+    # Descriptor subjects' own hasType.
+    desc_type_by_local_id = {
+        str(s).removeprefix("https://crystalia.link/data/"): str(o)
+        for s in g.subjects(RDF.type, DESCRIPTOR)
+        for o in g.objects(s, HAS_TYPE)
+    }
+    dir_uris = {
+        s
+        for s in items
+        for lit in g.objects(s, HAS_DESCRIPTOR)
+        if desc_type_by_local_id.get(str(lit).removeprefix("cryd:")) == "cryd:desc-type/glimpse-dir"
+    }
+    file_items = [s for s in items if s not in dir_uris]
     assert len(file_items) == 2
     for item in file_items:
         desc_ids = list(g.objects(item, HAS_DESCRIPTOR))
         assert len(desc_ids) == 3
 
-    # Dir Items each have 1 descriptor (glimpse-dir)
-    dir_items = [s for s in items if s not in file_items]
+    # Dir Items each have 2 descriptors (glimpse-dir + item-level relpath)
+    dir_items = [s for s in items if s in dir_uris]
     assert len(dir_items) == 2
     for item in dir_items:
         desc_ids = list(g.objects(item, HAS_DESCRIPTOR))
-        assert len(desc_ids) == 1
+        assert len(desc_ids) == 2
 
 
 def test_run_pipeline_glimpse_dir_meta_does_not_crash(tmp_path):

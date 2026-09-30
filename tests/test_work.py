@@ -7,6 +7,7 @@ from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
 from crystalia_collector.work import (
     _TYPE_RELPATH,
+    _build_directory_items,
     _build_file_items,
     _collect_glimpse_dir,
     _default_item_id,
@@ -46,6 +47,39 @@ def test_build_file_items_emits_distinct_relpath_for_same_basename():
     # Distinct content-addressed IDs (paths differ -> IDs differ)
     assert len({d.id for d in relpaths}) == 2
     # Each Item references exactly one of the relpath descriptors
+    relpath_ids = {d.id for d in relpaths}
+    for item in items:
+        assert len(set(item.hasDescriptor) & relpath_ids) == 1
+
+
+def test_build_directory_items_nested_dirs_have_one_root():
+    # A nested tree: /scan (root), /scan/sub, /scan/sub/deep.
+    d_root = Descriptor(id="cryd:dr", hasType="cryd:desc-type/glimpse-dir", value="root")
+    d_sub = Descriptor(id="cryd:ds", hasType="cryd:desc-type/glimpse-dir", value="sub")
+    d_deep = Descriptor(id="cryd:dd", hasType="cryd:desc-type/glimpse-dir", value="deep")
+    merged = {
+        "/scan": [d_root],
+        "/scan/sub": [d_sub],
+        "/scan/sub/deep": [d_deep],
+    }
+
+    items, dir_item_ids, relpaths = _build_directory_items(merged, _default_item_id, "/scan")
+
+    # Exactly one directory Item has no isPartOf: the scan root.
+    roots = [item for item in items if item.isPartOf is None]
+    assert len(roots) == 1
+    root_item = roots[0]
+    assert dir_item_ids["/scan"] == root_item.id
+
+    # Each non-root dir's isPartOf points at its own parent's item_id, not the root's.
+    sub_item = next(i for i in items if i.id == dir_item_ids["/scan/sub"])
+    deep_item = next(i for i in items if i.id == dir_item_ids["/scan/sub/deep"])
+    assert sub_item.isPartOf == dir_item_ids["/scan"]
+    assert deep_item.isPartOf == dir_item_ids["/scan/sub"]
+
+    # Every dir Item carries a relpath descriptor, same as file Items do.
+    assert len(relpaths) == 3
+    assert all(d.hasType == _TYPE_RELPATH for d in relpaths)
     relpath_ids = {d.id for d in relpaths}
     for item in items:
         assert len(set(item.hasDescriptor) & relpath_ids) == 1

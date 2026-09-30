@@ -93,10 +93,10 @@ def merge(
     # Task-file mode never produces directory-level (glimpse-dir) descriptors, so
     # merge builds file Items only, matching run_pipeline's own shape for the
     # non-GlimpseDir methods task-file mode is used for.
-    dir_items, dir_item_ids = _build_directory_items({}, id_factory)
+    dir_items, dir_item_ids, dir_relpath_descriptors = _build_directory_items({}, id_factory, root)
     file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, root, id_factory)
     items = dir_items + file_items
-    descriptors = list(all_descriptors.values()) + relpath_descriptors
+    descriptors = list(all_descriptors.values()) + dir_relpath_descriptors + relpath_descriptors
 
     methods = [mint_method(mid, method_by_id(mid).parameters()) for mid in method_ids]
     roots = [item for item in items if item.isPartOf is None]

@@ -14,6 +14,10 @@ cryd:176f65b76560d349db564e05be34a680 a crys:Descriptor ;
     crys:hasType "cryd:desc-type/filename" ;
     crys:value "tree" .
 
+cryd:23ab19776e9ec028cdc15e1c32e82b29 a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "." .
+
 cryd:25c819f0fab0bb8e668a1e178b54b51d a crys:Descriptor ;
     crys:hasDescriptor "cryd:3691e2dfdd0f25b4bdf129e8dbeaafec",
         "cryd:bee39b0831d451a779781fcde6eaac1b",
@@ -44,6 +48,10 @@ cryd:6c58fec7a077571296480303f88c9aa0 a crys:Descriptor ;
         "cryd:c66dac3cb956791fa345d66932786e98" ;
     crys:hasType "cryd:desc-type/glimpse-dir-slim" ;
     crys:value "6c58fec7a077571296480303f88c9aa0" .
+
+cryd:846fb68e320cb50aefd93738eb27d44c a crys:Descriptor ;
+    crys:hasType "cryd:desc-type/relpath" ;
+    crys:value "sub" .
 
 cryd:b95737913fbc32c0276b69b456b72d9a a crys:Descriptor ;
     crys:hasType "cryd:desc-type/filename" ;
@@ -82,8 +90,7 @@ cryd:f2abdfd16dbe170d770f6d321cc080ef a crys:Descriptor ;
 <https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:hasRoot "crys:recorded-item-0001",
-        "crys:recorded-item-0002" ;
+    crys:hasRoot "crys:recorded-item-0001" ;
     crys:sourceRoot "/recorded/fixture/tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:usesMethod "cryd:method/98fb2cb1e147dd24b2f0bfe8f454b11b" .
@@ -97,11 +104,14 @@ robustness=3:LOW""" .
 
 crys:recorded-item-0001 a crys:Item ;
     rdfs:label "tree" ;
-    crys:hasDescriptor "cryd:cc9f4e65b6bb75fedf5114940ee2a817" .
+    crys:hasDescriptor "cryd:23ab19776e9ec028cdc15e1c32e82b29",
+        "cryd:cc9f4e65b6bb75fedf5114940ee2a817" .
 
 crys:recorded-item-0002 a crys:Item ;
     rdfs:label "sub" ;
-    crys:hasDescriptor "cryd:6c58fec7a077571296480303f88c9aa0" .
+    dct:isPartOf "crys:recorded-item-0001" ;
+    crys:hasDescriptor "cryd:6c58fec7a077571296480303f88c9aa0",
+        "cryd:846fb68e320cb50aefd93738eb27d44c" .
 
 crys:recorded-item-0003 a crys:Item ;
     rdfs:label "a.txt" ;

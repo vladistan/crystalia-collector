@@ -644,17 +644,34 @@ def _default_item_id() -> str:
 def _build_directory_items(
     merged_dirs: dict[str, list[Descriptor]],
     item_id_factory: ItemIdFactory,
-) -> tuple[list[Item], dict[str, str]]:
-    """Build directory Items and return them with a {dir_uri: item_id} map."""
+    root: str,
+) -> tuple[list[Item], dict[str, str], list[Descriptor]]:
+    """Build directory Items, each with a relpath descriptor and an isPartOf link to
+    its parent directory (the scan root's own Item has no isPartOf).
+
+    Returns (items, {dir_uri: item_id}, relpath_descriptors). Sorted iteration order
+    guarantees a directory's parent (a strict prefix, thus lexicographically smaller)
+    is assigned an item_id before the directory itself is processed.
+    """
     dir_item_ids: dict[str, str] = {}
     items: list[Item] = []
+    relpath_descriptors: list[Descriptor] = []
     for dir_uri in sorted(merged_dirs):
         basename = Path(dir_uri).name or dir_uri
         item_id = item_id_factory()
         dir_item_ids[dir_uri] = item_id
-        desc_ids = [d.id for d in merged_dirs[dir_uri]]
-        items.append(Item(id=item_id, label=basename, hasDescriptor=desc_ids))
-    return items, dir_item_ids
+
+        parent_dir = str(Path(dir_uri).parent)
+        parent_id = dir_item_ids.get(parent_dir)
+
+        relpath_desc = mint_relpath(_relative_path(dir_uri, root))
+        relpath_descriptors.append(relpath_desc)
+
+        desc_ids = [d.id for d in merged_dirs[dir_uri]] + [relpath_desc.id]
+        items.append(
+            Item(id=item_id, label=basename, hasDescriptor=desc_ids, isPartOf=parent_id),
+        )
+    return items, dir_item_ids, relpath_descriptors
 
 
 def _relative_path(uri: str, root: str) -> str:
@@ -783,9 +800,10 @@ def run_pipeline(
         raise HarvestIncompleteError(msg)
 
     # Build directory Items first so file Items can reference them via isPartOf
-    dir_items, dir_item_ids = _build_directory_items(merged_dirs, id_factory)
+    dir_items, dir_item_ids, dir_relpath_descriptors = _build_directory_items(merged_dirs, id_factory, prefix)
     file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, prefix, id_factory)
     items = dir_items + file_items
+    all_descriptors.extend(dir_relpath_descriptors)
     all_descriptors.extend(relpath_descriptors)
     roots = [item for item in items if item.isPartOf is None]
     harvest_record = record_harvest(
