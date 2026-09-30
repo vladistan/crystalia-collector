@@ -268,19 +268,13 @@ def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
     assert len(roots) == 1
 
     # File Items each have 3 descriptors (md5-8gb + glimpse-dir + item-level relpath).
-    # hasDescriptor holds literal "cryd:<hex>" CURIE strings, not linked URIRefs, so
-    # resolve each Item's descriptor type via the CURIE's bare hex against the actual
-    # Descriptor subjects' own hasType.
-    desc_type_by_local_id = {
-        str(s).removeprefix("https://crystalia.link/data/"): str(o)
-        for s in g.subjects(RDF.type, DESCRIPTOR)
-        for o in g.objects(s, HAS_TYPE)
-    }
+    # hasDescriptor links directly to the Descriptor subject as a URIRef.
     dir_uris = {
         s
         for s in items
-        for lit in g.objects(s, HAS_DESCRIPTOR)
-        if desc_type_by_local_id.get(str(lit).removeprefix("cryd:")) == "cryd:desc-type/glimpse-dir"
+        for desc in g.objects(s, HAS_DESCRIPTOR)
+        for hastype in g.objects(desc, HAS_TYPE)
+        if str(hastype) == "https://crystalia.link/data/desc-type/glimpse-dir"
     }
     file_items = [s for s in items if s not in dir_uris]
     assert len(file_items) == 2

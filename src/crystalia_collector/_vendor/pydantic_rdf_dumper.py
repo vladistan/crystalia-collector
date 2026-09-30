@@ -131,15 +131,40 @@ class PydanticRDFDumper(Dumper):
 
             field_meta = self._get_field_metadata(field_info)
             property_uri = self._get_property_uri(field_meta, field_name, ctx)
-            self._emit_value(subject_uri, property_uri, actual_value, ctx)
+            self._emit_value(subject_uri, property_uri, actual_value, ctx, field_meta.get("range"))
 
         return subject_uri
 
-    def _emit_value(self, subject: Node, predicate: URIRef, value: Any, ctx: PydanticRDFContext) -> None:
+    # LinkML slot ranges that hold inline literal data. Any other range (uriorcurie,
+    # uri, or a class name like Item/Method/Descriptor) identifies another entity by
+    # id and must round-trip as a URIRef, not a string literal.
+    _LITERAL_RANGES = {
+        "string",
+        "str",
+        "integer",
+        "int",
+        "float",
+        "double",
+        "decimal",
+        "boolean",
+        "bool",
+        "date",
+        "datetime",
+        "time",
+    }
+
+    def _emit_value(
+        self,
+        subject: Node,
+        predicate: URIRef,
+        value: Any,
+        ctx: PydanticRDFContext,
+        range_name: str | None = None,
+    ) -> None:
         """Emit triple(s) for a field value."""
         if isinstance(value, list):
             for item in value:
-                self._emit_value(subject, predicate, item, ctx)
+                self._emit_value(subject, predicate, item, ctx, range_name)
         elif isinstance(value, BaseModel):
             uri_str = self._obj_uri_str(value, ctx)
             if uri_str is not None:
@@ -152,6 +177,10 @@ class PydanticRDFDumper(Dumper):
                 # BNode: emit inline (cannot cause cycles)
                 child_node = self._emit_object(value, ctx)
                 ctx.graph.add((subject, predicate, child_node))
+        elif isinstance(value, str) and range_name is not None and range_name.lower() not in self._LITERAL_RANGES:
+            # An id-reference slot (range is uriorcurie/uri or a non-inlined class):
+            # the string is another entity's id, not inline data.
+            ctx.graph.add((subject, predicate, URIRef(ctx.expand_curie(value))))
         else:
             node = self._to_rdf_literal(value)
             ctx.graph.add((subject, predicate, node))

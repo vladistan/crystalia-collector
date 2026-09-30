@@ -19,8 +19,10 @@ from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.validate import ensure_valid
 
 CRYS = Namespace("https://w3id.org/crystalia/")
-_MD5_HEAD = "cryd:desc-type/md5-region"
-_FILE_SIZE = "cryd:desc-type/file-size"
+CRYD = "https://crystalia.link/data/"
+_MD5_HEAD_CURIE = "cryd:desc-type/md5-region"
+_FILE_SIZE_CURIE = "cryd:desc-type/file-size"
+_MD5_HEAD = f"{CRYD}desc-type/md5-region"
 _HEAD = bytes(range(256)) * 8  # 2048 bytes
 _SIZES = {"a.bin": 3000, "b.bin": 7000}
 
@@ -61,10 +63,10 @@ def test_consumer_derivation_matches_expected_coverage(collision_dir: Path) -> N
     for file_obj in source.list_files(str(collision_dir)):
         top, children = build_file_descriptor(file_obj, Glimpse(), source)
         by_type = {c.hasType: c for c in children}
-        head = by_type[_MD5_HEAD]
+        head = by_type[_MD5_HEAD_CURIE]
         head_ids.add(head.id)
         expected_coverage = min(2048 / file_obj.size, 1.0)
-        derived = head.length / int(by_type[_FILE_SIZE].value)
+        derived = head.length / int(by_type[_FILE_SIZE_CURIE].value)
         assert derived == pytest.approx(expected_coverage)
         assert ensure_valid(top) is top
     assert len(head_ids) == 1

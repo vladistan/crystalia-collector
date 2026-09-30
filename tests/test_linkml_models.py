@@ -1,8 +1,8 @@
 import pytest
-from rdflib import Graph
+from rdflib import Graph, URIRef
 
 from crystalia_collector.rdf import model_from_rdf, rdf_from_model
-from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, Item, Method
+from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, HarvestRecord, Item, Method
 
 
 @pytest.fixture
@@ -103,3 +103,44 @@ def test_model_from_rdf_without_subject_resolves_item_by_type(test_dir):
     assert item.label == "Short file in the cohort"
     assert item.isPartOf == "https://registry.opendata.aws/ilmn-dragen-1kgp"
     assert str(item.id).endswith("samples-cohort/a.txt")
+
+
+def test_dumper_emits_uriref_for_id_reference_slots():
+    """hasDescriptor, isPartOf, hasType, hasRoot and usesMethod hold another
+    entity's id, not inline data -- they must round-trip as URIRefs, not
+    xsd:string literals (write-side asymmetry: the loader already treats them
+    as references, per Phase 2/3's ensure_valid(resolve=...) self-checks against
+    real loaded output).
+    """
+    child = Descriptor(id="cryd:child1", hasType="cryd:desc-type/filename", value="a.txt")
+    top = Descriptor(
+        id="cryd:top1",
+        hasType="cryd:desc-type/glimpse",
+        value="v0:deadbeef",
+        hasDescriptor=[child.id],
+    )
+    method = Method(id="cryd:method/m1", label="glimpse")
+    root_item = Item(id="crys:root1", label="root", isPartOf=None)
+    child_item = Item(id="crys:child-item1", label="child", isPartOf=root_item.id, hasDescriptor=[top.id])
+    harvest = HarvestRecord(id="cryd:harvest/h1", usesMethod=[method.id], hasRoot=[root_item.id])
+
+    g = rdf_from_model(top) + rdf_from_model(child) + rdf_from_model(method)
+    g += rdf_from_model(root_item) + rdf_from_model(child_item) + rdf_from_model(harvest)
+
+    cryd = "https://crystalia.link/data/"
+    crys = "https://w3id.org/crystalia/"
+    checks = [
+        (URIRef(f"{cryd}top1"), URIRef(f"{crys}hasDescriptor"), URIRef(f"{cryd}child1")),
+        (URIRef(f"{crys}child-item1"), URIRef("http://purl.org/dc/terms/isPartOf"), URIRef(f"{crys}root1")),
+        (URIRef(f"{cryd}harvest/h1"), URIRef(f"{crys}hasRoot"), URIRef(f"{crys}root1")),
+        (URIRef(f"{cryd}harvest/h1"), URIRef(f"{crys}usesMethod"), URIRef(f"{cryd}method/m1")),
+    ]
+    for subj, pred, expected_obj in checks:
+        objs = list(g.objects(subj, pred))
+        assert len(objs) == 1, f"expected exactly one {pred} triple from {subj}"
+        assert isinstance(objs[0], URIRef), f"{pred} from {subj} emitted {type(objs[0])}, not URIRef"
+        assert objs[0] == expected_obj
+
+    hastype_objs = list(g.objects(URIRef(f"{cryd}top1"), URIRef(f"{crys}hasType")))
+    assert len(hastype_objs) == 1
+    assert isinstance(hastype_objs[0], URIRef)
