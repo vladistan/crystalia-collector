@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **Breaking consumer contract:** re-vendored crystalia-data-model v2.1.0
+  (namespace split). Type-registry CURIEs move from `cryd:desc-type/<name>`
+  to `crys:dtype/<name>`; every content-addressed descriptor id changes
+  (the type CURIE is hashed into the id). Item ids now default to
+  `cryd:<uuid>` (was `crys:<uuid>`) — `cryd:` is instance-data-only
+  (descriptors and items); `crys:` is reserved for type/schema CURIEs.
+  Every existing collection is invalid under this namespace; re-harvest.
+
 ## [0.3.0] - 2026-09-25
 
 ### Changed

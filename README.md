@@ -49,6 +49,16 @@ Every descriptor's IRI is content-addressed and minted by `crystalia-data-model`
 the same type and value are the same IRI, regardless of which file or run
 produced them.
 
+Two CURIE namespaces, split by role: `cryd:` (`https://crystalia.link/data/`)
+is instance-data-only — every Descriptor and Item id. `crys:`
+(`https://w3id.org/crystalia/`) is reserved for type/schema CURIEs, e.g. a
+descriptor's `hasType` value `crys:dtype/<name>`. This is a breaking
+consumer-contract change from DM v2.0.0, where the type registry lived under
+`cryd:desc-type/<name>` and Items defaulted to `crys:<uuid>`; every
+content-addressed descriptor id changed with it (the type CURIE is hashed
+into the id). Every collection produced before this change is invalid under
+the new namespace and needs a full re-harvest.
+
 The DM does not store a `coverage` field on descriptors. Consumers derive
 coverage from `length` and the file's own size via the DM API
 (`crystalia_data_model.types`), rather than reading a stored value that could
