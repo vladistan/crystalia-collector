@@ -7,55 +7,55 @@
 <https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:hasRoot crys:recorded-item-0001 ;
+    crys:hasRoot cryd:recorded-item-0001 ;
     crys:sourceRoot "/recorded/fixture/tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:usesMethod <https://crystalia.link/data/method/e6711e5ddae5e0c791dc850c95f47bac> .
 
-crys:recorded-item-0003 a crys:Item ;
+cryd:recorded-item-0003 a crys:Item ;
     rdfs:label "a.txt" ;
-    dct:isPartOf crys:recorded-item-0001 ;
-    crys:hasDescriptor cryd:4358326c78cad38ca05071c1b26a259c,
-        cryd:8924a59c211e6a769074b3dbf1e05826 .
+    dct:isPartOf cryd:recorded-item-0001 ;
+    crys:hasDescriptor cryd:4d6ec2fad9dd1ee8fef83eb3eb5c20bd,
+        cryd:4f9f66c2ad8d07aab37d1f9eec6e3699 .
 
-crys:recorded-item-0004 a crys:Item ;
+cryd:recorded-item-0004 a crys:Item ;
     rdfs:label "b.txt" ;
-    dct:isPartOf crys:recorded-item-0002 ;
-    crys:hasDescriptor cryd:d3bd1e9efc98813ba5b73ee08ebf5df1,
-        cryd:eefa9d5fd964e8a64649c19ae15d0929 .
+    dct:isPartOf cryd:recorded-item-0002 ;
+    crys:hasDescriptor cryd:dcb946095fa21033d27738799a2502a6,
+        cryd:e58c4cd18434055154439d3b83312493 .
 
-cryd:07971468bf5ab6c3b712da0bbf91fac0 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/md5-region> ;
-    crys:length 23 ;
-    crys:offset 0 ;
-    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
-
-cryd:23ab19776e9ec028cdc15e1c32e82b29 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
-    crys:value "." .
-
-cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
-    crys:value "a.txt" .
-
-cryd:766912530730c010b989e543f3d58de3 a crys:Descriptor ;
-    crys:hasDescriptor cryd:8924a59c211e6a769074b3dbf1e05826,
-        cryd:f6840bf4acbbb16f106d6084714e204b ;
-    crys:hasType <https://crystalia.link/data/desc-type/glimpse-dir-content> ;
-    crys:value "766912530730c010b989e543f3d58de3" .
-
-cryd:846fb68e320cb50aefd93738eb27d44c a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
+cryd:2f0bdfda16b36b5dd9e7b94c0cb19cdf a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
     crys:value "sub" .
 
-cryd:bee39b0831d451a779781fcde6eaac1b a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/md5-region> ;
+cryd:2ff657e1d0c64c71707aa1fefd741ead a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/md5-region> ;
     crys:length 23 ;
     crys:offset 0 ;
     crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
 
-cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
+cryd:4694fe66f4f649507d61403cab702f92 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/md5-region> ;
+    crys:length 23 ;
+    crys:offset 0 ;
+    crys:value "ed9c3078af04929edb9edfc945c0a9de" .
+
+cryd:4d6ec2fad9dd1ee8fef83eb3eb5c20bd a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
+    crys:value "a.txt" .
+
+cryd:a128b0e3bbb913d9a4e99a5f7c0bd66a a crys:Descriptor ;
+    crys:hasDescriptor cryd:4f610b19cbe06f99eeb1a3e93b70afca,
+        cryd:4f9f66c2ad8d07aab37d1f9eec6e3699 ;
+    crys:hasType <https://w3id.org/crystalia/dtype/glimpse-dir-content> ;
+    crys:value "a128b0e3bbb913d9a4e99a5f7c0bd66a" .
+
+cryd:ba793556f4686af45eaca6550e137b04 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
+    crys:value "." .
+
+cryd:dcb946095fa21033d27738799a2502a6 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
     crys:value "sub/b.txt" .
 
 <https://crystalia.link/data/method/e6711e5ddae5e0c791dc850c95f47bac> a crys:Method ;
@@ -65,35 +65,35 @@ has_rollup=4:True
 paired_file_method_id=15:glimpse-content
 robustness=3:LOW""" .
 
-crys:recorded-item-0002 a crys:Item ;
+cryd:recorded-item-0002 a crys:Item ;
     rdfs:label "sub" ;
-    dct:isPartOf crys:recorded-item-0001 ;
-    crys:hasDescriptor cryd:846fb68e320cb50aefd93738eb27d44c,
-        cryd:f6840bf4acbbb16f106d6084714e204b .
+    dct:isPartOf cryd:recorded-item-0001 ;
+    crys:hasDescriptor cryd:2f0bdfda16b36b5dd9e7b94c0cb19cdf,
+        cryd:4f610b19cbe06f99eeb1a3e93b70afca .
 
-cryd:8924a59c211e6a769074b3dbf1e05826 a crys:Descriptor ;
-    crys:hasDescriptor cryd:07971468bf5ab6c3b712da0bbf91fac0,
-        cryd:c857d1752124a07d91f702123cc939a8 ;
-    crys:hasType <https://crystalia.link/data/desc-type/glimpse-content> ;
-    crys:value "8924a59c211e6a769074b3dbf1e05826" .
+cryd:4f610b19cbe06f99eeb1a3e93b70afca a crys:Descriptor ;
+    crys:hasDescriptor cryd:e58c4cd18434055154439d3b83312493 ;
+    crys:hasType <https://w3id.org/crystalia/dtype/glimpse-dir-content> ;
+    crys:value "4f610b19cbe06f99eeb1a3e93b70afca" .
 
-cryd:c857d1752124a07d91f702123cc939a8 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/file-size> ;
+cryd:4f9f66c2ad8d07aab37d1f9eec6e3699 a crys:Descriptor ;
+    crys:hasDescriptor cryd:4694fe66f4f649507d61403cab702f92,
+        cryd:75b52a59b643536101ef822045709dc9 ;
+    crys:hasType <https://w3id.org/crystalia/dtype/glimpse-content> ;
+    crys:value "4f9f66c2ad8d07aab37d1f9eec6e3699" .
+
+cryd:75b52a59b643536101ef822045709dc9 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/file-size> ;
     crys:value "23" .
 
-cryd:d3bd1e9efc98813ba5b73ee08ebf5df1 a crys:Descriptor ;
-    crys:hasDescriptor cryd:bee39b0831d451a779781fcde6eaac1b,
-        cryd:c857d1752124a07d91f702123cc939a8 ;
-    crys:hasType <https://crystalia.link/data/desc-type/glimpse-content> ;
-    crys:value "d3bd1e9efc98813ba5b73ee08ebf5df1" .
+cryd:e58c4cd18434055154439d3b83312493 a crys:Descriptor ;
+    crys:hasDescriptor cryd:2ff657e1d0c64c71707aa1fefd741ead,
+        cryd:75b52a59b643536101ef822045709dc9 ;
+    crys:hasType <https://w3id.org/crystalia/dtype/glimpse-content> ;
+    crys:value "e58c4cd18434055154439d3b83312493" .
 
-cryd:f6840bf4acbbb16f106d6084714e204b a crys:Descriptor ;
-    crys:hasDescriptor cryd:d3bd1e9efc98813ba5b73ee08ebf5df1 ;
-    crys:hasType <https://crystalia.link/data/desc-type/glimpse-dir-content> ;
-    crys:value "f6840bf4acbbb16f106d6084714e204b" .
-
-crys:recorded-item-0001 a crys:Item ;
+cryd:recorded-item-0001 a crys:Item ;
     rdfs:label "tree" ;
-    crys:hasDescriptor cryd:23ab19776e9ec028cdc15e1c32e82b29,
-        cryd:766912530730c010b989e543f3d58de3 .
+    crys:hasDescriptor cryd:a128b0e3bbb913d9a4e99a5f7c0bd66a,
+        cryd:ba793556f4686af45eaca6550e137b04 .
 

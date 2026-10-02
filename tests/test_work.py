@@ -21,6 +21,12 @@ from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.leaves import mint_md5
 
 
+def test_default_item_id_uses_cryd_namespace():
+    # cryd: is instance-data-only (DM v2.1.0 namespace split); crys: is reserved
+    # for type/schema CURIEs (crys:dtype/<name>).
+    assert _default_item_id().startswith("cryd:")
+
+
 def test_relative_path_nested_root_and_fallback():
     assert _relative_path("/data/scan/dir1/.DS_Store", "/data/scan") == "dir1/.DS_Store"
     assert _relative_path("/data/scan/file.txt", "/data/scan") == "file.txt"
@@ -54,9 +60,9 @@ def test_build_file_items_emits_distinct_relpath_for_same_basename():
 
 def test_build_directory_items_nested_dirs_have_one_root():
     # A nested tree: /scan (root), /scan/sub, /scan/sub/deep.
-    d_root = Descriptor(id="cryd:dr", hasType="cryd:desc-type/glimpse-dir", value="root")
-    d_sub = Descriptor(id="cryd:ds", hasType="cryd:desc-type/glimpse-dir", value="sub")
-    d_deep = Descriptor(id="cryd:dd", hasType="cryd:desc-type/glimpse-dir", value="deep")
+    d_root = Descriptor(id="cryd:dr", hasType="crys:dtype/glimpse-dir", value="root")
+    d_sub = Descriptor(id="cryd:ds", hasType="crys:dtype/glimpse-dir", value="sub")
+    d_deep = Descriptor(id="cryd:dd", hasType="crys:dtype/glimpse-dir", value="deep")
     merged = {
         "/scan": [d_root],
         "/scan/sub": [d_sub],
@@ -143,7 +149,7 @@ def test_process_task_file(data_dir, tmp_path):
 
     for _uri, desc in results:
         assert isinstance(desc, Descriptor)
-        assert desc.hasType == "cryd:desc-type/md5-region"
+        assert desc.hasType == "crys:dtype/md5-region"
         assert desc.offset == 0
         assert len(desc.value) == 32  # md5 hex
 
@@ -160,7 +166,7 @@ def test_process_task_file_whole_file_md5_via_dm(data_dir, tmp_path):
 
     ((uri, desc),) = _process_task_file(str(task_file))
 
-    assert desc.hasType == "cryd:desc-type/md5"
+    assert desc.hasType == "crys:dtype/md5"
     assert desc.offset is None
     assert desc.length == f.stat().st_size
     expected = mint_md5(desc.value, length=f.stat().st_size)
@@ -179,7 +185,7 @@ def test_process_task_file_filename_with_spaces(tmp_path):
     ((uri, desc),) = _process_task_file(str(task_file))
 
     assert uri == str(src)
-    assert desc.hasType == "cryd:desc-type/md5"
+    assert desc.hasType == "crys:dtype/md5"
     assert desc.length == src.stat().st_size
 
 
@@ -207,13 +213,13 @@ def test_collect_glimpse_dir(data_dir):
     for _uri, descs in file_descs.items():
         assert len(descs) == 1
         assert isinstance(descs[0], Descriptor)
-        assert descs[0].hasType == "cryd:desc-type/glimpse"
+        assert descs[0].hasType == "crys:dtype/glimpse"
 
     # Every dir URI maps to a list with one top-level descriptor
     for _uri, descs in dir_descs.items():
         assert len(descs) == 1
         assert isinstance(descs[0], Descriptor)
-        assert descs[0].hasType == "cryd:desc-type/glimpse-dir"
+        assert descs[0].hasType == "crys:dtype/glimpse-dir"
 
     # Extras include top + children for all files and dirs
     assert len(extras) > len(file_descs) + len(dir_descs)

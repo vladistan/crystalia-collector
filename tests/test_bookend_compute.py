@@ -41,7 +41,7 @@ def test_bookend_small_file_is_strong(tmp_path):
 
     top, children = build_bookend_descriptor(file_obj, source)
 
-    assert top.hasType == "cryd:desc-type/bookend-strong"
+    assert top.hasType == "crys:dtype/bookend-strong"
     assert ensure_valid(top) is top
     assert len(children) == 4
 
@@ -54,7 +54,7 @@ def test_bookend_jpeg_large_file_is_weak(tmp_path):
 
     top, _children = build_bookend_descriptor(file_obj, source)
 
-    assert top.hasType == "cryd:desc-type/bookend-weak"
+    assert top.hasType == "crys:dtype/bookend-weak"
 
 
 def test_bookend_gzip_is_always_weak_even_when_small_enough_to_capture(tmp_path):
@@ -68,7 +68,7 @@ def test_bookend_gzip_is_always_weak_even_when_small_enough_to_capture(tmp_path)
 
     # size <= 32KB => strong by D-1's size rule regardless of format; gzip-specific
     # "always weak" only bites once the file exceeds that threshold.
-    assert top.hasType == "cryd:desc-type/bookend-strong"
+    assert top.hasType == "crys:dtype/bookend-strong"
 
 
 def test_bookend_zip_with_cd_in_tail_is_strong(tmp_path):
@@ -78,7 +78,7 @@ def test_bookend_zip_with_cd_in_tail_is_strong(tmp_path):
 
     top, _children = build_bookend_descriptor(file_obj, source)
 
-    assert top.hasType == "cryd:desc-type/bookend-strong"
+    assert top.hasType == "crys:dtype/bookend-strong"
 
 
 def test_bookend_recorded_is_deterministic(tmp_path):
@@ -112,7 +112,7 @@ def test_zip_cd_zip_file_returns_descriptor_with_cd_length(tmp_path):
     desc = build_zip_cd_descriptor(file_obj, cd_bytes_expected_len_source)
 
     assert desc is not None
-    assert desc.hasType == "cryd:desc-type/zip-cd"
+    assert desc.hasType == "crys:dtype/zip-cd"
     assert int(desc.length) > 0
     assert ensure_valid(desc) is desc
 

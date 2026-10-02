@@ -112,10 +112,10 @@ def test_dumper_emits_uriref_for_id_reference_slots():
     as references, per Phase 2/3's ensure_valid(resolve=...) self-checks against
     real loaded output).
     """
-    child = Descriptor(id="cryd:child1", hasType="cryd:desc-type/filename", value="a.txt")
+    child = Descriptor(id="cryd:child1", hasType="crys:dtype/filename", value="a.txt")
     top = Descriptor(
         id="cryd:top1",
-        hasType="cryd:desc-type/glimpse",
+        hasType="crys:dtype/glimpse",
         value="v0:deadbeef",
         hasDescriptor=[child.id],
     )

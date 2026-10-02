@@ -41,7 +41,7 @@ class HarvestIncompleteError(Exception):
 # metadata and is deliberately NOT folded into any content-composite hash, so
 # content descriptor IDs stay stable and identical files in different directories
 # still share content IDs.
-_TYPE_RELPATH = "cryd:desc-type/relpath"
+_TYPE_RELPATH = "crys:dtype/relpath"
 
 
 @dataclass
@@ -314,7 +314,9 @@ def _list_dir_glimpse_dirs(
 
 
 def _build_bookend_family_descriptor(
-    file_obj: FileObject, source: object, method: BookendBase
+    file_obj: FileObject,
+    source: object,
+    method: BookendBase,
 ) -> tuple[Descriptor, list[Descriptor]] | None:
     # local import: defers the bookend/zip stack until a bookend-family method runs
     from crystalia_collector.bookend_compute import (
@@ -638,7 +640,7 @@ ItemIdFactory = Callable[[], str]
 
 
 def _default_item_id() -> str:
-    return f"crys:{uuid.uuid4()}"
+    return f"cryd:{uuid.uuid4()}"
 
 
 def _build_directory_items(

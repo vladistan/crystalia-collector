@@ -31,7 +31,7 @@ def _fake_desc(value_suffix: str):
 def test_glimpse_dir_empty_directory():
     top, children = build_dir_descriptor("results", _NOW, GlimpseDir(), [])
 
-    count_child = next(c for c in children if c.hasType == "cryd:desc-type/count")
+    count_child = next(c for c in children if c.hasType == "crys:dtype/count")
     assert count_child.value == "0"
     assert ensure_valid(top) is top
 
@@ -45,7 +45,7 @@ def test_glimpse_dir_count_reflects_children():
 
     top, children = build_dir_descriptor("data", _NOW, GlimpseDir(), child_descs)
 
-    count_child = next(c for c in children if c.hasType == "cryd:desc-type/count")
+    count_child = next(c for c in children if c.hasType == "crys:dtype/count")
     assert count_child.value == "3"
 
 
@@ -91,13 +91,13 @@ def test_glimpse_dir_light_has_only_mtime_child():
     top, children = build_dir_descriptor("dir", _NOW, GlimpseDirLight(), [])
 
     assert len(children) == 1
-    assert children[0].hasType == "cryd:desc-type/mtime"
+    assert children[0].hasType == "crys:dtype/mtime"
 
 
 def test_glimpse_dir_filename_is_basename_only():
     top, children = build_dir_descriptor("results", _NOW, GlimpseDir(), [])
 
-    fname_child = next(c for c in children if c.hasType == "cryd:desc-type/filename")
+    fname_child = next(c for c in children if c.hasType == "crys:dtype/filename")
     assert fname_child.value == "results"
     assert "/" not in fname_child.value
 
@@ -111,7 +111,7 @@ def test_glimpse_dir_top_references_child_ids():
 def test_glimpse_dir_slim_no_count_child():
     top, children = build_dir_descriptor("dir", _NOW, GlimpseDirSlim(), [])
 
-    assert not any(c.hasType == "cryd:desc-type/count" for c in children)
+    assert not any(c.hasType == "crys:dtype/count" for c in children)
 
 
 # --- DM equivalence, IncompleteRollup, bottom-up order independence ---
@@ -126,9 +126,9 @@ def test_glimpse_dir_iri_equals_dm_rollup_dir_result():
     expected = mint_glimpse_dir(
         len(child_descs),
         child_descs,
-        filename=by_type["cryd:desc-type/filename"],
-        mtime=by_type["cryd:desc-type/mtime"],
-        count=by_type["cryd:desc-type/count"],
+        filename=by_type["crys:dtype/filename"],
+        mtime=by_type["crys:dtype/mtime"],
+        count=by_type["crys:dtype/count"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -143,8 +143,8 @@ def test_glimpse_dir_slim_iri_equals_dm_rollup_dir_result():
     expected = mint_glimpse_dir_slim(
         len(child_descs),
         child_descs,
-        filename=by_type["cryd:desc-type/filename"],
-        mtime=by_type["cryd:desc-type/mtime"],
+        filename=by_type["crys:dtype/filename"],
+        mtime=by_type["crys:dtype/mtime"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -159,7 +159,7 @@ def test_glimpse_dir_light_iri_equals_dm_rollup_dir_result():
     expected = mint_glimpse_dir_light(
         len(child_descs),
         child_descs,
-        mtime=by_type["cryd:desc-type/mtime"],
+        mtime=by_type["crys:dtype/mtime"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -172,9 +172,9 @@ def test_glimpse_dir_meta_iri_equals_dm_mint():
 
     by_type = {c.hasType: c for c in children}
     expected = mint_glimpse_dir_meta(
-        filename=by_type["cryd:desc-type/filename"],
-        mtime=by_type["cryd:desc-type/mtime"],
-        count=by_type["cryd:desc-type/count"],
+        filename=by_type["crys:dtype/filename"],
+        mtime=by_type["crys:dtype/mtime"],
+        count=by_type["crys:dtype/count"],
     )
     assert top.id == expected.id
     assert top.value == expected.value

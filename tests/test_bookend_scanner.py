@@ -16,7 +16,7 @@ def test_all_small_files_dir_is_strong(tmp_path):
     _, dir_results = scan_bookend_dirs(str(tmp_path), source)
 
     top = next(r[1] for r in dir_results if r[0] == str(tmp_path))
-    assert top.hasType == "cryd:desc-type/bookend-dir-strong"
+    assert top.hasType == "crys:dtype/bookend-dir-strong"
     assert is_strong(top) is True
     assert ensure_valid(top) is top
 
@@ -30,7 +30,7 @@ def test_one_weak_child_makes_dir_weak(tmp_path):
     _, dir_results = scan_bookend_dirs(str(tmp_path), source)
 
     top = next(r[1] for r in dir_results if r[0] == str(tmp_path))
-    assert top.hasType == "cryd:desc-type/bookend-dir-weak"
+    assert top.hasType == "crys:dtype/bookend-dir-weak"
 
 
 def test_zip_child_contributes_zip_manifest_not_bookend(tmp_path):

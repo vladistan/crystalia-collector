@@ -36,11 +36,11 @@ def test_glimpse_top_iri_equals_dm_mint(tmp_path):
 
     by_type = {c.hasType: c for c in children}
     expected = mint_glimpse(
-        filename=by_type["cryd:desc-type/filename"],
-        file_size=by_type["cryd:desc-type/file-size"],
-        head=by_type["cryd:desc-type/md5-region"],
-        ctime=by_type["cryd:desc-type/ctime"],
-        mtime=by_type["cryd:desc-type/mtime"],
+        filename=by_type["crys:dtype/filename"],
+        file_size=by_type["crys:dtype/file-size"],
+        head=by_type["crys:dtype/md5-region"],
+        ctime=by_type["crys:dtype/ctime"],
+        mtime=by_type["crys:dtype/mtime"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -54,7 +54,7 @@ def test_glimpse_child_leaves_equal_dm_leaf_mint(tmp_path):
 
     _, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
+    md5_child = next(c for c in children if c.hasType == "crys:dtype/md5-region")
     expected = mint_md5_region(0, 100, hashlib.md5(data).hexdigest())
     assert md5_child.id == expected.id
     assert md5_child.value == expected.value
@@ -70,10 +70,10 @@ def test_glimpse_slim_top_iri_equals_dm_mint(tmp_path):
 
     by_type = {c.hasType: c for c in children}
     expected = mint_glimpse_slim(
-        filename=by_type["cryd:desc-type/filename"],
-        file_size=by_type["cryd:desc-type/file-size"],
-        mtime=by_type["cryd:desc-type/mtime"],
-        head=by_type["cryd:desc-type/md5-region"],
+        filename=by_type["crys:dtype/filename"],
+        file_size=by_type["crys:dtype/file-size"],
+        mtime=by_type["crys:dtype/mtime"],
+        head=by_type["crys:dtype/md5-region"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -89,9 +89,9 @@ def test_glimpse_light_top_iri_equals_dm_mint(tmp_path):
 
     by_type = {c.hasType: c for c in children}
     expected = mint_glimpse_light(
-        file_size=by_type["cryd:desc-type/file-size"],
-        head=by_type["cryd:desc-type/md5-region"],
-        mtime=by_type["cryd:desc-type/mtime"],
+        file_size=by_type["crys:dtype/file-size"],
+        head=by_type["crys:dtype/md5-region"],
+        mtime=by_type["crys:dtype/mtime"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -107,9 +107,9 @@ def test_glimpse_meta_top_iri_equals_dm_mint(tmp_path):
 
     by_type = {c.hasType: c for c in children}
     expected = mint_glimpse_meta(
-        filename=by_type["cryd:desc-type/filename"],
-        file_size=by_type["cryd:desc-type/file-size"],
-        mtime=by_type["cryd:desc-type/mtime"],
+        filename=by_type["crys:dtype/filename"],
+        file_size=by_type["crys:dtype/file-size"],
+        mtime=by_type["crys:dtype/mtime"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -155,8 +155,8 @@ def test_glimpse_zero_byte_file(tmp_path):
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
     assert top.offset is None
-    assert top.hasType == "cryd:desc-type/glimpse"
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
+    assert top.hasType == "crys:dtype/glimpse"
+    md5_child = next(c for c in children if c.hasType == "crys:dtype/md5-region")
     assert md5_child.value == "d41d8cd98f00b204e9800998ecf8427e"  # pragma: allowlist secret
     assert md5_child.length == 0
     assert md5_child.offset == 0
@@ -170,7 +170,7 @@ def test_glimpse_small_file_full_coverage(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
+    md5_child = next(c for c in children if c.hasType == "crys:dtype/md5-region")
     assert md5_child.length == 100
     assert md5_child.offset == 0
     assert md5_child.value == hashlib.md5(data).hexdigest()
@@ -184,7 +184,7 @@ def test_glimpse_large_file_partial_coverage(tmp_path):
 
     top, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    md5_child = next(c for c in children if c.hasType == "cryd:desc-type/md5-region")
+    md5_child = next(c for c in children if c.hasType == "crys:dtype/md5-region")
     assert md5_child.length == 2048
     assert md5_child.offset == 0
     assert md5_child.value == hashlib.md5(data[:2048]).hexdigest()
@@ -199,7 +199,7 @@ def test_glimpse_filename_is_basename_only(tmp_path):
 
     _, children = build_file_descriptor(file_obj, Glimpse(), source)
 
-    fname_child = next(c for c in children if c.hasType == "cryd:desc-type/filename")
+    fname_child = next(c for c in children if c.hasType == "crys:dtype/filename")
     assert fname_child.value == "output.csv"
     assert "/" not in fname_child.value
 
@@ -211,7 +211,7 @@ def test_glimpse_meta_has_no_md5_child(tmp_path):
 
     _, children = build_file_descriptor(file_obj, GlimpseMeta(), source)
 
-    assert not any(c.hasType == "cryd:desc-type/md5-region" for c in children)
+    assert not any(c.hasType == "crys:dtype/md5-region" for c in children)
 
 
 def test_glimpse_light_has_no_filename_child(tmp_path):
@@ -221,7 +221,7 @@ def test_glimpse_light_has_no_filename_child(tmp_path):
 
     _, children = build_file_descriptor(file_obj, GlimpseLight(), source)
 
-    assert not any(c.hasType == "cryd:desc-type/filename" for c in children)
+    assert not any(c.hasType == "crys:dtype/filename" for c in children)
 
 
 def test_all_variants_mint_a_valid_top(tmp_path):
@@ -287,7 +287,7 @@ def test_top_descriptor_references_all_child_ids(tmp_path):
 
 
 def test_ensure_valid_rejects_wrong_iri_descriptor():
-    bad = Descriptor(id="cryd:00000000000000000000000000000000", hasType="cryd:desc-type/filename", value="x")
+    bad = Descriptor(id="cryd:00000000000000000000000000000000", hasType="crys:dtype/filename", value="x")
     with pytest.raises(InvalidDescriptor):
         ensure_valid(bad)
 
@@ -296,7 +296,7 @@ def test_combine_descriptors_rejects_wrong_iri_descriptor(tmp_path):
     from crystalia_collector.work import combine_descriptors
     from crystalia_data_model.datamodel.linkml_crystalia import Item
 
-    bad = Descriptor(id="cryd:00000000000000000000000000000000", hasType="cryd:desc-type/filename", value="x")
+    bad = Descriptor(id="cryd:00000000000000000000000000000000", hasType="crys:dtype/filename", value="x")
     item = Item(id="crys:test", label="test", hasDescriptor=[bad.id])
     with pytest.raises(InvalidDescriptor):
         combine_descriptors([item], tmp_path / "out.ttl", "turtle", descriptors=[bad])
@@ -371,7 +371,7 @@ def test_glimpse_s3_ctime_absent_uses_empty_string(mock_boto3):
 
     _, children = build_file_descriptor(file_obj, Glimpse(), S3Source())
 
-    ctime_child = next(c for c in children if c.hasType == "cryd:desc-type/ctime")
+    ctime_child = next(c for c in children if c.hasType == "crys:dtype/ctime")
     assert ctime_child.value == ""
 
 
@@ -388,8 +388,8 @@ def test_glimpse_content_top_iri_equals_dm_mint(tmp_path):
 
     by_type = {c.hasType: c for c in children}
     expected = mint_glimpse_content(
-        file_size=by_type["cryd:desc-type/file-size"],
-        head=by_type["cryd:desc-type/md5-region"],
+        file_size=by_type["crys:dtype/file-size"],
+        head=by_type["crys:dtype/md5-region"],
     )
     assert top.id == expected.id
     assert top.value == expected.value
@@ -403,7 +403,7 @@ def test_glimpse_content_has_no_filename_ctime_mtime_children(tmp_path):
     _, children = build_file_descriptor(file_obj, GlimpseContent(), source)
 
     types = {c.hasType for c in children}
-    assert types == {"cryd:desc-type/file-size", "cryd:desc-type/md5-region"}
+    assert types == {"crys:dtype/file-size", "crys:dtype/md5-region"}
 
 
 def test_glimpse_content_iri_unchanged_by_mtime_ctime_or_rename(tmp_path):

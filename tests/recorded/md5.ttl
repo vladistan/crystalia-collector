@@ -6,41 +6,41 @@
 <https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:hasRoot crys:recorded-item-0001,
-        crys:recorded-item-0002 ;
+    crys:hasRoot cryd:recorded-item-0001,
+        cryd:recorded-item-0002 ;
     crys:sourceRoot "/recorded/fixture/tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:usesMethod <https://crystalia.link/data/method/5fb7b941e05048131b49a96dbe352fd5> .
 
-cryd:4358326c78cad38ca05071c1b26a259c a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
-    crys:value "a.txt" .
-
-cryd:b700c6d438c53d43c95f8907fc6f9737 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/md5> ;
+cryd:357f5c6c0dfa04fe53c1668e5952483b a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/md5> ;
     crys:length 23 ;
     crys:value "ed9c3078af04929edb9edfc945c0a9de" .
 
-cryd:b92da49f63d9a889ea4a7d984ac09f3f a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/md5> ;
+cryd:4d6ec2fad9dd1ee8fef83eb3eb5c20bd a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
+    crys:value "a.txt" .
+
+cryd:514f6b2b861dc4cfce6215d50829b052 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/md5> ;
     crys:length 23 ;
     crys:value "b76b774985b014afd1df3dc9ff5fe04d" .
 
-cryd:eefa9d5fd964e8a64649c19ae15d0929 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
+cryd:dcb946095fa21033d27738799a2502a6 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
     crys:value "sub/b.txt" .
 
 <https://crystalia.link/data/method/5fb7b941e05048131b49a96dbe352fd5> a crys:Method ;
     rdfs:label "md5" ;
     crys:parameters "block_size=1:0" .
 
-crys:recorded-item-0001 a crys:Item ;
+cryd:recorded-item-0001 a crys:Item ;
     rdfs:label "a.txt" ;
-    crys:hasDescriptor cryd:4358326c78cad38ca05071c1b26a259c,
-        cryd:b700c6d438c53d43c95f8907fc6f9737 .
+    crys:hasDescriptor cryd:357f5c6c0dfa04fe53c1668e5952483b,
+        cryd:4d6ec2fad9dd1ee8fef83eb3eb5c20bd .
 
-crys:recorded-item-0002 a crys:Item ;
+cryd:recorded-item-0002 a crys:Item ;
     rdfs:label "b.txt" ;
-    crys:hasDescriptor cryd:b92da49f63d9a889ea4a7d984ac09f3f,
-        cryd:eefa9d5fd964e8a64649c19ae15d0929 .
+    crys:hasDescriptor cryd:514f6b2b861dc4cfce6215d50829b052,
+        cryd:dcb946095fa21033d27738799a2502a6 .
 

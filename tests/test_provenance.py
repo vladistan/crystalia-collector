@@ -130,7 +130,7 @@ def test_recorded_harvest_record_ttl_byte_identical(tmp_path):
     counter = iter(range(1, 100))
 
     def next_item_id() -> str:
-        return f"crys:recorded-item-{next(counter):04d}"
+        return f"cryd:recorded-item-{next(counter):04d}"
 
     run_pipeline(
         str(tree),

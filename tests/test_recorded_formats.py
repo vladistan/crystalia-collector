@@ -44,7 +44,7 @@ def _deterministic_id_factory() -> Callable[[], str]:
     counter = iter(range(1, 100_000))
 
     def factory() -> str:
-        return f"crys:recorded-item-{next(counter):04d}"
+        return f"cryd:recorded-item-{next(counter):04d}"
 
     return factory
 

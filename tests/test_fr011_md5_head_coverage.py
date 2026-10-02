@@ -20,9 +20,9 @@ from crystalia_data_model.types.validate import ensure_valid
 
 CRYS = Namespace("https://w3id.org/crystalia/")
 CRYD = "https://crystalia.link/data/"
-_MD5_HEAD_CURIE = "cryd:desc-type/md5-region"
-_FILE_SIZE_CURIE = "cryd:desc-type/file-size"
-_MD5_HEAD = f"{CRYD}desc-type/md5-region"
+_MD5_HEAD_CURIE = "crys:dtype/md5-region"
+_FILE_SIZE_CURIE = "crys:dtype/file-size"
+_MD5_HEAD = "https://w3id.org/crystalia/dtype/md5-region"
 _HEAD = bytes(range(256)) * 8  # 2048 bytes
 _SIZES = {"a.bin": 3000, "b.bin": 7000}
 

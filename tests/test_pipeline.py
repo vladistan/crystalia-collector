@@ -181,7 +181,7 @@ def test_run_pipeline_glimpse_produces_descriptor_tree(tmp_path):
         str(v)
         for s in descs
         for t in g.objects(s, HAS_TYPE)
-        if str(t).endswith("desc-type/relpath")
+        if str(t).endswith("dtype/relpath")
         for v in g.objects(s, value_pred)
     ]
     assert relpath_values == ["test.txt"]
@@ -274,7 +274,7 @@ def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
         for s in items
         for desc in g.objects(s, HAS_DESCRIPTOR)
         for hastype in g.objects(desc, HAS_TYPE)
-        if str(hastype) == "https://crystalia.link/data/desc-type/glimpse-dir"
+        if str(hastype) == "https://w3id.org/crystalia/dtype/glimpse-dir"
     }
     file_items = [s for s in items if s not in dir_uris]
     assert len(file_items) == 2
@@ -313,7 +313,7 @@ def test_run_pipeline_glimpse_dir_meta_does_not_crash(tmp_path):
         str(v)
         for s in g.subjects(RDF.type, DESCRIPTOR)
         for t in g.objects(s, HAS_TYPE)
-        if str(t).endswith("desc-type/count")
+        if str(t).endswith("dtype/count")
         for v in g.objects(s, URIRef(f"{CRYS_NS}value"))
     ]
     assert count_values

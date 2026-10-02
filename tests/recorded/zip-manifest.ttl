@@ -6,25 +6,25 @@
 <https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:hasRoot crys:recorded-item-0001 ;
+    crys:hasRoot cryd:recorded-item-0001 ;
     crys:sourceRoot "/recorded/fixture/formats" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:usesMethod <https://crystalia.link/data/method/288d21a55b19eaf14b0b978382b14f97> .
 
-cryd:3b3eb0577a32b62568c6a25f809261e1 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/relpath> ;
+cryd:c0bba6afdd2bf55fd9c5e742a7444739 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
     crys:value "a.zip" .
 
-cryd:931768d9d12f132259aef0a3f0a20aa7 a crys:Descriptor ;
-    crys:hasType <https://crystalia.link/data/desc-type/zip-manifest> ;
+cryd:f3750c75aeceece8ac609faa0d0e5b84 a crys:Descriptor ;
+    crys:hasType <https://w3id.org/crystalia/dtype/zip-manifest> ;
     crys:value "68bef5d4856c0ad0d86ddf0d1a0564ea" .
 
 <https://crystalia.link/data/method/288d21a55b19eaf14b0b978382b14f97> a crys:Method ;
     rdfs:label "zip-manifest" ;
     crys:parameters "block_size=5:16384" .
 
-crys:recorded-item-0001 a crys:Item ;
+cryd:recorded-item-0001 a crys:Item ;
     rdfs:label "a.zip" ;
-    crys:hasDescriptor cryd:3b3eb0577a32b62568c6a25f809261e1,
-        cryd:931768d9d12f132259aef0a3f0a20aa7 .
+    crys:hasDescriptor cryd:c0bba6afdd2bf55fd9c5e742a7444739,
+        cryd:f3750c75aeceece8ac609faa0d0e5b84 .
 

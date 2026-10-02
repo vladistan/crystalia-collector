@@ -19,7 +19,7 @@ def _pinned_item_id_factory() -> Callable[[], str]:
     counter = iter(range(1, 100_000))
 
     def factory() -> str:
-        return f"crys:pinned-item-{next(counter):04d}"
+        return f"cryd:pinned-item-{next(counter):04d}"
 
     return factory
 

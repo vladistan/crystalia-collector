@@ -171,7 +171,7 @@ def test_load_descriptors_reads_typed_subjects(tmp_path):
     descs = load_descriptors(output)
     assert len(descs) == 1
     (desc,) = descs.values()
-    assert desc.hasType == "cryd:desc-type/md5"
+    assert desc.hasType == "crys:dtype/md5"
 
 
 # --- Step 9.3: merge equivalence ---
