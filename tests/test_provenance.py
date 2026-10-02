@@ -105,6 +105,9 @@ def test_harvest_record_carries_run_metadata(tmp_path):
     assert "startedAt" in props
     assert "endedAt" in props
     assert "collectorVersion" in props
+    from importlib.metadata import version as pkg_version
+
+    assert props["collectorVersion"] == pkg_version("crystalia-collector")
     uses_method = {str(o) for o in g.objects(record, URIRef(f"{CRYS_NS}usesMethod"))}
     has_root = {str(o) for o in g.objects(record, URIRef(f"{CRYS_NS}hasRoot"))}
     assert len(uses_method) == 2
