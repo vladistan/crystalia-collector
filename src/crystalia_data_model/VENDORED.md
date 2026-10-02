@@ -1,11 +1,11 @@
 # Vendored package: `crystalia_data_model`
 
-**Source:** `crystalia-data-model` tag `v2.0.0`, commit
-`385b7c04332c68f2ac8edb033fd99602b875ca85`
+**Source:** `crystalia-data-model` main@`c9b1aff136ae5518d44914f9a2d14dfbc3ba73d1`
+(v2.1.0: type registry CURIE moved from `cryd:desc-type/<name>` to `crys:dtype/<name>`)
 (`src/crystalia_data_model/`, the LinkML-generated Pydantic data model plus
 the `types/` behaviour package, at `../crystalia-data-model`).
 
-**Tree hash:** `acc5bdd5449bbd06977623fd06267c6f9a06a3f2814701077239bab7b728f010`
+**Tree hash:** `9df7a0b8b6a96ad89df50a66f0d15fb1c918e4dd8d51f0680408d05ba04d6bcb`
 (`tests/test_vendored_dm.py::vendored_tree_hash`, sorted relative paths and
 file bytes fed into one SHA-256 digest, `__pycache__` excluded).
 

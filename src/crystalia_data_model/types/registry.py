@@ -23,7 +23,9 @@ if TYPE_CHECKING:
 
 CRYD_CURIE_PREFIX = "cryd:"
 CRYD_BASE = "https://crystalia.link/data/"
-TYPE_NAMESPACE = "desc-type/"
+CRYS_CURIE_PREFIX = "crys:"
+CRYS_BASE = "https://w3id.org/crystalia/"
+TYPE_NAMESPACE = "dtype/"
 
 #: Scalar slots that can carry identity, in canonical encoding order (SPARC §Canonical Encoding).
 SCALARS: tuple[str, ...] = ("offset", "length", "value", "total", "assertedCoverage")
@@ -114,7 +116,7 @@ class TypeEntry:
 
     @property
     def iri(self) -> str:
-        return f"{CRYD_CURIE_PREFIX}{TYPE_NAMESPACE}{self.name}"
+        return f"{CRYS_CURIE_PREFIX}{TYPE_NAMESPACE}{self.name}"
 
     @property
     def fields(self) -> tuple[str, ...]:
@@ -123,18 +125,18 @@ class TypeEntry:
 
 
 def type_name(ref: str) -> str:
-    """Bare type name from a name, a ``cryd:desc-type/<name>`` CURIE or the expanded URI."""
-    if ref.startswith(CRYD_BASE):
-        ref = CRYD_CURIE_PREFIX + ref[len(CRYD_BASE) :]
-    if ref.startswith(CRYD_CURIE_PREFIX):
-        ref = ref[len(CRYD_CURIE_PREFIX) :]
+    """Bare type name from a name, a ``crys:dtype/<name>`` CURIE or the expanded URI."""
+    if ref.startswith(CRYS_BASE):
+        ref = CRYS_CURIE_PREFIX + ref[len(CRYS_BASE) :]
+    if ref.startswith(CRYS_CURIE_PREFIX):
+        ref = ref[len(CRYS_CURIE_PREFIX) :]
     if ref.startswith(TYPE_NAMESPACE):
         ref = ref[len(TYPE_NAMESPACE) :]
     return ref
 
 
 def type_curie(ref: str) -> str:
-    return f"{CRYD_CURIE_PREFIX}{TYPE_NAMESPACE}{type_name(ref)}"
+    return f"{CRYS_CURIE_PREFIX}{TYPE_NAMESPACE}{type_name(ref)}"
 
 
 # --------------------------------------------------------------------------- row constructors
@@ -636,6 +638,8 @@ def is_strong(d: Descriptor, *, registry: Registry | None = None) -> bool:
 __all__ = [
     "CRYD_BASE",
     "CRYD_CURIE_PREFIX",
+    "CRYS_BASE",
+    "CRYS_CURIE_PREFIX",
     "SCALARS",
     "STRUCTURAL_ROWS",
     "TYPE_NAMESPACE",

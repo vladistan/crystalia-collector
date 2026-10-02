@@ -66,6 +66,8 @@ def validate(
         expected = recompute_id(d, registry=reg, resolve=resolve, child_names=child_names)
     except InvalidDescriptor as exc:
         return [*out, *exc.violations]
+    except UnknownType as exc:
+        return [*out, Violation(ViolationCode.UNKNOWN_TYPE, iri, str(exc.type_iri), "hasDescriptor", str(exc))]
     if expected != iri:
         out.append(
             Violation(ViolationCode.IRI_MISMATCH, iri, entry.iri, "id", f"stored id differs from recomputed {expected}")

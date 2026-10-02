@@ -3,7 +3,7 @@
 Every descriptor IRI is ``cryd:<md5(canonical bytes)>``. The bytes are UTF-8 lines, every value
 length-prefixed as ``<field>=<byte-len>:<bytes>``:
 
-* line 1: ``type=`` the type CURIE normalized to ``cryd:desc-type/<name>`` (the type IS the version);
+* line 1: ``type=`` the type CURIE normalized to ``crys:dtype/<name>`` (the type IS the version);
 * the type's identity scalars in fixed order ``offset, length, value, total, assertedCoverage``;
 * children as bare hex, ordered per kind: fixed-role composites by role order, region composites by
   offset, folder rollups as ``child=<len>:<NFC name> <hex>`` sorted by the NFC UTF-8 bytes of the name,
