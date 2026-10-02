@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 CRYD_CURIE_PREFIX = "cryd:"
-CRYD_BASE = "https://crystalia.link/data/"
+CRYD_BASE = "https://w3id.org/crystalia/data/"
 CRYS_CURIE_PREFIX = "crys:"
 CRYS_BASE = "https://w3id.org/crystalia/"
 TYPE_NAMESPACE = "dtype/"

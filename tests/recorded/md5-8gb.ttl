@@ -1,16 +1,16 @@
-@prefix cryd: <https://crystalia.link/data/> .
+@prefix cryd: <https://w3id.org/crystalia/data/> .
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+<https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001,
         cryd:recorded-item-0002 ;
     crys:sourceRoot "/recorded/fixture/tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:usesMethod <https://crystalia.link/data/method/19e37574512b8c326b893eedc6b068cf> .
+    crys:usesMethod <https://w3id.org/crystalia/data/method/19e37574512b8c326b893eedc6b068cf> .
 
 cryd:2ff657e1d0c64c71707aa1fefd741ead a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/md5-region> ;
@@ -44,7 +44,7 @@ cryd:ef37ba906aeb08181a42407bd5c28e6a a crys:Descriptor ;
     crys:total 1 ;
     crys:value "ef37ba906aeb08181a42407bd5c28e6a" .
 
-<https://crystalia.link/data/method/19e37574512b8c326b893eedc6b068cf> a crys:Method ;
+<https://w3id.org/crystalia/data/method/19e37574512b8c326b893eedc6b068cf> a crys:Method ;
     rdfs:label "md5-8gb" ;
     crys:parameters "block_size=10:8589934592" .
 

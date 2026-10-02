@@ -1,15 +1,15 @@
-@prefix cryd: <https://crystalia.link/data/> .
+@prefix cryd: <https://w3id.org/crystalia/data/> .
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+<https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001 ;
     crys:sourceRoot "/recorded/fixture/formats" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:usesMethod <https://crystalia.link/data/method/6995541fd8e4452de855f09acde00771> .
+    crys:usesMethod <https://w3id.org/crystalia/data/method/6995541fd8e4452de855f09acde00771> .
 
 cryd:b8d7b8ce42c7740527086b4d2541efcf a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/zip-cd> ;
@@ -20,7 +20,7 @@ cryd:c0bba6afdd2bf55fd9c5e742a7444739 a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
     crys:value "a.zip" .
 
-<https://crystalia.link/data/method/6995541fd8e4452de855f09acde00771> a crys:Method ;
+<https://w3id.org/crystalia/data/method/6995541fd8e4452de855f09acde00771> a crys:Method ;
     rdfs:label "zip-cd" ;
     crys:parameters "block_size=5:16384" .
 

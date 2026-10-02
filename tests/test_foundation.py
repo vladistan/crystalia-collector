@@ -68,7 +68,7 @@ def test_get_schema_curies_expand_to_same_iris():
 
     schema = get_schema()
     assert schema.expand_curie("crys:Item") == "https://w3id.org/crystalia/Item"
-    assert schema.expand_curie("cryd:abc123") == "https://crystalia.link/data/abc123"
+    assert schema.expand_curie("cryd:abc123") == "https://w3id.org/crystalia/data/abc123"
 
 
 # --- Step 1.2: Configuration extension ---

@@ -161,7 +161,7 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
      'metamodel_version': '1.7.0',
      'name': 'crystalia-datamodel',
      'prefixes': {'cryd': {'prefix_prefix': 'cryd',
-                           'prefix_reference': 'https://crystalia.link/data/'},
+                           'prefix_reference': 'https://w3id.org/crystalia/data/'},
                   'crys': {'prefix_prefix': 'crys',
                            'prefix_reference': 'https://w3id.org/crystalia/'},
                   'dcmi': {'prefix_prefix': 'dcmi',

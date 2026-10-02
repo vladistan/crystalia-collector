@@ -1,17 +1,17 @@
-@prefix cryd: <https://crystalia.link/data/> .
+@prefix cryd: <https://w3id.org/crystalia/data/> .
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+<https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001,
         cryd:recorded-item-0002 ;
     crys:sourceRoot "/recorded/fixture/provenance-tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:usesMethod <https://crystalia.link/data/method/5fb7b941e05048131b49a96dbe352fd5>,
-        <https://crystalia.link/data/method/aae805b8661eb7de19c6678bf4de322f> .
+    crys:usesMethod <https://w3id.org/crystalia/data/method/5fb7b941e05048131b49a96dbe352fd5>,
+        <https://w3id.org/crystalia/data/method/aae805b8661eb7de19c6678bf4de322f> .
 
 cryd:24ac5df4a64f9301fa4febae1a9c8e76 a crys:Descriptor ;
     crys:hasDescriptor cryd:12ee5786a1c06c3e91accf98c1da81de,
@@ -77,11 +77,11 @@ cryd:e608988d00bdd6f182926d72f2ae3936 a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/file-size> ;
     crys:value "5" .
 
-<https://crystalia.link/data/method/5fb7b941e05048131b49a96dbe352fd5> a crys:Method ;
+<https://w3id.org/crystalia/data/method/5fb7b941e05048131b49a96dbe352fd5> a crys:Method ;
     rdfs:label "md5" ;
     crys:parameters "block_size=1:0" .
 
-<https://crystalia.link/data/method/aae805b8661eb7de19c6678bf4de322f> a crys:Method ;
+<https://w3id.org/crystalia/data/method/aae805b8661eb7de19c6678bf4de322f> a crys:Method ;
     rdfs:label "glimpse" ;
     crys:parameters """fields=29:filename,size,md5,ctime,mtime
 robustness=3:LOW""" .

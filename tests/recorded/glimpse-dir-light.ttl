@@ -1,16 +1,16 @@
-@prefix cryd: <https://crystalia.link/data/> .
+@prefix cryd: <https://w3id.org/crystalia/data/> .
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+<https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001 ;
     crys:sourceRoot "/recorded/fixture/tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:usesMethod <https://crystalia.link/data/method/4db65a7e0872af1dfc04ed2c4162f85b> .
+    crys:usesMethod <https://w3id.org/crystalia/data/method/4db65a7e0872af1dfc04ed2c4162f85b> .
 
 cryd:recorded-item-0003 a crys:Item ;
     rdfs:label "a.txt" ;
@@ -59,7 +59,7 @@ cryd:dcb946095fa21033d27738799a2502a6 a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/relpath> ;
     crys:value "sub/b.txt" .
 
-<https://crystalia.link/data/method/4db65a7e0872af1dfc04ed2c4162f85b> a crys:Method ;
+<https://w3id.org/crystalia/data/method/4db65a7e0872af1dfc04ed2c4162f85b> a crys:Method ;
     rdfs:label "glimpse-dir-light" ;
     crys:parameters """fields=5:mtime
 has_rollup=4:True

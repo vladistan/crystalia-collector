@@ -1,16 +1,16 @@
-@prefix cryd: <https://crystalia.link/data/> .
+@prefix cryd: <https://w3id.org/crystalia/data/> .
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+<https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001 ;
     crys:sourceRoot "/recorded/fixture/formats" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:usesMethod <https://crystalia.link/data/method/c3261032ba95fc345967a99eba3ae737> .
+    crys:usesMethod <https://w3id.org/crystalia/data/method/c3261032ba95fc345967a99eba3ae737> .
 
 cryd:recorded-item-0002 a crys:Item ;
     rdfs:label "a.zip" ;
@@ -112,7 +112,7 @@ cryd:f3750c75aeceece8ac609faa0d0e5b84 a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/zip-manifest> ;
     crys:value "68bef5d4856c0ad0d86ddf0d1a0564ea" .
 
-<https://crystalia.link/data/method/c3261032ba95fc345967a99eba3ae737> a crys:Method ;
+<https://w3id.org/crystalia/data/method/c3261032ba95fc345967a99eba3ae737> a crys:Method ;
     rdfs:label "bookend-dir" ;
     crys:parameters "block_size=1:0" .
 

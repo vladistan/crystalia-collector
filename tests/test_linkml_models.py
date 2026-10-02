@@ -77,9 +77,12 @@ def test_model_from_rdf(short_file_single_descriptor):
     assert len(item.hasDescriptor) == 1
 
     descriptor = model_from_rdf(rdf_graph, Descriptor, subject=item.hasDescriptor[0])
-    assert descriptor.hasType == "cryd:sha256_whole_file"
+    # The fixture pins the old cryd: base URI (https://crystalia.link/data/); the
+    # loader cannot recompact it to cryd: under the current schema's prefix map
+    # (which now resolves cryd: under w3id.org), so it returns the full IRI.
+    assert descriptor.hasType == "https://crystalia.link/data/sha256_whole_file"
 
-    method = model_from_rdf(rdf_graph, Method, subject="cryd:sha256")
+    method = model_from_rdf(rdf_graph, Method, subject="https://crystalia.link/data/sha256")
     assert method.label == "SHA256"
 
 
@@ -127,7 +130,7 @@ def test_dumper_emits_uriref_for_id_reference_slots():
     g = rdf_from_model(top) + rdf_from_model(child) + rdf_from_model(method)
     g += rdf_from_model(root_item) + rdf_from_model(child_item) + rdf_from_model(harvest)
 
-    cryd = "https://crystalia.link/data/"
+    cryd = "https://w3id.org/crystalia/data/"
     crys = "https://w3id.org/crystalia/"
     checks = [
         (URIRef(f"{cryd}top1"), URIRef(f"{crys}hasDescriptor"), URIRef(f"{cryd}child1")),

@@ -1,16 +1,16 @@
-@prefix cryd: <https://crystalia.link/data/> .
+@prefix cryd: <https://w3id.org/crystalia/data/> .
 @prefix crys: <https://w3id.org/crystalia/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<https://crystalia.link/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+<https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
     crys:collectorVersion "0.1.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001,
         cryd:recorded-item-0002 ;
     crys:sourceRoot "/recorded/fixture/tree" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
-    crys:usesMethod <https://crystalia.link/data/method/9b8104eb09c514162e46f6edfe291977> .
+    crys:usesMethod <https://w3id.org/crystalia/data/method/9b8104eb09c514162e46f6edfe291977> .
 
 cryd:2ff657e1d0c64c71707aa1fefd741ead a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/md5-region> ;
@@ -46,7 +46,7 @@ cryd:f3740e1ee6c19b59a965c99be678c683 a crys:Descriptor ;
     crys:hasType <https://w3id.org/crystalia/dtype/glimpse-light> ;
     crys:value "f3740e1ee6c19b59a965c99be678c683" .
 
-<https://crystalia.link/data/method/9b8104eb09c514162e46f6edfe291977> a crys:Method ;
+<https://w3id.org/crystalia/data/method/9b8104eb09c514162e46f6edfe291977> a crys:Method ;
     rdfs:label "glimpse-light" ;
     crys:parameters """fields=14:size,md5,mtime
 robustness=8:VERY_LOW""" .

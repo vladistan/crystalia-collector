@@ -20,7 +20,7 @@ see_also:
 prefixes:
   crys: https://w3id.org/crystalia/
   linkml: https://w3id.org/linkml/
-  cryd: https://crystalia.link/data/
+  cryd: https://w3id.org/crystalia/data/
 
   rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
   xml: http://www.w3.org/XML/1998/namespace
