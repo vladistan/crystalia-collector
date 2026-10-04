@@ -1,41 +1,18 @@
 """Scan a prefix and build bookend/zip-manifest file descriptors, rolled up via bookend-dir."""
 
 from collections import defaultdict
-from pathlib import Path
 
 from crystalia_collector.bookend_compute import build_bookend_descriptor, build_zip_manifest_descriptor
 from crystalia_collector.bookend_dir_compute import build_bookend_dir_descriptor
+from crystalia_collector.scan_paths import ancestor_uris as _ancestor_uris
+from crystalia_collector.scan_paths import dir_basename as _dir_basename
+from crystalia_collector.scan_paths import parent_uri as _parent_uri
 from crystalia_collector.source import FileObject, Source
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 from crystalia_data_model.types.bookend import DirEntry
 
 FileResult = tuple[FileObject, Descriptor, list[Descriptor], Descriptor | None]
 DirResult = tuple[str, Descriptor, list[Descriptor]]
-
-
-def _parent_uri(uri: str) -> str:
-    if uri.startswith("s3://"):
-        return uri.rsplit("/", 1)[0]
-    return str(Path(uri).parent)
-
-
-def _dir_basename(dir_uri: str) -> str:
-    if dir_uri.startswith("s3://"):
-        return dir_uri.rstrip("/").rsplit("/", 1)[-1]
-    return Path(dir_uri).name or dir_uri
-
-
-def _ancestor_uris(uri: str, root_prefix: str) -> list[str]:
-    ancestors: list[str] = []
-    current = uri
-    while True:
-        parent = _parent_uri(current)
-        if parent == current or len(parent) < len(root_prefix):
-            break
-        if parent not in ancestors:
-            ancestors.append(parent)
-        current = parent
-    return ancestors
 
 
 def scan_bookend_files(prefix: str, source: Source, exclude: list[str] | None = None) -> list[FileResult]:

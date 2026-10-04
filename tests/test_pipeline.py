@@ -341,6 +341,35 @@ def test_run_pipeline_exclude_skips_subdir_for_glimpse_dir(tmp_path):
     assert len(items) == 2
 
 
+def test_run_pipeline_relpath_correct_through_symlinked_root(tmp_path):
+    """Regression: a symlinked scan root (e.g. macOS /tmp -> /private/tmp) desyncs
+    the raw prefix from the resolved file URIs LocalSource yields, previously
+    causing every relpath descriptor to silently fall back to the bare basename.
+    """
+    real_dir = tmp_path / "real"
+    real_dir.mkdir()
+    (real_dir / "sub").mkdir()
+    (real_dir / "sub" / "a.txt").write_text("alpha")
+
+    link_root = tmp_path / "link_root"
+    link_root.symlink_to(real_dir)
+
+    output = tmp_path / "catalog.ttl"
+    run_pipeline(str(link_root), ["glimpse-dir"], output, workers=1, fmt="turtle")
+
+    g = Graph()
+    g.parse(output, format="turtle")
+    value_pred = URIRef(f"{CRYS_NS}value")
+    relpath_values = {
+        str(v)
+        for s in g.subjects(RDF.type, DESCRIPTOR)
+        for t in g.objects(s, HAS_TYPE)
+        if str(t).endswith("dtype/relpath")
+        for v in g.objects(s, value_pred)
+    }
+    assert relpath_values == {"sub/a.txt", "sub", "."}
+
+
 def test_run_pipeline_glimpse_dir_meta_does_not_crash(tmp_path):
     # Regression: glimpse-dir-meta previously crashed with "Unknown method ''"
     # because it had an empty paired_file_method_id. It should now enumerate

@@ -3,31 +3,19 @@
 import os
 from collections import defaultdict
 from datetime import UTC, datetime
-from pathlib import Path
 
 from crystalia_collector.glimpse_compute import build_file_descriptor
 from crystalia_collector.glimpse_dir_compute import build_dir_descriptor
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
+from crystalia_collector.scan_paths import ancestor_uris as _ancestor_uris
+from crystalia_collector.scan_paths import dir_basename as _dir_basename
+from crystalia_collector.scan_paths import parent_uri as _parent_uri
 from crystalia_collector.source import FileObject, Source
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
 
 # Alias: (basename, top-level descriptor) pair used for rollup inputs
 ChildEntry = tuple[str, Descriptor]
-
-
-def _parent_uri(uri: str) -> str:
-    """Return the parent directory URI (local or S3), without trailing slash."""
-    if uri.startswith("s3://"):
-        return uri.rsplit("/", 1)[0]
-    return str(Path(uri).parent)
-
-
-def _dir_basename(dir_uri: str) -> str:
-    """Return just the directory name, stripped of path prefix."""
-    if dir_uri.startswith("s3://"):
-        return dir_uri.rstrip("/").rsplit("/", 1)[-1]
-    return Path(dir_uri).name or dir_uri
 
 
 def _dir_mtime(dir_uri: str, fallback_children: list[FileObject]) -> datetime:
@@ -37,20 +25,6 @@ def _dir_mtime(dir_uri: str, fallback_children: list[FileObject]) -> datetime:
             return datetime.fromtimestamp(0, UTC)
         return max(fo.mtime for fo in fallback_children)
     return datetime.fromtimestamp(os.stat(dir_uri).st_mtime, UTC)
-
-
-def _ancestor_uris(uri: str, root_prefix: str) -> list[str]:
-    """Return all ancestor directory URIs from uri up to (not including) root_prefix."""
-    ancestors: list[str] = []
-    current = uri
-    while True:
-        parent = _parent_uri(current)
-        if parent == current or len(parent) < len(root_prefix):
-            break
-        if parent not in ancestors:
-            ancestors.append(parent)
-        current = parent
-    return ancestors
 
 
 def scan_files(

@@ -670,6 +670,7 @@ def _build_directory_items(
     merged_dirs: dict[str, list[Descriptor]],
     item_id_factory: ItemIdFactory,
     root: str,
+    fallback_count: list[int] | None = None,
 ) -> tuple[list[Item], dict[str, str], list[Descriptor]]:
     """Build directory Items, each with a relpath descriptor and an isPartOf link to
     its parent directory (the scan root's own Item has no isPartOf).
@@ -689,7 +690,7 @@ def _build_directory_items(
         parent_dir = str(Path(dir_uri).parent)
         parent_id = dir_item_ids.get(parent_dir)
 
-        relpath_desc = mint_relpath(_relative_path(dir_uri, root))
+        relpath_desc = mint_relpath(_relative_path(dir_uri, root, fallback_count))
         relpath_descriptors.append(relpath_desc)
 
         desc_ids = [d.id for d in merged_dirs[dir_uri]] + [relpath_desc.id]
@@ -699,15 +700,26 @@ def _build_directory_items(
     return items, dir_item_ids, relpath_descriptors
 
 
-def _relative_path(uri: str, root: str) -> str:
+def _relative_path(uri: str, root: str, fallback_count: list[int] | None = None) -> str:
     """Return uri as a POSIX path relative to the scan root, including the basename.
 
-    The run pipeline is local-only, so uri and root are absolute local paths.
-    Falls back to the basename if uri is not under root.
+    The run pipeline is local-only, so uri and root are absolute local paths. Both
+    are resolved before relative_to: uri always comes pre-resolved from LocalSource,
+    but root is the raw CLI argument, so a symlink anywhere in root's path (e.g.
+    macOS /tmp -> /private/tmp) would otherwise break the comparison and silently
+    fall back to the basename for every item under that root.
+
+    Falls back to the basename if uri is genuinely not under root, logging loudly
+    (and incrementing fallback_count, if given) instead of hiding it -- a silent
+    fallback here means the resulting Item's relpath wrongly looks like its own
+    root, with no signal that anything went wrong.
     """
     try:
-        return Path(uri).relative_to(root).as_posix()
+        return Path(uri).resolve().relative_to(Path(root).resolve()).as_posix()
     except ValueError:
+        log.warning("relpath_fallback_to_basename", uri=uri, root=root)
+        if fallback_count is not None:
+            fallback_count[0] += 1
         return Path(uri).name
 
 
@@ -716,6 +728,7 @@ def _build_file_items(
     dir_item_ids: dict[str, str],
     root: str,
     item_id_factory: ItemIdFactory,
+    fallback_count: list[int] | None = None,
 ) -> tuple[list[Item], list[Descriptor]]:
     """Build file Items, each with a relpath descriptor and an isPartOf link to its parent dir.
 
@@ -730,7 +743,7 @@ def _build_file_items(
         parent_dir = str(Path(uri).parent)
         parent_id = dir_item_ids.get(parent_dir)
 
-        relpath = _relative_path(uri, root)
+        relpath = _relative_path(uri, root, fallback_count)
         relpath_desc = mint_relpath(relpath)
         relpath_descriptors.append(relpath_desc)
 
@@ -827,8 +840,20 @@ def run_pipeline(
         raise HarvestIncompleteError(msg)
 
     # Build directory Items first so file Items can reference them via isPartOf
-    dir_items, dir_item_ids, dir_relpath_descriptors = _build_directory_items(merged_dirs, id_factory, prefix)
-    file_items, relpath_descriptors = _build_file_items(merged_files, dir_item_ids, prefix, id_factory)
+    relpath_fallbacks = [0]
+    dir_items, dir_item_ids, dir_relpath_descriptors = _build_directory_items(
+        merged_dirs,
+        id_factory,
+        prefix,
+        relpath_fallbacks,
+    )
+    file_items, relpath_descriptors = _build_file_items(
+        merged_files,
+        dir_item_ids,
+        prefix,
+        id_factory,
+        relpath_fallbacks,
+    )
     items = dir_items + file_items
     all_descriptors.extend(dir_relpath_descriptors)
     all_descriptors.extend(relpath_descriptors)
@@ -849,6 +874,9 @@ def run_pipeline(
         tmp_output.unlink(missing_ok=True)
         raise
     os.replace(tmp_output, output_path)
+
+    if relpath_fallbacks[0]:
+        log.warning("relpath_fallback_total", count=relpath_fallbacks[0], prefix=prefix)
 
     total = total_succeeded + total_failed
     log.info("pipeline_complete", total=total, succeeded=total_succeeded, failed=total_failed)
