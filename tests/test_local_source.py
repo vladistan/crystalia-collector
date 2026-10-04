@@ -97,6 +97,36 @@ def test_list_files_exclude_matches_only_exact_subtree(tmp_path):
     assert {f.basename for f in files} == {"keep.txt"}
 
 
+def test_list_files_skips_symlink_escaping_root(tmp_path):
+    """Regression: a symlink inside the scan root (e.g. a venv's bin/python) can
+    resolve to a target outside the root entirely. Following it pulls unrelated
+    files into the harvest and -- since the resolved path shares no ancestor with
+    root -- makes some arbitrary directory outside the tree look like its own
+    second scan root (observed on real data: a .venv/bin/python symlink resolved
+    to a uv-managed interpreter under ~/.local/share/uv/python/...).
+    """
+    (tmp_path / "keep.txt").write_bytes(b"keep")
+    outside = tmp_path.parent / f"outside-{tmp_path.name}"
+    outside.mkdir()
+    (outside / "escaped.txt").write_bytes(b"escaped")
+    (tmp_path / "link.txt").symlink_to(outside / "escaped.txt")
+
+    files = list(LocalSource().list_files(str(tmp_path)))
+
+    assert {f.basename for f in files} == {"keep.txt"}
+
+
+def test_list_files_follows_symlink_staying_inside_root(tmp_path):
+    real_dir = tmp_path / "real"
+    real_dir.mkdir()
+    (real_dir / "a.txt").write_bytes(b"data")
+    (tmp_path / "link_dir").symlink_to(real_dir)
+
+    files = list(LocalSource().list_files(str(tmp_path)))
+
+    assert {f.basename for f in files} == {"a.txt"}
+
+
 def test_list_files_skips_on_permission_error(tmp_path):
     (tmp_path / "file.txt").write_bytes(b"data")
 

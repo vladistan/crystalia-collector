@@ -18,12 +18,21 @@ _CHUNK_SIZE = 8192
 class LocalSource:
     def list_files(self, prefix: str, exclude: list[str] | None = None) -> Iterator[FileObject]:
         root = Path(prefix)
+        resolved_root = root.resolve()
         excluded_dirs = [Path(e).resolve() for e in exclude] if exclude else []
         for path in root.rglob("*"):
             try:
                 if not path.is_file():
                     continue
                 resolved = path.resolve()
+                if not resolved.is_relative_to(resolved_root):
+                    # A symlink inside the tree (e.g. a venv's bin/python) can resolve
+                    # to a target outside the scan root entirely. Following it would
+                    # pull unrelated files into the harvest and -- since the resolved
+                    # path shares no ancestor with root -- make some arbitrary ancestor
+                    # directory look like a second scan root.
+                    log.warning("local_source_symlink_escapes_root", path=str(path), resolved=str(resolved))
+                    continue
                 if any(resolved.is_relative_to(ex) for ex in excluded_dirs):
                     continue
                 stat = os.stat(path)
@@ -31,7 +40,7 @@ class LocalSource:
                 log.warning("local_source_permission_error", path=str(path))
                 continue
             yield FileObject(
-                uri=str(path.resolve()),
+                uri=str(resolved),
                 basename=path.name,
                 size=stat.st_size,
                 mtime=datetime.fromtimestamp(stat.st_mtime, UTC),
