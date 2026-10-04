@@ -1,7 +1,7 @@
 import pytest
 from rdflib import Graph, URIRef
 
-from crystalia_collector.rdf import model_from_rdf, rdf_from_model
+from crystalia_collector.rdf import dict_from_subject, model_from_rdf, rdf_from_model
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, HarvestRecord, Item, Method
 
 
@@ -84,6 +84,36 @@ def test_model_from_rdf(short_file_single_descriptor):
 
     method = model_from_rdf(rdf_graph, Method, subject="https://crystalia.link/data/sha256")
     assert method.label == "SHA256"
+
+
+def test_dict_from_subject_matches_model_from_rdf_fields(short_file_single_descriptor):
+    """dict_from_subject is the bulk-extraction counterpart to model_from_rdf: same
+    field resolution and value conversion, returned as a plain dict instead of a
+    validated model instance (no model instantiation/shell/cache machinery).
+    """
+    rdf_graph = Graph()
+    rdf_graph.parse(short_file_single_descriptor, format="turtle")
+
+    item_uri = "s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202/samples-cohort/a.txt"
+
+    item_model = model_from_rdf(rdf_graph, Item, subject=item_uri)
+    item_dict = dict_from_subject(rdf_graph, Item, subject=item_uri)
+
+    assert item_dict["label"] == item_model.label == "Short file in the cohort"
+    assert item_dict["isPartOf"] == item_model.isPartOf
+    assert item_dict["hasDescriptor"] == item_model.hasDescriptor
+
+
+def test_dict_from_subject_does_not_instantiate_a_model(short_file_single_descriptor):
+    rdf_graph = Graph()
+    rdf_graph.parse(short_file_single_descriptor, format="turtle")
+
+    item_uri = "s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202/samples-cohort/a.txt"
+
+    result = dict_from_subject(rdf_graph, Item, subject=item_uri)
+
+    assert isinstance(result, dict)
+    assert not isinstance(result, Item)
 
 
 def test_model_from_rdf_without_subject_resolves_item_by_type(test_dir):

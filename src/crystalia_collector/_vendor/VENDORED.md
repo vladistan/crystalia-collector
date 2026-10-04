@@ -38,9 +38,27 @@ This file is **no longer byte-identical to its vendored source commit** —
 apply this patch again after any re-vendor from upstream, until it is
 upstreamed (see TODO below).
 
+## Local patch: `pydantic_rdf_loader.py` public bulk API (2026-10-04)
+
+`PydanticRDFLoader` only exposed `load()`, which instantiates a full Pydantic
+model per subject. crysUI needed a cheaper bulk-extraction path (CURIE/value
+lookups across many subjects) and was calling two private methods
+(`_find_field_for_predicate` plus typing introspection) to reconstruct it
+themselves. Added a public `dict_from_subject_triples(graph, subject,
+target_class, prefix_map=None) -> dict[str, Any]`: field-name resolution and
+per-triple value conversion (the same work `load()` does per subject), minus
+model instantiation/shell/cache machinery. `_convert_subject_to_model` was
+refactored to share this logic via a new private `_subject_to_dict` helper, so
+the two paths cannot drift. `crystalia_collector.rdf.dict_from_subject` wraps
+it with the project's CURIE-expansion convention, mirroring `model_from_rdf`.
+
+This file is **no longer byte-identical to its vendored source commit** —
+apply this patch again after any re-vendor from upstream, until it is
+upstreamed (see TODO below).
+
 ## TODO — remove this vendoring
 
 - [ ] Upstream `PydanticRDFDumper` / `PydanticRDFLoader` into public
-      `linkml-runtime`, including the IRI-emission patch above.
+      `linkml-runtime`, including the IRI-emission and bulk-API patches above.
 - [ ] Once released on PyPI, delete this directory and import the classes from
       `linkml_runtime` again (see `crystalia_collector/rdf.py`).

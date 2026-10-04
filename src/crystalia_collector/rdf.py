@@ -8,6 +8,7 @@
 # vendored classes' base classes are all provided by public `linkml-runtime`.
 from functools import lru_cache
 from importlib.resources import as_file, files
+from typing import Any
 
 from linkml_runtime import SchemaView
 from pydantic import BaseModel
@@ -43,4 +44,23 @@ def model_from_rdf(
         fmt="turtle",
         target_class=type_class,
         root_subject=root_subject,
+    )
+
+
+def dict_from_subject(
+    rdf: Graph,
+    type_class: type[Thing],
+    subject: str,
+) -> dict[str, Any]:
+    """Bulk-extraction counterpart to model_from_rdf: returns the subject's fields as
+    a plain dict (CURIE strings for id-reference slots) without building a full
+    Pydantic model instance. Use when pulling many subjects' field values out of a
+    graph and the cost/side effects of a full model_from_rdf per subject aren't
+    needed.
+    """
+    expanded_subject = get_schema().expand_curie(subject)
+    return PydanticRDFLoader().dict_from_subject_triples(  # type: ignore[no-any-return]
+        graph=rdf,
+        subject=expanded_subject,
+        target_class=type_class,
     )

@@ -110,11 +110,7 @@ class PydanticRDFLoader(Loader):
                 graph.namespace_manager.bind(prefix, URIRef(uri))
 
         global_meta = self._extract_global_metadata(target_class)
-
-        prefixes = {}
-        if "prefixes" in global_meta:
-            for prefix_info in global_meta["prefixes"].values():
-                prefixes[prefix_info["prefix_prefix"]] = prefix_info["prefix_reference"]
+        prefixes = self._resolve_prefixes(global_meta)
 
         # Use caller-provided URI so that multi-subject graphs (depth-1 assembly)
         # always start from the correct node rather than a non-deterministic first match.
@@ -129,6 +125,81 @@ class PydanticRDFLoader(Loader):
         load_cache: dict[tuple[str, str], BaseModel] = {}
 
         return self._convert_subject_to_model(graph, root_subject_ref, target_class, global_meta, prefixes, load_cache)
+
+    def _resolve_prefixes(self, global_meta: dict[str, Any]) -> dict[str, str]:
+        prefixes: dict[str, str] = {}
+        if "prefixes" in global_meta:
+            for prefix_info in global_meta["prefixes"].values():
+                prefixes[prefix_info["prefix_prefix"]] = prefix_info["prefix_reference"]
+        return prefixes
+
+    def dict_from_subject_triples(
+        self,
+        graph: Graph,
+        subject: str | URIRef,
+        target_class: type[BaseModel],
+        prefix_map: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Convert one subject's triples into a plain dict matching target_class's
+        fields, without instantiating a Pydantic model or touching the load cache.
+
+        This is the public bulk-extraction entry point: field-name resolution and
+        per-triple value conversion (the same work ``load()`` does per subject) run
+        directly, skipping model instantiation/shell/cache machinery. Intended for
+        callers that need to pull many subjects' field values (e.g. CURIE/value
+        lookups across a whole graph) without the cost or object-graph side effects
+        of a full ``load()`` per subject.
+        """
+        subject_ref = subject if isinstance(subject, URIRef) else URIRef(subject)
+        global_meta = self._extract_global_metadata(target_class)
+        prefixes = dict(prefix_map) if prefix_map else self._resolve_prefixes(global_meta)
+        return self._subject_to_dict(graph, subject_ref, target_class, global_meta, prefixes, None)
+
+    def _subject_to_dict(
+        self,
+        graph: Graph,
+        subject: URIRef | BNode,
+        target_class: type[BaseModel],
+        global_meta: dict[str, Any],
+        prefixes: dict[str, str],
+        load_cache: dict[tuple[str, str], BaseModel] | None,
+    ) -> dict[str, Any]:
+        """Build the model_data dict for one subject: field-name resolution plus
+        per-triple value conversion. Shared by ``_convert_subject_to_model`` (which
+        wraps this in model instantiation/shell/cache handling) and the public
+        ``dict_from_subject_triples`` (which returns this dict directly).
+        """
+        subject_str = str(subject) if not isinstance(subject, BNode) else None
+
+        model_data: dict[str, Any] = {}
+        if subject_str:
+            model_data["id"] = self._uri_to_curie(subject_str, prefixes)
+
+        for predicate, obj in graph.predicate_objects(subject):
+            if predicate == RDF.type:
+                continue
+
+            field_name = self._find_field_for_predicate(target_class, predicate, prefixes)
+            if not field_name:
+                continue
+
+            field_value = self._convert_object_value(
+                graph, obj, target_class, field_name, global_meta, prefixes, load_cache
+            )
+
+            if field_value is _SKIP:
+                continue
+
+            if field_name in model_data:
+                if not isinstance(model_data[field_name], list):
+                    model_data[field_name] = [model_data[field_name]]
+                model_data[field_name].append(field_value)
+            else:
+                model_data[field_name] = field_value
+
+        self._handle_multilingual_strings(model_data, target_class)
+        self._wrap_list_fields(model_data, target_class)
+        return model_data
 
     def _extract_global_metadata(self, model_class: type[BaseModel]) -> dict[str, Any]:
         module = model_class.__module__
@@ -223,34 +294,7 @@ class PydanticRDFLoader(Loader):
             shell = target_class.model_construct(id=id_curie)
             self._store_cache(target_class, subject_str, shell, load_cache)
 
-        model_data: dict[str, Any] = {}
-        if subject_str:
-            model_data["id"] = self._uri_to_curie(subject_str, prefixes)
-
-        for predicate, obj in graph.predicate_objects(subject):
-            if predicate == RDF.type:
-                continue
-
-            field_name = self._find_field_for_predicate(target_class, predicate, prefixes)
-            if not field_name:
-                continue
-
-            field_value = self._convert_object_value(
-                graph, obj, target_class, field_name, global_meta, prefixes, load_cache
-            )
-
-            if field_value is _SKIP:
-                continue
-
-            if field_name in model_data:
-                if not isinstance(model_data[field_name], list):
-                    model_data[field_name] = [model_data[field_name]]
-                model_data[field_name].append(field_value)
-            else:
-                model_data[field_name] = field_value
-
-        self._handle_multilingual_strings(model_data, target_class)
-        self._wrap_list_fields(model_data, target_class)
+        model_data = self._subject_to_dict(graph, subject, target_class, global_meta, prefixes, load_cache)
 
         instance = target_class(**model_data)
 
