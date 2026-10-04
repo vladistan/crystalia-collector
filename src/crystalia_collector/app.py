@@ -43,10 +43,18 @@ def main() -> None:
 
 
 @app.command(name="list")
-def list_files(prefix: str, task_dir: Path | None = None, method_id: str = get_settings().default_method_id) -> None:
+def list_files(
+    prefix: str,
+    task_dir: Path | None = None,
+    method_id: str = get_settings().default_method_id,
+    exclude: Annotated[
+        list[str] | None,
+        typer.Option("--exclude", help="Path(s) under prefix to skip entirely (repeatable)"),
+    ] = None,
+) -> None:
     """List files in an S3 bucket or local directory."""
     try:
-        num_files, total_size = list_dir(prefix, method_id, task_dir)
+        num_files, total_size = list_dir(prefix, method_id, task_dir, exclude)
         log.info("listing_complete", num_files=num_files, total_size=human_readable_size(total_size))
     except Exception as exc:
         log.error("listing_failed", error=str(exc))
@@ -153,6 +161,10 @@ def run(
         Path | None,
         typer.Option("--partials-dir", help="Write a patch-up manifest here on failure"),
     ] = None,
+    exclude: Annotated[
+        list[str] | None,
+        typer.Option("--exclude", help="Path(s) under source to skip entirely (repeatable)"),
+    ] = None,
 ) -> None:
     """Run the full pipeline: list, process, and combine files into a catalog."""
     if source.startswith("s3://"):
@@ -190,6 +202,7 @@ def run(
                 verbose=verbose,
                 progress_callback=update_progress,
                 partials_dir=partials_dir,
+                exclude=exclude,
             )
 
         typer.echo(f"Processed {result.succeeded} files, {result.failed} failed, output: {output}")

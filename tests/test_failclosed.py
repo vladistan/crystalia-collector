@@ -106,8 +106,8 @@ def test_run_pipeline_raises_and_leaves_no_output_on_task_failure(tmp_path):
 
     real_list_dir = work_mod.list_dir
 
-    def list_then_delete(prefix, method_id, task_dir):
-        result = real_list_dir(prefix, method_id, task_dir)
+    def list_then_delete(prefix, method_id, task_dir, exclude=None):
+        result = real_list_dir(prefix, method_id, task_dir, exclude)
         victim.unlink()
         return result
 

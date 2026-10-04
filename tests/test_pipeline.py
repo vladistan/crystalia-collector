@@ -290,6 +290,57 @@ def test_run_pipeline_multi_method_merges_descriptors(tmp_path):
         assert len(desc_ids) == 2
 
 
+def test_run_pipeline_exclude_skips_subdir(tmp_path):
+    data_dir = tmp_path / "data"
+    excluded = data_dir / "excluded"
+    excluded.mkdir(parents=True)
+    (data_dir / "keep.txt").write_text("keep")
+    (excluded / "drop.txt").write_text("drop")
+
+    output = tmp_path / "catalog.ttl"
+    result = run_pipeline(
+        str(data_dir),
+        ["md5-8gb"],
+        output,
+        workers=1,
+        fmt="turtle",
+        exclude=[str(excluded)],
+    )
+
+    assert result.succeeded == 1
+
+    g = Graph()
+    g.parse(output, format="turtle")
+    items = list(g.subjects(RDF.type, ITEM))
+    assert len(items) == 1
+
+
+def test_run_pipeline_exclude_skips_subdir_for_glimpse_dir(tmp_path):
+    data_dir = tmp_path / "data"
+    excluded = data_dir / "excluded"
+    excluded.mkdir(parents=True)
+    (data_dir / "keep.txt").write_text("keep")
+    (excluded / "drop.txt").write_text("drop")
+
+    output = tmp_path / "catalog.ttl"
+    result = run_pipeline(
+        str(data_dir),
+        ["glimpse-dir"],
+        output,
+        workers=1,
+        fmt="turtle",
+        exclude=[str(excluded)],
+    )
+
+    assert result.succeeded == 1
+
+    g = Graph()
+    g.parse(output, format="turtle")
+    items = list(g.subjects(RDF.type, ITEM))
+    # 1 file + 1 dir (the scan root); the excluded subdir contributes nothing
+    assert len(items) == 2
+
+
 def test_run_pipeline_glimpse_dir_meta_does_not_crash(tmp_path):
     # Regression: glimpse-dir-meta previously crashed with "Unknown method ''"
     # because it had an empty paired_file_method_id. It should now enumerate

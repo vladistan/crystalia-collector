@@ -20,12 +20,18 @@ class S3Source:
         bucket, _, key = without_scheme.partition("/")
         return bucket, key
 
-    def list_files(self, prefix: str) -> Iterator[FileObject]:
+    def list_files(self, prefix: str, exclude: list[str] | None = None) -> Iterator[FileObject]:
         bucket, key_prefix = self.parse_s3_uri(prefix)
+        excluded_prefixes = [self.parse_s3_uri(e)[1] for e in exclude] if exclude else []
+
+        def _excluded(key: str) -> bool:
+            return any(key == p or key.startswith(p.rstrip("/") + "/") for p in excluded_prefixes)
+
         response = self._client.list_objects_v2(Bucket=bucket, Prefix=key_prefix)
 
         for obj in response.get("Contents", []):
-            yield self._to_file_object(bucket, obj)
+            if not _excluded(str(obj["Key"])):
+                yield self._to_file_object(bucket, obj)
         while response.get("IsTruncated", False):
             response = self._client.list_objects_v2(
                 Bucket=bucket,
@@ -33,7 +39,8 @@ class S3Source:
                 ContinuationToken=response["NextContinuationToken"],
             )
             for obj in response.get("Contents", []):
-                yield self._to_file_object(bucket, obj)
+                if not _excluded(str(obj["Key"])):
+                    yield self._to_file_object(bucket, obj)
 
     def compute_checksum(self, uri: str, offset: int, length: int | None) -> str:
         bucket, key = self.parse_s3_uri(uri)

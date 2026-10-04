@@ -67,6 +67,36 @@ def test_list_files_recursive(tmp_path):
     assert {f.basename for f in files} == {"top.txt", "nested.txt"}
 
 
+def test_list_files_excludes_matching_subdir(tmp_path):
+    excluded = tmp_path / "excluded"
+    excluded.mkdir()
+    (tmp_path / "keep.txt").write_bytes(b"keep")
+    (excluded / "drop.txt").write_bytes(b"drop")
+
+    files = list(LocalSource().list_files(str(tmp_path), exclude=[str(excluded)]))
+
+    assert {f.basename for f in files} == {"keep.txt"}
+
+
+def test_list_files_exclude_none_keeps_everything(tmp_path):
+    (tmp_path / "a.txt").write_bytes(b"a")
+
+    files = list(LocalSource().list_files(str(tmp_path), exclude=None))
+
+    assert {f.basename for f in files} == {"a.txt"}
+
+
+def test_list_files_exclude_matches_only_exact_subtree(tmp_path):
+    (tmp_path / "excluded").mkdir()
+    (tmp_path / "excluded-but-not-really").mkdir()
+    (tmp_path / "excluded" / "drop.txt").write_bytes(b"drop")
+    (tmp_path / "excluded-but-not-really" / "keep.txt").write_bytes(b"keep")
+
+    files = list(LocalSource().list_files(str(tmp_path), exclude=[str(tmp_path / "excluded")]))
+
+    assert {f.basename for f in files} == {"keep.txt"}
+
+
 def test_list_files_skips_on_permission_error(tmp_path):
     (tmp_path / "file.txt").write_bytes(b"data")
 

@@ -16,11 +16,15 @@ _CHUNK_SIZE = 8192
 
 
 class LocalSource:
-    def list_files(self, prefix: str) -> Iterator[FileObject]:
+    def list_files(self, prefix: str, exclude: list[str] | None = None) -> Iterator[FileObject]:
         root = Path(prefix)
+        excluded_dirs = [Path(e).resolve() for e in exclude] if exclude else []
         for path in root.rglob("*"):
             try:
                 if not path.is_file():
+                    continue
+                resolved = path.resolve()
+                if any(resolved.is_relative_to(ex) for ex in excluded_dirs):
                     continue
                 stat = os.stat(path)
             except PermissionError:

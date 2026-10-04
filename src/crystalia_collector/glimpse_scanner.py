@@ -57,10 +57,11 @@ def scan_files(
     prefix: str,
     source: Source,
     file_method: GlimpseBase,
+    exclude: list[str] | None = None,
 ) -> list[tuple[FileObject, Descriptor, list[Descriptor]]]:
     """Compute Glimpse file descriptors for all files under prefix."""
     results: list[tuple[FileObject, Descriptor, list[Descriptor]]] = []
-    for file_obj in source.list_files(prefix):
+    for file_obj in source.list_files(prefix, exclude):
         top, children = build_file_descriptor(file_obj, file_method, source)
         results.append((file_obj, top, children))
     return results
@@ -71,6 +72,7 @@ def scan_with_dirs(
     source: Source,
     file_method: GlimpseBase,
     dir_method: GlimpseDirBase,
+    exclude: list[str] | None = None,
 ) -> tuple[
     list[tuple[FileObject, Descriptor, list[Descriptor]]],
     list[tuple[str, Descriptor, list[Descriptor]]],
@@ -84,7 +86,7 @@ def scan_with_dirs(
     """
     # Step 1: compute all file descriptors
     file_results: list[tuple[FileObject, Descriptor, list[Descriptor]]] = []
-    for file_obj in source.list_files(prefix):
+    for file_obj in source.list_files(prefix, exclude):
         top, children = build_file_descriptor(file_obj, file_method, source)
         file_results.append((file_obj, top, children))
 

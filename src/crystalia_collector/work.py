@@ -221,24 +221,29 @@ def list_s3_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int
     return num_files, total_size
 
 
-def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, int]:
+def list_dir(
+    prefix: str,
+    method_id: str,
+    task_dir: Path | None,
+    exclude: list[str] | None = None,
+) -> tuple[int, int]:
     method = method_by_id(method_id)
 
     if isinstance(method, GlimpseDirBase):
-        return _list_dir_glimpse_dirs(prefix, method, task_dir)
+        return _list_dir_glimpse_dirs(prefix, method, task_dir, exclude)
     if isinstance(method, GlimpseBase):
-        return _list_dir_glimpse_files(prefix, method)
+        return _list_dir_glimpse_files(prefix, method, exclude)
     if isinstance(method, BookendDirBase):
-        return _list_dir_bookend_dirs(prefix, method)
+        return _list_dir_bookend_dirs(prefix, method, exclude)
     if isinstance(method, BookendBase):
-        return _list_dir_bookend_files(prefix, method)
+        return _list_dir_bookend_files(prefix, method, exclude)
 
     source = detect_source(prefix)
     total_size, num_files, task_num = 0, 0, 1
     small_files: list[FileObject] = []
     dir_counts: dict[str, int] = defaultdict(int)
 
-    for file_obj in source.list_files(prefix):
+    for file_obj in source.list_files(prefix, exclude):
         log.info(
             "file_found",
             uri=file_obj.uri,
@@ -261,13 +266,17 @@ def list_dir(prefix: str, method_id: str, task_dir: Path | None) -> tuple[int, i
     return num_files, total_size
 
 
-def _list_dir_glimpse_files(prefix: str, method: GlimpseBase) -> tuple[int, int]:
+def _list_dir_glimpse_files(
+    prefix: str,
+    method: GlimpseBase,
+    exclude: list[str] | None = None,
+) -> tuple[int, int]:
     """Scan files with a Glimpse file method and log descriptor summaries."""
     # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_files
 
     source = detect_source(prefix)
-    results = scan_files(prefix, source, method)
+    results = scan_files(prefix, source, method, exclude)
     total_size = 0
     for file_obj, top, _ in results:
         log.info(
@@ -286,6 +295,7 @@ def _list_dir_glimpse_dirs(
     prefix: str,
     method: GlimpseDirBase,
     task_dir: Path | None,
+    exclude: list[str] | None = None,
 ) -> tuple[int, int]:
     """Scan files and directories with a Glimpse dir method and log directory descriptors."""
     # local import: defers the Glimpse scanning stack until a Glimpse method runs
@@ -297,7 +307,7 @@ def _list_dir_glimpse_dirs(
         raise ValueError(msg)
 
     source = detect_source(prefix)
-    file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method)
+    file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method, exclude)
 
     total_size = sum(r[0].size for r in file_results)
 
@@ -334,11 +344,15 @@ def _build_bookend_family_descriptor(
     return build_bookend_descriptor(file_obj, source)  # type: ignore[arg-type]
 
 
-def _list_dir_bookend_files(prefix: str, method: BookendBase) -> tuple[int, int]:
+def _list_dir_bookend_files(
+    prefix: str,
+    method: BookendBase,
+    exclude: list[str] | None = None,
+) -> tuple[int, int]:
     """Scan files with a bookend-family file method and log descriptor summaries."""
     source = detect_source(prefix)
     total_size, num_files = 0, 0
-    for file_obj in source.list_files(prefix):
+    for file_obj in source.list_files(prefix, exclude):
         result = _build_bookend_family_descriptor(file_obj, source, method)
         if result is not None:
             top, _children = result
@@ -355,13 +369,17 @@ def _list_dir_bookend_files(prefix: str, method: BookendBase) -> tuple[int, int]
     return num_files, total_size
 
 
-def _list_dir_bookend_dirs(prefix: str, method: BookendDirBase) -> tuple[int, int]:
+def _list_dir_bookend_dirs(
+    prefix: str,
+    method: BookendDirBase,
+    exclude: list[str] | None = None,
+) -> tuple[int, int]:
     """Scan files and directories with the bookend-dir method and log directory descriptors."""
     # local import: defers the bookend scanning stack until bookend-dir runs
     from crystalia_collector.bookend_scanner import scan_bookend_dirs
 
     source = detect_source(prefix)
-    file_results, dir_results = scan_bookend_dirs(prefix, source)
+    file_results, dir_results = scan_bookend_dirs(prefix, source, exclude)
 
     total_size = sum(r[0].size for r in file_results)
 
@@ -487,11 +505,12 @@ def _run_md5_pipeline(
     method_id: str,
     workers: int,
     progress_callback: Callable[[int], None] | None,
+    exclude: list[str] | None = None,
 ) -> tuple[dict[str, Descriptor], list[Descriptor], list[str], int, int, list[str]]:
     method = method_by_id(method_id)
     with tempfile.TemporaryDirectory() as temp_dir:
         task_dir_path = Path(temp_dir)
-        num_files, _total_size = list_dir(prefix, method_id, task_dir_path)
+        num_files, _total_size = list_dir(prefix, method_id, task_dir_path, exclude)
 
         task_files = sorted(task_dir_path.glob("task_*"))
         log.info("tasks_generated", num_tasks=len(task_files), num_files=num_files)
@@ -542,12 +561,13 @@ def _run_md5_pipeline(
 def _collect_glimpse(
     prefix: str,
     method: GlimpseBase,
+    exclude: list[str] | None = None,
 ) -> tuple[dict[str, list[Descriptor]], list[Descriptor]]:
     # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_files
 
     source = detect_source(prefix)
-    results = scan_files(prefix, source, method)
+    results = scan_files(prefix, source, method, exclude)
 
     by_uri: dict[str, list[Descriptor]] = {}
     extra_descriptors: list[Descriptor] = []
@@ -561,6 +581,7 @@ def _collect_glimpse(
 def _collect_glimpse_dir(
     prefix: str,
     method: GlimpseDirBase,
+    exclude: list[str] | None = None,
 ) -> tuple[dict[str, list[Descriptor]], dict[str, list[Descriptor]], list[Descriptor]]:
     # local import: defers the Glimpse scanning stack until a Glimpse method runs
     from crystalia_collector.glimpse_scanner import scan_with_dirs
@@ -571,7 +592,7 @@ def _collect_glimpse_dir(
         raise ValueError(msg)
 
     source = detect_source(prefix)
-    file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method)
+    file_results, dir_results = scan_with_dirs(prefix, source, file_method_raw, method, exclude)
 
     file_descs: dict[str, list[Descriptor]] = {}
     dir_descs: dict[str, list[Descriptor]] = {}
@@ -593,11 +614,12 @@ def _collect_glimpse_dir(
 def _collect_bookend(
     prefix: str,
     method: BookendBase,
+    exclude: list[str] | None = None,
 ) -> tuple[dict[str, list[Descriptor]], list[Descriptor]]:
     source = detect_source(prefix)
     by_uri: dict[str, list[Descriptor]] = {}
     extra_descriptors: list[Descriptor] = []
-    for file_obj in source.list_files(prefix):
+    for file_obj in source.list_files(prefix, exclude):
         result = _build_bookend_family_descriptor(file_obj, source, method)
         if result is not None:
             top, children = result
@@ -610,12 +632,13 @@ def _collect_bookend(
 def _collect_bookend_dir(
     prefix: str,
     method: BookendDirBase,
+    exclude: list[str] | None = None,
 ) -> tuple[dict[str, list[Descriptor]], dict[str, list[Descriptor]], list[Descriptor]]:
     # local import: defers the bookend scanning stack until bookend-dir runs
     from crystalia_collector.bookend_scanner import scan_bookend_dirs
 
     source = detect_source(prefix)
-    file_results, dir_results = scan_bookend_dirs(prefix, source)
+    file_results, dir_results = scan_bookend_dirs(prefix, source, exclude)
 
     file_descs: dict[str, list[Descriptor]] = {}
     dir_descs: dict[str, list[Descriptor]] = {}
@@ -735,6 +758,7 @@ def run_pipeline(
     partials_dir: Path | None = None,
     clock: Callable[[], datetime] | None = None,
     source_root: str | None = None,
+    exclude: list[str] | None = None,
 ) -> RunResult:
     log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
     id_factory = item_id_factory or _default_item_id
@@ -754,7 +778,7 @@ def run_pipeline(
         method = method_by_id(method_id)
 
         if isinstance(method, GlimpseDirBase):
-            file_descs, dir_descs, extras = _collect_glimpse_dir(prefix, method)
+            file_descs, dir_descs, extras = _collect_glimpse_dir(prefix, method, exclude)
             for uri, descs in file_descs.items():
                 merged_files[uri].extend(descs)
             for uri, descs in dir_descs.items():
@@ -762,13 +786,13 @@ def run_pipeline(
             all_descriptors.extend(extras)
             total_succeeded += len(file_descs)
         elif isinstance(method, GlimpseBase):
-            by_uri, extras = _collect_glimpse(prefix, method)
+            by_uri, extras = _collect_glimpse(prefix, method, exclude)
             for uri, descs in by_uri.items():
                 merged_files[uri].extend(descs)
             all_descriptors.extend(extras)
             total_succeeded += len(by_uri)
         elif isinstance(method, BookendDirBase):
-            file_descs, dir_descs, extras = _collect_bookend_dir(prefix, method)
+            file_descs, dir_descs, extras = _collect_bookend_dir(prefix, method, exclude)
             for uri, descs in file_descs.items():
                 merged_files[uri].extend(descs)
             for uri, descs in dir_descs.items():
@@ -776,7 +800,7 @@ def run_pipeline(
             all_descriptors.extend(extras)
             total_succeeded += len(file_descs)
         elif isinstance(method, BookendBase):
-            by_uri, extras = _collect_bookend(prefix, method)
+            by_uri, extras = _collect_bookend(prefix, method, exclude)
             for uri, descs in by_uri.items():
                 merged_files[uri].extend(descs)
             all_descriptors.extend(extras)
@@ -787,6 +811,7 @@ def run_pipeline(
                 method_id,
                 workers,
                 progress_callback,
+                exclude,
             )
             for uri, desc in top_by_uri.items():
                 merged_files[uri].append(desc)

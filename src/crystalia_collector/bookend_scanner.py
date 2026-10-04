@@ -38,23 +38,27 @@ def _ancestor_uris(uri: str, root_prefix: str) -> list[str]:
     return ancestors
 
 
-def scan_bookend_files(prefix: str, source: Source) -> list[FileResult]:
+def scan_bookend_files(prefix: str, source: Source, exclude: list[str] | None = None) -> list[FileResult]:
     """Compute bookend (+ zip-manifest, when applicable) descriptors for all files under prefix."""
     results: list[FileResult] = []
-    for file_obj in source.list_files(prefix):
+    for file_obj in source.list_files(prefix, exclude):
         bookend_top, bookend_children = build_bookend_descriptor(file_obj, source)
         manifest = build_zip_manifest_descriptor(file_obj, source)
         results.append((file_obj, bookend_top, bookend_children, manifest))
     return results
 
 
-def scan_bookend_dirs(prefix: str, source: Source) -> tuple[list[FileResult], list[DirResult]]:
+def scan_bookend_dirs(
+    prefix: str,
+    source: Source,
+    exclude: list[str] | None = None,
+) -> tuple[list[FileResult], list[DirResult]]:
     """Compute bookend/zip-manifest file descriptors and bookend-dir rollups, bottom-up.
 
     Per D-3, each direct child of a directory contributes its zip-manifest (zip family with a
     readable Central Directory), else its own bookend-dir (a subdirectory), else its bookend.
     """
-    file_results = scan_bookend_files(prefix, source)
+    file_results = scan_bookend_files(prefix, source, exclude)
 
     dir_file_children: dict[str, list[tuple[str, FileObject, Descriptor, Descriptor | None]]] = defaultdict(list)
     all_dir_uris: set[str] = set()
