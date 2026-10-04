@@ -1,7 +1,8 @@
 import pytest
-from rdflib import Graph, URIRef
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import RDF
 
-from crystalia_collector.rdf import dict_from_subject, model_from_rdf, rdf_from_model
+from crystalia_collector.rdf import dict_from_pairs, dict_from_subject, model_from_rdf, rdf_from_model
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, HarvestRecord, Item, Method
 
 
@@ -114,6 +115,64 @@ def test_dict_from_subject_does_not_instantiate_a_model(short_file_single_descri
 
     assert isinstance(result, dict)
     assert not isinstance(result, Item)
+
+
+def test_dict_from_pairs_matches_dict_from_subject(short_file_single_descriptor):
+    """dict_from_pairs is the graph-free counterpart to dict_from_subject: same
+    field mapping/literal coercion/list handling, driven by (predicate, object)
+    pairs instead of an rdflib Graph lookup (for callers with no Graph on hand,
+    e.g. a pyoxigraph-backed loader).
+    """
+    rdf_graph = Graph()
+    rdf_graph.parse(short_file_single_descriptor, format="turtle")
+
+    item_uri = "s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202/samples-cohort/a.txt"
+    item_dict = dict_from_subject(rdf_graph, Item, subject=item_uri)
+
+    pairs: list[tuple[str, str | Literal]] = [
+        (str(p), o if isinstance(o, Literal) else str(o))
+        for p, o in rdf_graph.predicate_objects(URIRef(item_uri))
+        if str(p) != str(RDF.type)
+    ]
+    pairs_dict = dict_from_pairs(Item, subject=item_uri, pairs=pairs)
+
+    assert pairs_dict["label"] == item_dict["label"] == "Short file in the cohort"
+    assert pairs_dict["isPartOf"] == item_dict["isPartOf"]
+    assert pairs_dict["hasDescriptor"] == item_dict["hasDescriptor"]
+
+
+def test_dict_from_pairs_coerces_literal_datatypes():
+    descriptor = Descriptor(id="cryd:d1", hasType="crys:dtype/file-size", value="4", length=4096)
+    g = rdf_from_model(descriptor)
+    subject = "https://w3id.org/crystalia/data/d1"
+    pairs: list[tuple[str, str | Literal]] = [
+        (str(p), o if isinstance(o, Literal) else str(o))
+        for p, o in g.predicate_objects(URIRef(subject))
+        if str(p) != str(RDF.type)
+    ]
+
+    result = dict_from_pairs(Descriptor, subject=subject, pairs=pairs)
+
+    assert result["value"] == "4"
+    assert result["length"] == 4096
+
+
+def test_dict_from_pairs_iri_object_becomes_curie():
+    subject = "cryd:top1"
+    pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]
+
+    result = dict_from_pairs(Descriptor, subject=subject, pairs=pairs)
+
+    assert result["hasType"] == "crys:dtype/glimpse"
+
+
+def test_dict_from_pairs_literal_object():
+    subject = "cryd:top1"
+    pairs = [("https://w3id.org/crystalia/value", Literal("abc123"))]
+
+    result = dict_from_pairs(Descriptor, subject=subject, pairs=pairs)
+
+    assert result["value"] == "abc123"
 
 
 def test_model_from_rdf_without_subject_resolves_item_by_type(test_dir):

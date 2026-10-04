@@ -6,13 +6,14 @@
 # LinkML monorepo fork, not in public PyPI `linkml-runtime` (see
 # _vendor/VENDORED.md for provenance and the upstreaming TODO). SchemaView and the
 # vendored classes' base classes are all provided by public `linkml-runtime`.
+from collections.abc import Iterable
 from functools import lru_cache
 from importlib.resources import as_file, files
 from typing import Any
 
 from linkml_runtime import SchemaView
 from pydantic import BaseModel
-from rdflib import Graph
+from rdflib import Graph, Literal
 
 from crystalia_collector._vendor.pydantic_rdf_dumper import PydanticRDFDumper
 from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
@@ -63,4 +64,23 @@ def dict_from_subject(
         graph=rdf,
         subject=expanded_subject,
         target_class=type_class,
+    )
+
+
+def dict_from_pairs(
+    type_class: type[Thing],
+    subject: str,
+    pairs: Iterable[tuple[str, str | Literal]],
+) -> dict[str, Any]:
+    """Graph-free counterpart to dict_from_subject: same field mapping, literal
+    coercion, and list-handling, but takes one subject's (predicate_iri, object)
+    pairs directly instead of an rdflib Graph. Use when the caller already has
+    per-subject triples from a non-rdflib store (e.g. pyoxigraph) and has no graph
+    to hand the loader.
+    """
+    expanded_subject = get_schema().expand_curie(subject)
+    return PydanticRDFLoader().dict_from_pairs(  # type: ignore[no-any-return]
+        target_class=type_class,
+        subject=expanded_subject,
+        pairs=pairs,
     )

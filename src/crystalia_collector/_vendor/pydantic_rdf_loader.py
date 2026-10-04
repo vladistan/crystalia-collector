@@ -8,7 +8,7 @@ using only the embedded linkml_meta without requiring a SchemaView.
 import importlib
 import logging
 import typing
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
@@ -407,6 +407,76 @@ class PydanticRDFLoader(Loader):
             return linkml_meta
         return {}
 
+    def _convert_literal_value(self, obj: Literal) -> Any:
+        """Convert an RDF literal to its Python value (datatype/language coercion).
+
+        Graph-independent: shared by the graph-backed ``_convert_object_value``
+        and the graph-free ``dict_from_pairs`` path.
+        """
+        if obj.datatype:
+            if obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#integer"):
+                return int(obj)
+            elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#decimal"):
+                return float(obj)
+            elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#boolean"):
+                return str(obj).lower() in ("true", "1")
+            elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#date"):
+                return date.fromisoformat(str(obj))
+
+        if obj.language:
+            return (str(obj), obj.language)
+        return str(obj)
+
+    def dict_from_pairs(
+        self,
+        target_class: type[BaseModel],
+        subject: str,
+        pairs: Iterable[tuple[str, str | Literal]],
+        prefix_map: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
+        """Graph-free counterpart to ``dict_from_subject_triples``: same field-name
+        resolution, literal coercion, and list-handling, but takes (predicate,
+        object) pairs directly instead of walking an rdflib ``Graph``.
+
+        ``pairs`` holds one subject's triples as ``(predicate_iri, object)``, where
+        ``object`` is either a plain IRI string or an rdflib ``Literal``. There is
+        no graph to look up a URIRef's own triples, so every IRI object is treated
+        as a reference and converted straight to its CURIE form -- unlike
+        ``dict_from_subject_triples``/``load()``, this never recurses into a nested
+        model instance.
+
+        Built for callers with no rdflib ``Graph`` on hand (e.g. a pyoxigraph-backed
+        loader that already has per-subject (predicate, object) pairs and would
+        otherwise have to reach into private loader internals to do this mapping).
+        """
+        global_meta = self._extract_global_metadata(target_class)
+        prefixes = dict(prefix_map) if prefix_map else self._resolve_prefixes(global_meta)
+
+        model_data: dict[str, Any] = {"id": self._uri_to_curie(subject, prefixes)}
+
+        for predicate, obj in pairs:
+            if predicate == str(RDF.type):
+                continue
+
+            field_name = self._find_field_for_predicate(target_class, URIRef(predicate), prefixes)
+            if not field_name:
+                continue
+
+            field_value = self._convert_literal_value(obj) if isinstance(obj, Literal) else self._uri_to_curie(
+                str(obj), prefixes
+            )
+
+            if field_name in model_data:
+                if not isinstance(model_data[field_name], list):
+                    model_data[field_name] = [model_data[field_name]]
+                model_data[field_name].append(field_value)
+            else:
+                model_data[field_name] = field_value
+
+        self._handle_multilingual_strings(model_data, target_class)
+        self._wrap_list_fields(model_data, target_class)
+        return model_data
+
     def _convert_object_value(
         self,
         graph: Graph,
@@ -425,20 +495,7 @@ class PydanticRDFLoader(Loader):
         sentinel and omit the field from model_data.
         """
         if isinstance(obj, Literal):
-            if obj.datatype:
-                if obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#integer"):
-                    return int(obj)
-                elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#decimal"):
-                    return float(obj)
-                elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#boolean"):
-                    return str(obj).lower() in ("true", "1")
-                elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#date"):
-                    return date.fromisoformat(str(obj))
-
-            if obj.language:
-                return (str(obj), obj.language)
-            else:
-                return str(obj)
+            return self._convert_literal_value(obj)
 
         elif isinstance(obj, URIRef):
             obj_str = str(obj)

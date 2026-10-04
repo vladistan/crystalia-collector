@@ -56,6 +56,25 @@ This file is **no longer byte-identical to its vendored source commit** —
 apply this patch again after any re-vendor from upstream, until it is
 upstreamed (see TODO below).
 
+## Local patch: `pydantic_rdf_loader.py` graph-free bulk API (2026-10-04)
+
+crysUI's viz loader parses RDF via pyoxigraph, not rdflib, so it has no `Graph`
+to hand `dict_from_subject_triples` — only a subject's own `(predicate_iri,
+object)` pairs. Added `dict_from_pairs(target_class, subject, pairs,
+prefix_map=None) -> dict[str, Any]`: the same field-name resolution, literal
+coercion, and list-handling as `dict_from_subject_triples`, but driven by pairs
+instead of a graph walk, and with no nested-model recursion (there is no graph
+to check a referenced URI's own triples, so every IRI object is always
+converted to its CURIE form). The literal-value conversion (datatype/language
+coercion) was factored out of `_convert_object_value` into a shared
+`_convert_literal_value` so both paths use the same logic.
+`crystalia_collector.rdf.dict_from_pairs` wraps it with the project's
+CURIE-expansion convention.
+
+This file is **no longer byte-identical to its vendored source commit** —
+apply this patch again after any re-vendor from upstream, until it is
+upstreamed (see TODO below).
+
 ## TODO — remove this vendoring
 
 - [ ] Upstream `PydanticRDFDumper` / `PydanticRDFLoader` into public
