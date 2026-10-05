@@ -197,6 +197,32 @@ def test_dict_from_pairs_caches_profile_per_type_class():
     assert len(loader._pairs_profile_cache) == 1
 
 
+def test_dict_from_pairs_handles_mostly_unique_iris_well():
+    """Regression: an earlier version memoized URI->CURIE conversion on every
+    call. Measured in isolation that made each call ~3x SLOWER (0.98 vs 0.33
+    us/call) for the dominant real-world case -- hasDescriptor/isPartOf targets
+    are almost always unique ids, so the cache's near-zero hit rate turned a
+    cheap direct computation into a dict-lookup-plus-tuple-key-construction
+    overhead for no benefit. Guards against re-adding that cache: a large batch
+    of distinct subjects/targets must stay fast on a warm loader.
+    """
+    import time
+
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader = PydanticRDFLoader()
+    loader.dict_from_pairs(Descriptor, subject="cryd:warmup", pairs=[])
+
+    n = 20000
+    started = time.perf_counter()
+    for i in range(n):
+        pairs = [("https://w3id.org/crystalia/hasDescriptor", f"cryd:unique-{i}")]
+        loader.dict_from_pairs(Descriptor, subject=f"cryd:s{i}", pairs=pairs)
+    per_call_us = ((time.perf_counter() - started) / n) * 1_000_000
+
+    assert per_call_us < 10, f"{per_call_us:.2f}us/call with all-unique IRIs, expected well under 10us"
+
+
 def test_dict_from_pairs_warm_loader_is_fast(short_file_single_descriptor):
     """Amortized per-subject cost on a warm (reused) loader instance stays well
     under the naive per-call implementation's ~61us/subject. Threshold is

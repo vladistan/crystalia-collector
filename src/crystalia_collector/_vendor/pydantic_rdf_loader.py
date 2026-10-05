@@ -70,7 +70,6 @@ class PydanticRDFLoader(Loader):
         # subject or its triples, so both are expensive to redo on every call when
         # the same type_class is loaded thousands of times in one pass.
         self._pairs_profile_cache: dict[type[BaseModel], dict[str, Any]] = {}
-        self._curie_cache: dict[tuple[str, int], str] = {}
 
     def load(
         self,
@@ -466,7 +465,7 @@ class PydanticRDFLoader(Loader):
         prefixes = profile["prefixes"]
         predicate_to_field = profile["predicate_to_field"]
 
-        model_data: dict[str, Any] = {"id": self._uri_to_curie_cached(subject, prefixes)}
+        model_data: dict[str, Any] = {"id": self._uri_to_curie(subject, prefixes)}
 
         for predicate, obj in pairs:
             field_name = predicate_to_field.get(predicate)
@@ -474,9 +473,7 @@ class PydanticRDFLoader(Loader):
                 continue
 
             field_value = (
-                self._convert_literal_value(obj)
-                if isinstance(obj, Literal)
-                else self._uri_to_curie_cached(obj, prefixes)
+                self._convert_literal_value(obj) if isinstance(obj, Literal) else self._uri_to_curie(obj, prefixes)
             )
 
             if field_name in model_data:
@@ -587,15 +584,6 @@ class PydanticRDFLoader(Loader):
                     mapping[candidate] = field_name
 
         return mapping
-
-    def _uri_to_curie_cached(self, uri: str, prefixes: dict[str, str]) -> str:
-        key = (uri, id(prefixes))
-        cached = self._curie_cache.get(key)
-        if cached is not None:
-            return cached
-        result = self._uri_to_curie(uri, prefixes)
-        self._curie_cache[key] = result
-        return result
 
     def _apply_multilingual_fast(self, model_data: dict[str, Any], lang_field_kinds: dict[str, str]) -> None:
         """Same output as ``_handle_multilingual_strings``, driven by the

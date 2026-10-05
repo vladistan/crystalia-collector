@@ -100,6 +100,20 @@ This file is **no longer byte-identical to its vendored source commit** —
 apply this patch again after any re-vendor from upstream, until it is
 upstreamed (see TODO below).
 
+## Correction: `_uri_to_curie_cached` memo removed (2026-10-05)
+
+The `_uri_to_curie_cached` memo added above was measured and reverted. In
+crysUI's real end-to-end profile `dict_from_pairs` was still +20% slower than
+their inline rdflib path after the per-class-profile fix (target ≤5%, see
+above); isolating the memo showed why: `hasDescriptor`/`isPartOf` targets are
+almost always unique ids, so the cache's hit rate is near zero, and a dict
+lookup + tuple-key construction on every call is slower than just recomputing
+`_uri_to_curie` directly (measured 0.98µs/call cached vs 0.33µs/call direct,
+all-miss). The memo only pays off for small, highly-repeated value sets (e.g.
+`hasType`), which don't dominate real traffic. `dict_from_pairs` now calls
+`_uri_to_curie` directly again; `_uri_to_curie_cached` and `_curie_cache` were
+removed.
+
 ## TODO — remove this vendoring
 
 - [ ] Upstream `PydanticRDFDumper` / `PydanticRDFLoader` into public
