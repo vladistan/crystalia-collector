@@ -75,6 +75,31 @@ This file is **no longer byte-identical to its vendored source commit** —
 apply this patch again after any re-vendor from upstream, until it is
 upstreamed (see TODO below).
 
+## Local patch: `pydantic_rdf_loader.py` dict_from_pairs perf (2026-10-05)
+
+crysUI profiled `dict_from_pairs` at ~61µs/subject -- doubling their viz load
+time (set-a 50s -> 99s) -- because every call redid work that only depends on
+`target_class`: scanning every field to resolve a predicate (`_find_field_for_
+predicate`), re-deriving prefixes/global metadata, and re-running `typing.get_
+origin`/`get_args` introspection for the multilingual and list-wrap passes.
+Added a per-`target_class` profile, cached on the loader instance (`_pairs_
+profile`/`_pairs_profile_cache`): a precomputed predicate-IRI -> field-name map
+(`_build_predicate_to_field_map`), resolved prefixes, and per-field type kinds
+for two new fast equivalents (`_apply_multilingual_fast`, `_apply_list_wrap_
+fast`) that only touch fields actually present in `model_data` instead of
+iterating every model field. Also added a small `_uri_to_curie_cached` memo.
+Output is unchanged -- `dict_from_pairs`'s existing tests all still pass
+unmodified. `crystalia_collector.rdf.dict_from_pairs` now goes through an
+`@lru_cache`d singleton loader (`_pairs_loader()`) instead of a fresh
+`PydanticRDFLoader()` per call, since the whole point of the cache is useless
+against a new, empty instance every time. Measured: ~45µs/subject with a fresh
+instance per call (the old effective behavior) down to ~3.2µs/subject on a
+warm, reused loader -- under crysUI's ≤5µs/subject target.
+
+This file is **no longer byte-identical to its vendored source commit** —
+apply this patch again after any re-vendor from upstream, until it is
+upstreamed (see TODO below).
+
 ## TODO — remove this vendoring
 
 - [ ] Upstream `PydanticRDFDumper` / `PydanticRDFLoader` into public

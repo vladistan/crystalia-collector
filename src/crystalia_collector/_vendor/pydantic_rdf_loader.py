@@ -65,6 +65,12 @@ class PydanticRDFLoader(Loader):
         self.preferred_languages = preferred_languages or ["en"]
         self._identity_map = identity_map
         self._lazy_loader_factory = lazy_loader_factory
+        # Per-type_class memoization for the graph-free dict_from_pairs path: field
+        # resolution and type introspection only depend on target_class, not on the
+        # subject or its triples, so both are expensive to redo on every call when
+        # the same type_class is loaded thousands of times in one pass.
+        self._pairs_profile_cache: dict[type[BaseModel], dict[str, Any]] = {}
+        self._curie_cache: dict[tuple[str, int], str] = {}
 
     def load(
         self,
@@ -448,22 +454,29 @@ class PydanticRDFLoader(Loader):
         Built for callers with no rdflib ``Graph`` on hand (e.g. a pyoxigraph-backed
         loader that already has per-subject (predicate, object) pairs and would
         otherwise have to reach into private loader internals to do this mapping).
-        """
-        global_meta = self._extract_global_metadata(target_class)
-        prefixes = dict(prefix_map) if prefix_map else self._resolve_prefixes(global_meta)
 
-        model_data: dict[str, Any] = {"id": self._uri_to_curie(subject, prefixes)}
+        Performance: everything that depends only on ``target_class`` (field-name
+        resolution, prefixes, type introspection for list/multilingual handling) is
+        computed once per class and cached on this loader instance -- see
+        ``_pairs_profile``. Reuse one loader instance across many calls (e.g. a
+        module-level singleton) to actually get the benefit; a fresh instance per
+        call starts the cache over every time.
+        """
+        profile = self._pairs_profile(target_class, prefix_map)
+        prefixes = profile["prefixes"]
+        predicate_to_field = profile["predicate_to_field"]
+
+        model_data: dict[str, Any] = {"id": self._uri_to_curie_cached(subject, prefixes)}
 
         for predicate, obj in pairs:
-            if predicate == str(RDF.type):
-                continue
-
-            field_name = self._find_field_for_predicate(target_class, URIRef(predicate), prefixes)
+            field_name = predicate_to_field.get(predicate)
             if not field_name:
                 continue
 
-            field_value = self._convert_literal_value(obj) if isinstance(obj, Literal) else self._uri_to_curie(
-                str(obj), prefixes
+            field_value = (
+                self._convert_literal_value(obj)
+                if isinstance(obj, Literal)
+                else self._uri_to_curie_cached(obj, prefixes)
             )
 
             if field_name in model_data:
@@ -473,9 +486,152 @@ class PydanticRDFLoader(Loader):
             else:
                 model_data[field_name] = field_value
 
-        self._handle_multilingual_strings(model_data, target_class)
-        self._wrap_list_fields(model_data, target_class)
+        self._apply_multilingual_fast(model_data, profile["lang_field_kinds"])
+        self._apply_list_wrap_fast(model_data, profile["list_fields"])
         return model_data
+
+    def _pairs_profile(
+        self,
+        target_class: type[BaseModel],
+        prefix_map: dict[str, str] | None,
+    ) -> dict[str, Any]:
+        """Build (once per target_class, then cached) everything dict_from_pairs
+        needs that doesn't depend on the subject or its triples: the predicate ->
+        field-name map, resolved prefixes, and per-field type-introspection results
+        for the multilingual/list-wrap passes.
+
+        ``prefix_map`` is only honored on the first call for a given target_class
+        (matching the previous per-call behavior's intent: an explicit override),
+        since mixing prefix maps across calls for the same class was never a
+        supported use case.
+        """
+        cached = self._pairs_profile_cache.get(target_class)
+        if cached is not None:
+            return cached
+
+        global_meta = self._extract_global_metadata(target_class)
+        prefixes = dict(prefix_map) if prefix_map else self._resolve_prefixes(global_meta)
+        predicate_to_field = self._build_predicate_to_field_map(target_class, prefixes)
+
+        lang_field_kinds: dict[str, str] = {}
+        list_fields: set[str] = set()
+        for field_name, field_info in target_class.model_fields.items():
+            field_type = field_info.annotation
+            origin = typing.get_origin(field_type)
+            args = typing.get_args(field_type)
+
+            inner_type = field_type
+            if origin is typing.Union and args:
+                non_none_args = [arg for arg in args if arg is not type(None)]
+                if len(non_none_args) == 1:
+                    inner_type = non_none_args[0]
+            inner_origin = typing.get_origin(inner_type)
+            inner_args = typing.get_args(inner_type)
+
+            if inner_type is str:
+                lang_field_kinds[field_name] = "scalar_str"
+            elif inner_origin is list and inner_args and inner_args[0] is str:
+                lang_field_kinds[field_name] = "list_str"
+
+            if origin is list:
+                list_fields.add(field_name)
+            elif origin is typing.Union:
+                for arg in args:
+                    if typing.get_origin(arg) is list:
+                        list_fields.add(field_name)
+                        break
+
+        profile = {
+            "prefixes": prefixes,
+            "predicate_to_field": predicate_to_field,
+            "lang_field_kinds": lang_field_kinds,
+            "list_fields": list_fields,
+        }
+        self._pairs_profile_cache[target_class] = profile
+        return profile
+
+    def _build_predicate_to_field_map(
+        self,
+        model_class: type[BaseModel],
+        prefixes: dict[str, str],
+    ) -> dict[str, str]:
+        """Precompute what ``_find_field_for_predicate`` would resolve for every
+        predicate IRI a field could plausibly be matched by, so dict_from_pairs can
+        do a single dict lookup per pair instead of scanning every field.
+
+        First field wins a given predicate IRI, matching
+        ``_find_field_for_predicate``'s iteration-order semantics.
+        """
+        mapping: dict[str, str] = {}
+        for field_name, field_info in model_class.model_fields.items():
+            field_meta = self._get_field_metadata(field_info)
+            candidates: list[str] = []
+
+            slot_uri = field_meta.get("slot_uri")
+            if slot_uri:
+                candidates.append(self._expand_curie(slot_uri, prefixes))
+
+            for exact_mapping in field_meta.get("exact_mappings", []):
+                candidates.append(self._expand_curie(exact_mapping, prefixes))
+
+            from_schema = field_meta.get("from_schema", "")
+            slot_name = field_meta.get("name", field_name)
+            if from_schema:
+                for sep in ("#", "/"):
+                    base = from_schema if from_schema.endswith(("/", "#")) else from_schema + sep
+                    candidates.append(base + slot_name)
+                    candidates.append(base + field_name)
+
+            for candidate in candidates:
+                if candidate not in mapping:
+                    mapping[candidate] = field_name
+
+        return mapping
+
+    def _uri_to_curie_cached(self, uri: str, prefixes: dict[str, str]) -> str:
+        key = (uri, id(prefixes))
+        cached = self._curie_cache.get(key)
+        if cached is not None:
+            return cached
+        result = self._uri_to_curie(uri, prefixes)
+        self._curie_cache[key] = result
+        return result
+
+    def _apply_multilingual_fast(self, model_data: dict[str, Any], lang_field_kinds: dict[str, str]) -> None:
+        """Same output as ``_handle_multilingual_strings``, driven by the
+        precomputed per-field kind instead of redoing type introspection and
+        iterating every model field on each call.
+        """
+        for field_name, kind in lang_field_kinds.items():
+            if field_name not in model_data:
+                continue
+            value = model_data[field_name]
+
+            if kind == "scalar_str":
+                if isinstance(value, tuple) and len(value) == 2:
+                    model_data[field_name] = value[0]
+                elif isinstance(value, list) and len(value) > 1:
+                    model_data[field_name] = self._select_preferred_language_from_tagged_literals(value)
+                elif isinstance(value, list) and len(value) == 1 and isinstance(value[0], tuple):
+                    model_data[field_name] = value[0][0]
+            elif kind == "list_str":
+                if isinstance(value, list) and value and isinstance(value[0], tuple):
+                    model_data[field_name] = [self._select_preferred_language_from_tagged_literals(value)]
+                elif isinstance(value, list):
+                    model_data[field_name] = [
+                        v[0] if isinstance(v, tuple) and len(v) == 2 else str(v) for v in value
+                    ]
+
+    def _apply_list_wrap_fast(self, model_data: dict[str, Any], list_fields: set[str]) -> None:
+        """Same output as ``_wrap_list_fields``, driven by the precomputed set of
+        list-typed field names instead of redoing type introspection on every call.
+        """
+        for field_name in list_fields:
+            if field_name not in model_data:
+                continue
+            if isinstance(model_data[field_name], list):
+                continue
+            model_data[field_name] = [model_data[field_name]]
 
     def _convert_object_value(
         self,

@@ -27,6 +27,18 @@ def get_schema() -> SchemaView:
         return SchemaView(schema=schema_file)
 
 
+@lru_cache
+def _pairs_loader() -> PydanticRDFLoader:
+    """Singleton loader for dict_from_pairs.
+
+    dict_from_pairs's per-type_class speedups (field-resolution map, prefixes,
+    type-introspection results) are cached on the loader instance, not globally --
+    a fresh PydanticRDFLoader() per call would rebuild that cache from scratch
+    every time and lose the whole point of the optimization.
+    """
+    return PydanticRDFLoader()
+
+
 def rdf_from_model(thing: Thing) -> Graph:
     return PydanticRDFDumper().as_rdf_graph(thing)  # type: ignore[no-any-return]
 
@@ -79,7 +91,7 @@ def dict_from_pairs(
     to hand the loader.
     """
     expanded_subject = get_schema().expand_curie(subject)
-    return PydanticRDFLoader().dict_from_pairs(  # type: ignore[no-any-return]
+    return _pairs_loader().dict_from_pairs(  # type: ignore[no-any-return]
         target_class=type_class,
         subject=expanded_subject,
         pairs=pairs,

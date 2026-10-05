@@ -175,6 +175,57 @@ def test_dict_from_pairs_literal_object():
     assert result["value"] == "abc123"
 
 
+def test_dict_from_pairs_caches_profile_per_type_class():
+    """Regression: dict_from_pairs's field-resolution/type-introspection work must
+    be cached on the loader instance per target_class, not redone on every call --
+    that's the whole point of the perf fix (crysUI profiled the naive per-call
+    version at ~61us/subject, doubling their viz load time).
+    """
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader = PydanticRDFLoader()
+    pairs = [("https://w3id.org/crystalia/value", Literal("abc123"))]
+
+    assert loader._pairs_profile_cache == {}
+    loader.dict_from_pairs(Descriptor, subject="cryd:d1", pairs=pairs)
+    assert len(loader._pairs_profile_cache) == 1
+
+    loader.dict_from_pairs(Descriptor, subject="cryd:d2", pairs=pairs)
+    loader.dict_from_pairs(Descriptor, subject="cryd:d3", pairs=pairs)
+    # Still exactly one profile entry for Descriptor after 3 calls -- proves the
+    # profile was reused, not rebuilt, on the 2nd and 3rd calls.
+    assert len(loader._pairs_profile_cache) == 1
+
+
+def test_dict_from_pairs_warm_loader_is_fast(short_file_single_descriptor):
+    """Amortized per-subject cost on a warm (reused) loader instance stays well
+    under the naive per-call implementation's ~61us/subject. Threshold is
+    generous (not the ~5us target exactly) to avoid flakiness on slower CI/dev
+    machines -- this guards against a future regression re-adding per-call
+    type introspection, not a tight perf SLA.
+    """
+    import time
+
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader = PydanticRDFLoader()
+    pairs = [
+        ("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse"),
+        ("https://w3id.org/crystalia/value", Literal("abc123")),
+    ]
+    # Warm the per-type_class profile cache once (not timed).
+    loader.dict_from_pairs(Descriptor, subject="cryd:warmup", pairs=pairs)
+
+    n = 2000
+    started = time.perf_counter()
+    for i in range(n):
+        loader.dict_from_pairs(Descriptor, subject=f"cryd:d{i}", pairs=pairs)
+    elapsed = time.perf_counter() - started
+
+    per_subject_us = (elapsed / n) * 1_000_000
+    assert per_subject_us < 25, f"{per_subject_us:.1f}us/subject on a warm loader, expected well under 25us"
+
+
 def test_model_from_rdf_without_subject_resolves_item_by_type(test_dir):
     """Regression: loading without an explicit subject must resolve the Item by
     rdf:type rather than falling back to an arbitrary (wrong) subject.
