@@ -157,6 +157,25 @@ def test_dict_from_pairs_coerces_literal_datatypes():
     assert result["length"] == 4096
 
 
+def test_convert_literal_value_coerces_boolean_and_date():
+    """Regression: _convert_literal_value's datatype checks now compare against
+    module-level URIRef constants (previously constructed a fresh URIRef per
+    comparison per literal -- rdflib's URI-syntax validation on every one,
+    profiled as the dominant cost in dict_from_pairs). No DM v2 model has a
+    bool/date-typed field to exercise this through dict_from_pairs end-to-end,
+    so this tests the conversion directly.
+    """
+    from datetime import date
+
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    xsd = "http://www.w3.org/2001/XMLSchema#"
+    loader = PydanticRDFLoader()
+
+    assert loader._convert_literal_value(Literal("true", datatype=URIRef(xsd + "boolean"))) is True
+    assert loader._convert_literal_value(Literal("2024-01-01", datatype=URIRef(xsd + "date"))) == date(2024, 1, 1)
+
+
 def test_dict_from_pairs_iri_object_becomes_curie():
     subject = "cryd:top1"
     pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]

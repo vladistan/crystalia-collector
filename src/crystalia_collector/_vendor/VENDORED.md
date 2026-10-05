@@ -114,6 +114,37 @@ all-miss). The memo only pays off for small, highly-repeated value sets (e.g.
 `_uri_to_curie` directly again; `_uri_to_curie_cached` and `_curie_cache` were
 removed.
 
+## Local patch: cached XSD `URIRef` datatype constants (2026-10-05)
+
+Got crysUI's actual benchmark harness (`macpro5:/tmp/vizbench/`) after the
+cache-removal fix. Their micro-benchmark (`micro.py`) profiled
+`_convert_literal_value`'s datatype dispatch: each of its four `obj.datatype
+== URIRef("http://.../xsd#...")` comparisons constructed a fresh `URIRef`
+every call, and rdflib's `URIRef.__new__` runs URI-syntax validation
+(`_is_valid_uri`) on construction -- the profile's top entries were
+`rdflib/term.py:__new__`/`__eq__`/`_is_valid_uri`, called 20000 times across
+5000 `dict_from_pairs` calls (4 per call). Added four module-level constants
+(`_XSD_INTEGER`/`_XSD_DECIMAL`/`_XSD_BOOLEAN`/`_XSD_DATE`) built once at
+import time; `_convert_literal_value` now compares against those instead of
+constructing new `URIRef`s. Measured on crysUI's exact `micro.py`: 7.77 ->
+4.91µs/call (-37%). Output unchanged -- all existing `dict_from_pairs` tests
+pass unmodified; added a direct test for the boolean/date branches (no DM v2
+model has a bool/date field to exercise them through `dict_from_pairs` itself).
+
+Structural finding, not yet resolved: `micro.py` also measured that
+constructing a single tagged `rdflib.Literal` (e.g. a `dateTime` literal)
+costs ~6.9µs on its own -- more than the entire `dict_from_pairs` call now
+costs. `dict_from_pairs`'s signature requires `str | rdflib.Literal` for pair
+objects, so a caller whose source data is pyoxigraph-native (viz's case) must
+construct an `rdflib.Literal` per literal just to call this API at all; that
+conversion cost lives entirely on the caller's side of the boundary and no
+change inside this file can remove it. If the remaining gap vs. viz's
+"inline" (pyoxigraph-native, no rdflib conversion) comparison is dominated by
+that construction cost rather than anything in `dict_from_pairs` itself,
+closing it further would need a signature change (e.g. accepting a
+lexical/datatype/lang tuple instead of a constructed `Literal`), not another
+internal optimization.
+
 ## TODO — remove this vendoring
 
 - [ ] Upstream `PydanticRDFDumper` / `PydanticRDFLoader` into public

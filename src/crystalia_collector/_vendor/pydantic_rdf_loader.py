@@ -29,6 +29,15 @@ from linkml_runtime.utils.yamlutils import YAMLRoot
 
 logger = logging.getLogger(__name__)
 
+# Constructing a URIRef runs rdflib's URI-syntax validation (_is_valid_uri), so
+# these are built once rather than on every literal's datatype comparison
+# (profiled hot in dict_from_pairs: 4 fresh URIRef() calls per literal, each
+# re-validating the same fixed XSD URI).
+_XSD_INTEGER = URIRef("http://www.w3.org/2001/XMLSchema#integer")
+_XSD_DECIMAL = URIRef("http://www.w3.org/2001/XMLSchema#decimal")
+_XSD_BOOLEAN = URIRef("http://www.w3.org/2001/XMLSchema#boolean")
+_XSD_DATE = URIRef("http://www.w3.org/2001/XMLSchema#date")
+
 
 class PydanticRDFLoader(Loader):
     """
@@ -419,13 +428,13 @@ class PydanticRDFLoader(Loader):
         and the graph-free ``dict_from_pairs`` path.
         """
         if obj.datatype:
-            if obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#integer"):
+            if obj.datatype == _XSD_INTEGER:
                 return int(obj)
-            elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#decimal"):
+            elif obj.datatype == _XSD_DECIMAL:
                 return float(obj)
-            elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#boolean"):
+            elif obj.datatype == _XSD_BOOLEAN:
                 return str(obj).lower() in ("true", "1")
-            elif obj.datatype == URIRef("http://www.w3.org/2001/XMLSchema#date"):
+            elif obj.datatype == _XSD_DATE:
                 return date.fromisoformat(str(obj))
 
         if obj.language:
