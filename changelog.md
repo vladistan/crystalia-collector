@@ -6,7 +6,37 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-29
+
+Breaking release: the collector emits crystalia-data-model (DM) v2. Every
+collection produced by 0.x is invalid under DM v2. Local collections are
+re-collected; S3-published outputs are re-harvested after this release.
+
+Supersession: the 0.3.0 interim fix at main@c3c507918fc5f0eddb43733b71450ff2b63baec3
+(FR-011, no per-file `coverage` on md5-head) is superseded by the forward
+migration to DM v2, not reverted.
+
+### Breaking
+- DM v2 IRIs: every descriptor IRI changes. Descriptors are minted by the
+  vendored DM `types/` package, not by collector code.
+- No `coverage` slot on descriptors. `offset` appears only on positional
+  descriptors.
+- Chunked md5 parts assemble into one md5-chunked region per file, with
+  `total` set to the part count. The tail chunk records its true length.
+- Fail-closed harvests: any failed task fails the run and writes nothing
+  to the central output. `--fail-fast` is removed. `--partials-dir` (on
+  `run` and `annotate`) writes a patch-up manifest on failure.
+- The local schema copy is removed. The schema comes from the vendored DM
+  package.
+
 ### Added
+- New methods: `glimpse-content`, `glimpse-dir-content`, `bookend`,
+  `bookend-dir`, `zip-cd`, `zip-manifest`.
+- Harvest provenance: one `HarvestRecord` per successful run, linked to
+  shared `Method` nodes and the root Items.
+- `merge` command: combines `annotate` partition outputs into one DM-valid
+  catalog with one harvest record.
+- `--exclude` path filter on `run` and `list`.
 - Sentry performance tracing (plan 03 step 11.7). `run` and `annotate` open
   one `cli` transaction. `run_pipeline` adds a `method` span per method
   (tag `method=<id>`) and a `task_file` span per `ProcessPoolExecutor.submit`.
