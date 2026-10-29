@@ -59,6 +59,41 @@ migration to DM v2, not reverted.
   (descriptors and items); `crys:` is reserved for type/schema CURIEs.
   Every existing collection is invalid under this namespace; re-harvest.
 
+### Verified
+
+- **Plan 03 Step 11.1, Realistic End-to-End and Failure Exercise:**
+  - Local harvest over a mixed-format corpus (xlsx, docx, jar, npz, gz, jpg,
+    png, gif, nested dirs, one 3 GB sparse file) with every registered
+    method: 174 files processed, 0 failed, 299 descriptors, 24 items, 0
+    `validate()` violations after load.
+  - S3 harvest over a real bucket (`crystalia-data/thesis/.../files/md5/`,
+    `list` → `annotate` → `merge`): 61 items, 122 descriptors, 1 harvest
+    record, 0 `validate()` violations.
+  - Killed chunk task: the task's source file was removed mid-run; both
+    chunks failed, the harvest raised `HarvestIncompleteError`, and nothing
+    was written to the central output (no final file, no `.tmp`).
+  - Missing child before merge: one sidecar entry was dropped so a
+    directory's child count fell short of the listing manifest's expected
+    count; `merge` raised `IncompleteRollup` and wrote nothing.
+  - Unknown type: does **not** fail the run as the plan expects.
+    `combine_descriptors` (`work.py`) only calls `ensure_valid()` when a
+    descriptor's `hasType` is already a key in the DM registry — a
+    documented Ph1 carve-out so legacy non-DM-minted types (`md5-chunk`,
+    `relpath`) skip a check they were never meant to pass. A genuinely
+    unknown `hasType` satisfies that same gate (it isn't in the registry
+    either) and is written through unvalidated. `ensure_valid()` itself
+    raises correctly when called directly; the gap is in the gate deciding
+    when to call it, not in validation itself. Left as a known gap per
+    coordinator ruling; closing it needs the gate to distinguish "known
+    legacy type" from "unknown type" rather than treating both as
+    "not in registry".
+  - Re-run after patch-up: a task-file entry pointed at a nonexistent S3
+    key; `annotate --partials-dir` failed closed and wrote a patch-up
+    manifest (1 unhashed, 0 completed) with nothing written centrally.
+    Correcting the key and re-feeding the manifest's line through
+    `annotate` succeeded, producing a descriptor whose MD5 value matched
+    the real object's own content-addressed key.
+
 ## [0.3.0] - 2026-09-25
 
 ### Changed
