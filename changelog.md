@@ -6,6 +6,19 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Sentry performance tracing (plan 03 step 11.7). `run` and `annotate` open
+  one `cli` transaction. `run_pipeline` adds a `method` span per method
+  (tag `method=<id>`) and a `task_file` span per `ProcessPoolExecutor.submit`.
+  The trace header goes to the worker, which joins the same trace and emits
+  one `file.read` span per file. Failures mark the active span
+  `internal_error` before `capture_exception`.
+- Verification: `run` on 96 real files (`.claude/patterns/code`) with
+  `md5-8gb` + `glimpse`, local envelope sink, sample rate 1.0. Span tree:
+  `run` (trace 9385b774) -> `method md5-8gb` -> `task_file task_1`;
+  `method glimpse`. Worker transaction `task_1` has the same trace id,
+  parent = the `task_file` span, 96 `file.read` children.
+
 ### Changed
 - **Breaking consumer contract:** re-vendored crystalia-data-model v2.1.0
   (namespace split). Type-registry CURIEs move from `cryd:desc-type/<name>`

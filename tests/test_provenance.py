@@ -118,7 +118,7 @@ def test_failed_run_emits_no_harvest_record_anywhere(tmp_path):
     tree = _tree(tmp_path)
     out = tmp_path / "out.ttl"
     with (
-        patch("crystalia_collector.work._process_task_file", side_effect=RuntimeError("boom")),
+        patch("crystalia_collector.work._process_task_file_traced", side_effect=RuntimeError("boom")),
         contextlib.suppress(HarvestIncompleteError),
     ):
         run_pipeline(str(tree), ["md5-8gb"], out, workers=1, fmt="turtle")

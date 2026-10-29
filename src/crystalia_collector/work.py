@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
+import sentry_sdk
 import structlog
 
 from crystalia_collector import __version__
@@ -18,6 +19,7 @@ from crystalia_collector.method.bookend import BookendBase, BookendDirBase
 from crystalia_collector.method.generic import GenericMethod
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.method.glimpse_dir import GlimpseDirBase
+from crystalia_collector.monitoring import init_monitoring, trace_context
 from crystalia_collector.s3_iface import S3Object, compute_s3_checksum, list_files_in_s3_prefix
 from crystalia_collector.source import FileObject, detect_source
 from crystalia_collector.util import human_readable_size, process_file, stream_offsets, write_task_file
@@ -60,11 +62,12 @@ def _mint_from_task_line(line: str) -> tuple[str, Descriptor]:
     block_size = int(block_size_str)
     offset = int(offset_str)
     true_length = min(block_size, file_size - offset) if block_size > 0 else file_size
-    source = detect_source(uri)
-    checksum = source.compute_checksum(uri, offset, true_length if block_size > 0 else None)
-    descriptor = (
-        mint_md5_region(offset, true_length, checksum) if block_size > 0 else mint_md5(checksum, length=file_size)
-    )
+    with sentry_sdk.start_span(op="file.read", name=uri):
+        source = detect_source(uri)
+        checksum = source.compute_checksum(uri, offset, true_length if block_size > 0 else None)
+        descriptor = (
+            mint_md5_region(offset, true_length, checksum) if block_size > 0 else mint_md5(checksum, length=file_size)
+        )
     return uri, descriptor
 
 
@@ -76,6 +79,24 @@ def _process_task_file(task_file_path: str) -> list[tuple[str, Descriptor]]:
                 continue
             results.append(_mint_from_task_line(line))
     return results
+
+
+def _process_task_file_traced(
+    task_file_path: str,
+    dsn: str | None,
+    headers: dict[str, str] | None,
+) -> list[tuple[str, Descriptor]]:
+    """Run `_process_task_file` in a worker, joined to the parent's trace."""
+    if not headers:
+        return _process_task_file(task_file_path)
+    if not sentry_sdk.get_client().is_active():
+        init_monitoring(dsn=dsn)
+    transaction = sentry_sdk.continue_trace(headers, op="task_file.worker", name=Path(task_file_path).name)
+    try:
+        with sentry_sdk.start_transaction(transaction):
+            return _process_task_file(task_file_path)
+    finally:
+        sentry_sdk.flush()
 
 
 def _process_task_file_tolerant(task_file_path: str) -> tuple[list[tuple[str, Descriptor]], list[str]]:
@@ -522,8 +543,16 @@ def _run_md5_pipeline(
 
         if task_files:
             with ProcessPoolExecutor(max_workers=workers) as executor:
-                futures = {executor.submit(_process_task_file, str(tf)): tf for tf in task_files}
+                dsn = sentry_sdk.get_client().dsn
+                spans = {}
+                futures = {}
+                for tf in task_files:
+                    span = sentry_sdk.start_span(op="task_file", name=tf.name)
+                    future = executor.submit(_process_task_file_traced, str(tf), dsn, trace_context(span))
+                    futures[future] = tf
+                    spans[future] = span
                 for future in as_completed(futures):
+                    span = spans[future]
                     try:
                         results = future.result()
                         all_results.extend(results)
@@ -531,11 +560,14 @@ def _run_md5_pipeline(
                         if progress_callback:
                             progress_callback(len(results))
                     except Exception as exc:
+                        span.set_status("internal_error")
                         failed += 1
                         tf_path = futures[future]
                         with contextlib.suppress(OSError):
                             failed_lines.extend(line.rstrip("\n") for line in tf_path.read_text().splitlines())
                         log.error("task_failed", task_file=str(tf_path), error=str(exc))
+                    finally:
+                        span.finish()
 
         by_uri: dict[str, list[Descriptor]] = defaultdict(list)
         for uri, descriptor in all_results:
@@ -788,50 +820,52 @@ def run_pipeline(
     methods: list[Method] = [mint_method(mid, method_by_id(mid).parameters()) for mid in method_ids]
 
     for method_id in method_ids:
-        method = method_by_id(method_id)
+        with sentry_sdk.start_span(op="method", name=method_id) as method_span:
+            method_span.set_tag("method", method_id)
+            method = method_by_id(method_id)
 
-        if isinstance(method, GlimpseDirBase):
-            file_descs, dir_descs, extras = _collect_glimpse_dir(prefix, method, exclude)
-            for uri, descs in file_descs.items():
-                merged_files[uri].extend(descs)
-            for uri, descs in dir_descs.items():
-                merged_dirs[uri].extend(descs)
-            all_descriptors.extend(extras)
-            total_succeeded += len(file_descs)
-        elif isinstance(method, GlimpseBase):
-            by_uri, extras = _collect_glimpse(prefix, method, exclude)
-            for uri, descs in by_uri.items():
-                merged_files[uri].extend(descs)
-            all_descriptors.extend(extras)
-            total_succeeded += len(by_uri)
-        elif isinstance(method, BookendDirBase):
-            file_descs, dir_descs, extras = _collect_bookend_dir(prefix, method, exclude)
-            for uri, descs in file_descs.items():
-                merged_files[uri].extend(descs)
-            for uri, descs in dir_descs.items():
-                merged_dirs[uri].extend(descs)
-            all_descriptors.extend(extras)
-            total_succeeded += len(file_descs)
-        elif isinstance(method, BookendBase):
-            by_uri, extras = _collect_bookend(prefix, method, exclude)
-            for uri, descs in by_uri.items():
-                merged_files[uri].extend(descs)
-            all_descriptors.extend(extras)
-            total_succeeded += len(by_uri)
-        else:
-            top_by_uri, extras, _uris, succeeded, failed, failed_lines = _run_md5_pipeline(
-                prefix,
-                method_id,
-                workers,
-                progress_callback,
-                exclude,
-            )
-            for uri, desc in top_by_uri.items():
-                merged_files[uri].append(desc)
-            all_descriptors.extend(extras)
-            total_succeeded += succeeded
-            total_failed += failed
-            total_failed_lines.extend(failed_lines)
+            if isinstance(method, GlimpseDirBase):
+                file_descs, dir_descs, extras = _collect_glimpse_dir(prefix, method, exclude)
+                for uri, descs in file_descs.items():
+                    merged_files[uri].extend(descs)
+                for uri, descs in dir_descs.items():
+                    merged_dirs[uri].extend(descs)
+                all_descriptors.extend(extras)
+                total_succeeded += len(file_descs)
+            elif isinstance(method, GlimpseBase):
+                by_uri, extras = _collect_glimpse(prefix, method, exclude)
+                for uri, descs in by_uri.items():
+                    merged_files[uri].extend(descs)
+                all_descriptors.extend(extras)
+                total_succeeded += len(by_uri)
+            elif isinstance(method, BookendDirBase):
+                file_descs, dir_descs, extras = _collect_bookend_dir(prefix, method, exclude)
+                for uri, descs in file_descs.items():
+                    merged_files[uri].extend(descs)
+                for uri, descs in dir_descs.items():
+                    merged_dirs[uri].extend(descs)
+                all_descriptors.extend(extras)
+                total_succeeded += len(file_descs)
+            elif isinstance(method, BookendBase):
+                by_uri, extras = _collect_bookend(prefix, method, exclude)
+                for uri, descs in by_uri.items():
+                    merged_files[uri].extend(descs)
+                all_descriptors.extend(extras)
+                total_succeeded += len(by_uri)
+            else:
+                top_by_uri, extras, _uris, succeeded, failed, failed_lines = _run_md5_pipeline(
+                    prefix,
+                    method_id,
+                    workers,
+                    progress_callback,
+                    exclude,
+                )
+                for uri, desc in top_by_uri.items():
+                    merged_files[uri].append(desc)
+                all_descriptors.extend(extras)
+                total_succeeded += succeeded
+                total_failed += failed
+                total_failed_lines.extend(failed_lines)
 
     if total_failed > 0:
         if partials_dir:

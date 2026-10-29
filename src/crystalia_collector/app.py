@@ -9,7 +9,7 @@ import structlog
 import typer
 
 from crystalia_collector.config import get_settings
-from crystalia_collector.monitoring import configure_logging, init_monitoring
+from crystalia_collector.monitoring import cli_transaction, configure_logging, init_monitoring, mark_active_span_failed
 from crystalia_collector.source import detect_source
 from crystalia_collector.util import human_readable_size
 from crystalia_collector.work import (
@@ -77,22 +77,24 @@ def annotate(
     sidecar to `output_file + ".sidecar"` for `merge` to reconstruct directory
     membership.
     """
-    try:
-        results, failed_lines = _process_task_file_tolerant(task_file)
-        if failed_lines:
-            if partials_dir:
-                write_partials_manifest(partials_dir, Path(output_file), failed_lines, [d for _, d in results])
-            msg = f"{len(failed_lines)} entries failed to hash; harvest incomplete"
-            raise HarvestIncompleteError(msg)
-        tmp_output = Path(f"{output_file}.tmp")
-        combine_descriptors([], tmp_output, "turtle", descriptors=[d for _, d in results])
-        os.replace(tmp_output, output_file)
-        write_sidecar(Path(f"{output_file}.sidecar"), results)
-        log.info("annotations_complete", output_file=output_file)
-    except Exception as exc:
-        log.error("annotations_failed", error=str(exc))
-        sentry_sdk.capture_exception(exc)
-        raise typer.Exit(code=ExitCode.ERROR) from exc
+    with cli_transaction("annotate"):
+        try:
+            results, failed_lines = _process_task_file_tolerant(task_file)
+            if failed_lines:
+                if partials_dir:
+                    write_partials_manifest(partials_dir, Path(output_file), failed_lines, [d for _, d in results])
+                msg = f"{len(failed_lines)} entries failed to hash; harvest incomplete"
+                raise HarvestIncompleteError(msg)
+            tmp_output = Path(f"{output_file}.tmp")
+            combine_descriptors([], tmp_output, "turtle", descriptors=[d for _, d in results])
+            os.replace(tmp_output, output_file)
+            write_sidecar(Path(f"{output_file}.sidecar"), results)
+            log.info("annotations_complete", output_file=output_file)
+        except Exception as exc:
+            log.error("annotations_failed", error=str(exc))
+            mark_active_span_failed()
+            sentry_sdk.capture_exception(exc)
+            raise typer.Exit(code=ExitCode.ERROR) from exc
 
 
 @app.command()
@@ -173,43 +175,45 @@ def run(
 
     method_ids = method if method else [get_settings().default_method_id]
 
-    try:
-        # local imports: lazy-load the optional rich progress UI so it is only
-        # imported when the run command needs it.
-        from rich.console import Console
-        from rich.progress import Progress, SpinnerColumn, TextColumn
+    with cli_transaction("run"):
+        try:
+            # local imports: lazy-load the optional rich progress UI so it is only
+            # imported when the run command needs it.
+            from rich.console import Console
+            from rich.progress import Progress, SpinnerColumn, TextColumn
 
-        console = Console(stderr=True)
+            console = Console(stderr=True)
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            TextColumn("{task.completed} files"),
-            console=console,
-            transient=True,
-        ) as progress:
-            task_id = progress.add_task("Processing...", total=None)
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                TextColumn("{task.completed} files"),
+                console=console,
+                transient=True,
+            ) as progress:
+                task_id = progress.add_task("Processing...", total=None)
 
-            def update_progress(count: int) -> None:
-                progress.update(task_id, advance=count)
+                def update_progress(count: int) -> None:
+                    progress.update(task_id, advance=count)
 
-            result = run_pipeline(
-                source,
-                method_ids,
-                output,
-                workers,
-                fmt,
-                verbose=verbose,
-                progress_callback=update_progress,
-                partials_dir=partials_dir,
-                exclude=exclude,
-            )
+                result = run_pipeline(
+                    source,
+                    method_ids,
+                    output,
+                    workers,
+                    fmt,
+                    verbose=verbose,
+                    progress_callback=update_progress,
+                    partials_dir=partials_dir,
+                    exclude=exclude,
+                )
 
-        typer.echo(f"Processed {result.succeeded} files, {result.failed} failed, output: {output}")
-    except Exception as exc:
-        log.error("run_failed", error=str(exc))
-        sentry_sdk.capture_exception(exc)
-        raise typer.Exit(code=ExitCode.ERROR) from exc
+            typer.echo(f"Processed {result.succeeded} files, {result.failed} failed, output: {output}")
+        except Exception as exc:
+            log.error("run_failed", error=str(exc))
+            mark_active_span_failed()
+            sentry_sdk.capture_exception(exc)
+            raise typer.Exit(code=ExitCode.ERROR) from exc
 
 
 @app.command()
