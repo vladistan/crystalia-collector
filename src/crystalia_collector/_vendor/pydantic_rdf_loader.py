@@ -37,6 +37,13 @@ _XSD_INTEGER = URIRef("http://www.w3.org/2001/XMLSchema#integer")
 _XSD_DECIMAL = URIRef("http://www.w3.org/2001/XMLSchema#decimal")
 _XSD_BOOLEAN = URIRef("http://www.w3.org/2001/XMLSchema#boolean")
 _XSD_DATE = URIRef("http://www.w3.org/2001/XMLSchema#date")
+# Plain-str forms for _convert_literal_tuple: rdflib.Identifier.__eq__ requires
+# matching type, so a plain `str` datatype (the tuple-literal path's input, by
+# design never an rdflib type) never equals the URIRef constants above.
+_XSD_INTEGER_STR = str(_XSD_INTEGER)
+_XSD_DECIMAL_STR = str(_XSD_DECIMAL)
+_XSD_BOOLEAN_STR = str(_XSD_BOOLEAN)
+_XSD_DATE_STR = str(_XSD_DATE)
 
 
 class PydanticRDFLoader(Loader):
@@ -441,11 +448,33 @@ class PydanticRDFLoader(Loader):
             return (str(obj), obj.language)
         return str(obj)
 
+    def _convert_literal_tuple(self, lexical: str, datatype: str | None, lang: str | None) -> Any:
+        """Convert a ``(lexical, datatype, lang)`` literal tuple to its Python value.
+
+        Same datatype/language coercion as ``_convert_literal_value``, but takes the
+        literal's parts directly instead of an ``rdflib.Literal`` -- used by
+        ``dict_from_pairs`` so a caller whose source data is not rdflib-native (e.g.
+        pyoxigraph) never has to construct a ``Literal`` just to call this API.
+        """
+        if datatype:
+            if datatype == _XSD_INTEGER_STR:
+                return int(lexical)
+            elif datatype == _XSD_DECIMAL_STR:
+                return float(lexical)
+            elif datatype == _XSD_BOOLEAN_STR:
+                return lexical.lower() in ("true", "1")
+            elif datatype == _XSD_DATE_STR:
+                return date.fromisoformat(lexical)
+
+        if lang:
+            return (lexical, lang)
+        return lexical
+
     def dict_from_pairs(
         self,
         target_class: type[BaseModel],
         subject: str,
-        pairs: Iterable[tuple[str, str | Literal]],
+        pairs: Iterable[tuple[str, str | tuple[str, str | None, str | None]]],
         prefix_map: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """Graph-free counterpart to ``dict_from_subject_triples``: same field-name
@@ -453,11 +482,13 @@ class PydanticRDFLoader(Loader):
         object) pairs directly instead of walking an rdflib ``Graph``.
 
         ``pairs`` holds one subject's triples as ``(predicate_iri, object)``, where
-        ``object`` is either a plain IRI string or an rdflib ``Literal``. There is
-        no graph to look up a URIRef's own triples, so every IRI object is treated
-        as a reference and converted straight to its CURIE form -- unlike
-        ``dict_from_subject_triples``/``load()``, this never recurses into a nested
-        model instance.
+        ``object`` is either a plain IRI string or a ``(lexical, datatype, lang)``
+        literal tuple -- ``datatype``/``lang`` are the literal's IRI/language tag or
+        ``None``, mirroring ``rdflib.Literal.datatype``/``.language``. No ``Literal``
+        is ever constructed. There is no graph to look up a URIRef's own triples, so
+        every IRI object is treated as a reference and converted straight to its
+        CURIE form -- unlike ``dict_from_subject_triples``/``load()``, this never
+        recurses into a nested model instance.
 
         Built for callers with no rdflib ``Graph`` on hand (e.g. a pyoxigraph-backed
         loader that already has per-subject (predicate, object) pairs and would
@@ -482,7 +513,7 @@ class PydanticRDFLoader(Loader):
                 continue
 
             field_value = (
-                self._convert_literal_value(obj) if isinstance(obj, Literal) else self._uri_to_curie(obj, prefixes)
+                self._convert_literal_tuple(*obj) if isinstance(obj, tuple) else self._uri_to_curie(obj, prefixes)
             )
 
             if field_name in model_data:

@@ -13,7 +13,7 @@ from typing import Any
 
 from linkml_runtime import SchemaView
 from pydantic import BaseModel
-from rdflib import Graph, Literal
+from rdflib import Graph
 
 from crystalia_collector._vendor.pydantic_rdf_dumper import PydanticRDFDumper
 from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
@@ -82,13 +82,14 @@ def dict_from_subject(
 def dict_from_pairs(
     type_class: type[Thing],
     subject: str,
-    pairs: Iterable[tuple[str, str | Literal]],
+    pairs: Iterable[tuple[str, str | tuple[str, str | None, str | None]]],
 ) -> dict[str, Any]:
     """Graph-free counterpart to dict_from_subject: same field mapping, literal
     coercion, and list-handling, but takes one subject's (predicate_iri, object)
     pairs directly instead of an rdflib Graph. Use when the caller already has
     per-subject triples from a non-rdflib store (e.g. pyoxigraph) and has no graph
-    to hand the loader.
+    to hand the loader. A literal object is a (lexical, datatype, lang) tuple, not
+    an rdflib Literal -- the caller never constructs one.
     """
     expanded_subject = get_schema().expand_curie(subject)
     return _pairs_loader().dict_from_pairs(  # type: ignore[no-any-return]

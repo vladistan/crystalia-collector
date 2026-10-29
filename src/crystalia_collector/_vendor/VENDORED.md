@@ -145,6 +145,29 @@ closing it further would need a signature change (e.g. accepting a
 lexical/datatype/lang tuple instead of a constructed `Literal`), not another
 internal optimization.
 
+## Local patch: `dict_from_pairs` tuple-literal signature (2026-10-29)
+
+Resolved the structural finding above: `dict_from_pairs`'s literal-tuple cost
+lived entirely on the caller's side (crysUI had to construct an
+`rdflib.Literal` just to call this API, costing ~6.9us on its own). Changed
+`dict_from_pairs`'s `pairs` signature so a literal object is a `(lexical,
+datatype, lang)` tuple -- `datatype`/`lang` are the literal's IRI/language tag
+or `None`, mirroring `rdflib.Literal.datatype`/`.language` -- instead of a
+constructed `Literal`. Added `_convert_literal_tuple` (same datatype coercion
+as `_convert_literal_value`, driven by the tuple's parts) and a plain-`str`
+set of XSD datatype constants (`_XSD_INTEGER_STR` etc.) alongside the existing
+`URIRef` ones, since `rdflib.Identifier.__eq__` requires matching types -- a
+plain `str` datatype never equals a `URIRef` constant. `_convert_literal_value`
+(the graph-backed path, which still receives real `Literal`s from `Graph`
+traversal) is unchanged. `crystalia_collector.rdf.dict_from_pairs` and all
+existing callers/tests updated to the tuple form. Output semantics unchanged.
+Measured: a caller that previously constructed a `Literal` per literal pair
+went from ~6.68 to ~2.74us/call (-59%) now that it hands the tuple directly.
+
+This file is **no longer byte-identical to its vendored source commit** --
+apply this patch again after any re-vendor from upstream, until it is
+upstreamed (see TODO below).
+
 ## TODO — remove this vendoring
 
 - [ ] Upstream `PydanticRDFDumper` / `PydanticRDFLoader` into public

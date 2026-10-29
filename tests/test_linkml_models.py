@@ -6,6 +6,14 @@ from crystalia_collector.rdf import dict_from_pairs, dict_from_subject, model_fr
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, HarvestRecord, Item, Method
 
 
+def _literal_to_tuple(lit: Literal) -> tuple[str, str | None, str | None]:
+    """A (lexical, datatype, lang) tuple for an rdflib Literal -- what a caller with
+    no rdflib on hand (e.g. pyoxigraph) would already have, used here only to drive
+    dict_from_pairs's tuple-literal path from a real parsed graph's Literals.
+    """
+    return (str(lit), str(lit.datatype) if lit.datatype else None, lit.language)
+
+
 @pytest.fixture
 def item():
     return Item(
@@ -129,8 +137,8 @@ def test_dict_from_pairs_matches_dict_from_subject(short_file_single_descriptor)
     item_uri = "s3://1000genomes-dragen-v4.0.3/data/cohorts/gvcf-genotyper-dragen-4.0.3/hg38/3202/samples-cohort/a.txt"
     item_dict = dict_from_subject(rdf_graph, Item, subject=item_uri)
 
-    pairs: list[tuple[str, str | Literal]] = [
-        (str(p), o if isinstance(o, Literal) else str(o))
+    pairs: list[tuple[str, str | tuple[str, str | None, str | None]]] = [
+        (str(p), _literal_to_tuple(o) if isinstance(o, Literal) else str(o))
         for p, o in rdf_graph.predicate_objects(URIRef(item_uri))
         if str(p) != str(RDF.type)
     ]
@@ -145,8 +153,8 @@ def test_dict_from_pairs_coerces_literal_datatypes():
     descriptor = Descriptor(id="cryd:d1", hasType="crys:dtype/file-size", value="4", length=4096)
     g = rdf_from_model(descriptor)
     subject = "https://w3id.org/crystalia/data/d1"
-    pairs: list[tuple[str, str | Literal]] = [
-        (str(p), o if isinstance(o, Literal) else str(o))
+    pairs: list[tuple[str, str | tuple[str, str | None, str | None]]] = [
+        (str(p), _literal_to_tuple(o) if isinstance(o, Literal) else str(o))
         for p, o in g.predicate_objects(URIRef(subject))
         if str(p) != str(RDF.type)
     ]
@@ -176,6 +184,26 @@ def test_convert_literal_value_coerces_boolean_and_date():
     assert loader._convert_literal_value(Literal("2024-01-01", datatype=URIRef(xsd + "date"))) == date(2024, 1, 1)
 
 
+def test_convert_literal_tuple_coerces_boolean_and_date():
+    """dict_from_pairs's actual hot path (no rdflib Literal constructed): same
+    datatype coercion as _convert_literal_value, driven by raw (lexical, datatype,
+    lang) parts instead.
+    """
+    from datetime import date
+
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    xsd = "http://www.w3.org/2001/XMLSchema#"
+    loader = PydanticRDFLoader()
+
+    assert loader._convert_literal_tuple("true", xsd + "boolean", None) is True
+    assert loader._convert_literal_tuple("2024-01-01", xsd + "date", None) == date(2024, 1, 1)
+    assert loader._convert_literal_tuple("4", xsd + "integer", None) == 4
+    assert loader._convert_literal_tuple("4.5", xsd + "decimal", None) == 4.5
+    assert loader._convert_literal_tuple("hola", None, "es") == ("hola", "es")
+    assert loader._convert_literal_tuple("plain", None, None) == "plain"
+
+
 def test_dict_from_pairs_iri_object_becomes_curie():
     subject = "cryd:top1"
     pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]
@@ -187,7 +215,7 @@ def test_dict_from_pairs_iri_object_becomes_curie():
 
 def test_dict_from_pairs_literal_object():
     subject = "cryd:top1"
-    pairs = [("https://w3id.org/crystalia/value", Literal("abc123"))]
+    pairs = [("https://w3id.org/crystalia/value", ("abc123", None, None))]
 
     result = dict_from_pairs(Descriptor, subject=subject, pairs=pairs)
 
@@ -203,7 +231,7 @@ def test_dict_from_pairs_caches_profile_per_type_class():
     from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
 
     loader = PydanticRDFLoader()
-    pairs = [("https://w3id.org/crystalia/value", Literal("abc123"))]
+    pairs = [("https://w3id.org/crystalia/value", ("abc123", None, None))]
 
     assert loader._pairs_profile_cache == {}
     loader.dict_from_pairs(Descriptor, subject="cryd:d1", pairs=pairs)
@@ -256,7 +284,7 @@ def test_dict_from_pairs_warm_loader_is_fast(short_file_single_descriptor):
     loader = PydanticRDFLoader()
     pairs = [
         ("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse"),
-        ("https://w3id.org/crystalia/value", Literal("abc123")),
+        ("https://w3id.org/crystalia/value", ("abc123", None, None)),
     ]
     # Warm the per-type_class profile cache once (not timed).
     loader.dict_from_pairs(Descriptor, subject="cryd:warmup", pairs=pairs)
