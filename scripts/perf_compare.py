@@ -16,7 +16,7 @@ REAL = re.compile(r"([\d.]+)\s+real")
 
 def measure(source: str, method: str, out: Path) -> tuple[str, float, int, int, int]:
     """Run one method under /usr/bin/time -l; return rc, wall s, peak RSS, output bytes."""
-    cmd = ["/usr/bin/time", "-l", "crystalia-collector", "run", source, "-m", method, "-o", str(out)]
+    cmd = ["/usr/bin/time", "-l", "crystalia-collector", "run", source, "--method", method, "-o", str(out)]
     proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
     rss = RSS.search(proc.stderr)
     real = REAL.search(proc.stderr)
