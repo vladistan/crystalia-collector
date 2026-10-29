@@ -10,7 +10,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Breaking release: the collector emits crystalia-data-model (DM) v2. Every
 collection produced by 0.x is invalid under DM v2. Local collections are
-re-collected; S3-published outputs are re-harvested after this release.
+re-collected in plan 03 Phase 3. S3-published outputs are re-harvested after
+this release, in Phase 12.
 
 Supersession: the 0.3.0 interim fix at main@c3c507918fc5f0eddb43733b71450ff2b63baec3
 (FR-011, no per-file `coverage` on md5-head) is superseded by the forward
