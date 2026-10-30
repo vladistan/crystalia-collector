@@ -61,6 +61,31 @@ migration to DM v2, not reverted.
 
 ### Verified
 
+- **Plan 03 Step 11.3, Security Review:**
+  - Vendored DM: `src/crystalia_data_model/` is byte-identical to tag v2.1.1
+    (`5319a2a`, the SHA in `VENDORED.md`), checked with `git archive` and
+    `diff -r`. The plan text names v2.0.0; the vendored tree is v2.1.1.
+    A scan of `datamodel/`, `types/` and `schema/` finds no `eval`, `exec`,
+    subprocess, socket, network, pickle or file-open use. The only module-level
+    calls are a logger `NullHandler` and pydantic `model_rebuild()`. No
+    `.pth` file, `setup.py` or install hook.
+  - Credentials: the collector reads none itself; S3 access goes through the
+    boto3 chain. A grep of the four Step 11.1 outputs (local, S3, unknown-type)
+    for `AKIA`/`ASIA` key IDs, `aws_secret`, `aws_access_key` and
+    `SessionToken` finds nothing. Every value in `~/.aws/credentials` (4
+    profiles, 7 values) appears 0 times. The only 40-character matches are
+    IRI path segments (method ids). The Step 11.1 console logs were not
+    kept, so they are not covered by this grep;
+    `tests/test_security_review.py` covers the console output of a fresh run.
+  - Provenance: the `sourceRoot` in the local output is the root as given
+    (`/tmp/crystalia-ph11-corpus`), in the S3 output the prefix as given
+    (`s3://crystalia-data/thesis/final/exps/th-reformat/files/md5/`). No
+    `/Users/` or `/home/` path appears in any of the four outputs.
+  - `tests/test_security_review.py` runs `run` on real recorded files with
+    dummy AWS credentials in the environment: source root equals the root
+    given, no path outside it, and no credential value or shape in the TTL,
+    console output or any file under the run directory.
+
 - **Plan 03 Step 11.1, Realistic End-to-End and Failure Exercise:**
   - Local harvest over a mixed-format corpus (xlsx, docx, jar, npz, gz, jpg,
     png, gif, nested dirs, one 3 GB sparse file) with every registered
