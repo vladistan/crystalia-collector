@@ -357,6 +357,42 @@ class PydanticRDFLoader(Loader):
                 return f"{prefix}:{uri[len(base_uri) :]}"
         return uri
 
+    @staticmethod
+    def _uri_authority(uri: str) -> str:
+        """``scheme://host`` portion of a URI, used to bucket prefixes so the
+        ``dict_from_pairs`` hot path only has to test base URIs that could
+        plausibly match, instead of scanning every registered prefix.
+        """
+        scheme_end = uri.find("://")
+        if scheme_end == -1:
+            return uri
+        path_start = uri.find("/", scheme_end + 3)
+        return uri if path_start == -1 else uri[:path_start]
+
+    def _build_prefix_index(self, prefixes: dict[str, str]) -> dict[str, list[tuple[str, str]]]:
+        """Bucket ``prefixes`` by authority, preserving each bucket's relative
+        order from ``prefixes`` so ambiguous overlapping prefixes still resolve
+        to the same winner ``_uri_to_curie`` would have picked.
+        """
+        index: dict[str, list[tuple[str, str]]] = {}
+        for prefix, base_uri in prefixes.items():
+            index.setdefault(self._uri_authority(base_uri), []).append((prefix, base_uri))
+        return index
+
+    def _uri_to_curie_indexed(
+        self, uri: str, prefixes: dict[str, str], prefix_index: dict[str, list[tuple[str, str]]]
+    ) -> str:
+        """Same result as ``_uri_to_curie``, but checks only the base URIs whose
+        authority matches ``uri``'s before falling back to a full scan -- avoids
+        testing every unrelated prefix (e.g. ``xsd:``, ``qudt:``) on every call.
+        """
+        candidates = prefix_index.get(self._uri_authority(uri))
+        if candidates is not None:
+            for prefix, base_uri in candidates:
+                if uri.startswith(base_uri):
+                    return f"{prefix}:{uri[len(base_uri) :]}"
+        return self._uri_to_curie(uri, prefixes)
+
     def _lookup_cache(
         self,
         target_class: type[BaseModel],
@@ -503,9 +539,10 @@ class PydanticRDFLoader(Loader):
         """
         profile = self._pairs_profile(target_class, prefix_map)
         prefixes = profile["prefixes"]
+        prefix_index = profile["prefix_index"]
         predicate_to_field = profile["predicate_to_field"]
 
-        model_data: dict[str, Any] = {"id": self._uri_to_curie(subject, prefixes)}
+        model_data: dict[str, Any] = {"id": self._uri_to_curie_indexed(subject, prefixes, prefix_index)}
 
         for predicate, obj in pairs:
             field_name = predicate_to_field.get(predicate)
@@ -513,7 +550,9 @@ class PydanticRDFLoader(Loader):
                 continue
 
             field_value = (
-                self._convert_literal_tuple(*obj) if isinstance(obj, tuple) else self._uri_to_curie(obj, prefixes)
+                self._convert_literal_tuple(*obj)
+                if isinstance(obj, tuple)
+                else self._uri_to_curie_indexed(obj, prefixes, prefix_index)
             )
 
             if field_name in model_data:
@@ -580,6 +619,7 @@ class PydanticRDFLoader(Loader):
 
         profile = {
             "prefixes": prefixes,
+            "prefix_index": self._build_prefix_index(prefixes),
             "predicate_to_field": predicate_to_field,
             "lang_field_kinds": lang_field_kinds,
             "list_fields": list_fields,
