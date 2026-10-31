@@ -1,8 +1,10 @@
 """Harvest provenance: content-addressed Method nodes and per-harvest records (DM v2 plan, Phase 8)."""
 
 import contextlib
+import getpass
 import json
 import os
+import socket
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -112,6 +114,15 @@ def test_harvest_record_carries_run_metadata(tmp_path):
     has_root = {str(o) for o in g.objects(record, URIRef(f"{CRYS_NS}hasRoot"))}
     assert len(uses_method) == 2
     assert len(has_root) > 0
+    assert props["operator"] == getpass.getuser()
+    assert props["hostname"] == socket.gethostname()
+    assert json.loads(props["cliOptions"]) == {
+        "command": "run",
+        "exclude": [],
+        "format": "turtle",
+        "methods": ["glimpse", "md5"],
+        "workers": 1,
+    }
 
 
 def test_failed_run_emits_no_harvest_record_anywhere(tmp_path):
@@ -135,16 +146,20 @@ def test_recorded_harvest_record_ttl_byte_identical(tmp_path):
     def next_item_id() -> str:
         return f"cryd:recorded-item-{next(counter):04d}"
 
-    run_pipeline(
-        str(tree),
-        ["glimpse", "md5"],
-        out,
-        workers=1,
-        fmt="turtle",
-        item_id_factory=next_item_id,
-        clock=lambda: fixed_clock,
-        source_root="/recorded/fixture/provenance-tree",
-    )
+    with (
+        patch("crystalia_collector.work.getpass.getuser", return_value="recorded-operator"),
+        patch("crystalia_collector.work.socket.gethostname", return_value="recorded-host"),
+    ):
+        run_pipeline(
+            str(tree),
+            ["glimpse", "md5"],
+            out,
+            workers=1,
+            fmt="turtle",
+            item_id_factory=next_item_id,
+            clock=lambda: fixed_clock,
+            source_root="/recorded/fixture/provenance-tree",
+        )
 
     recorded = Path(__file__).parent / "recorded" / "harvest-record.ttl"
     assert out.read_bytes() == recorded.read_bytes()

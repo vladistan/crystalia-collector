@@ -72,6 +72,12 @@ def _pin_harvest_uuid(monkeypatch):
     monkeypatch.setattr("crystalia_data_model.types.provenance.uuid4", lambda: _PINNED_UUID)
 
 
+@pytest.fixture(autouse=True)
+def _pin_harvest_identity(monkeypatch):
+    monkeypatch.setattr("crystalia_collector.work.getpass.getuser", lambda: "recorded-operator")
+    monkeypatch.setattr("crystalia_collector.work.socket.gethostname", lambda: "recorded-host")
+
+
 def _prepare_tree(tmp_path: Path) -> Path:
     # Resolved: FileObject.uri is always path.resolve()'d in LocalSource, so the
     # root prefix must match that form or _ancestor_uris' length comparison drifts.
@@ -181,5 +187,7 @@ if __name__ == "__main__":  # pragma: no cover
         with (
             unittest.mock.patch("os.stat", new=_pinned),
             unittest.mock.patch("crystalia_data_model.types.provenance.uuid4", new=lambda: _PINNED_UUID),
+            unittest.mock.patch("crystalia_collector.work.getpass.getuser", new=lambda: "recorded-operator"),
+            unittest.mock.patch("crystalia_collector.work.socket.gethostname", new=lambda: "recorded-host"),
         ):
             _write_recorded()

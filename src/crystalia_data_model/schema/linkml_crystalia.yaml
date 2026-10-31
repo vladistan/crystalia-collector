@@ -104,6 +104,9 @@ classes:
       - sourceRoot
       - usesMethod
       - hasRoot
+      - operator
+      - hostname
+      - cliOptions
 
 slots:
   id:
@@ -237,6 +240,29 @@ slots:
     required: false
     multivalued: false
     slot_uri: crys:sourceRoot
+
+  operator:
+    description: The user or service account that ran the harvest
+    range: string
+    required: false
+    multivalued: false
+    slot_uri: crys:operator
+
+  hostname:
+    description: The host the harvest ran on
+    range: string
+    required: false
+    multivalued: false
+    slot_uri: crys:hostname
+
+  cliOptions:
+    description: >-
+      The resolved invocation options the harvest ran with, after defaults
+      (e.g. methods, exclude, workers, format)
+    range: string
+    required: false
+    multivalued: false
+    slot_uri: crys:cliOptions
 
   usesMethod:
     description: The methods used by the harvest

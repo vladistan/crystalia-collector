@@ -1,6 +1,8 @@
 import contextlib
+import getpass
 import json
 import os
+import socket
 import tempfile
 import uuid
 from collections import defaultdict
@@ -694,6 +696,15 @@ def _collect_bookend_dir(
 ItemIdFactory = Callable[[], str]
 
 
+def invocation_provenance(command: str, **options: object) -> dict[str, str]:
+    """`record_harvest` keyword args naming who ran `command`, where, and with which resolved options."""
+    return {
+        "operator": getpass.getuser(),
+        "hostname": socket.gethostname(),
+        "cli_options": json.dumps({"command": command, **options}, sort_keys=True),
+    }
+
+
 def _default_item_id() -> str:
     return f"cryd:{uuid.uuid4()}"
 
@@ -899,6 +910,7 @@ def run_pipeline(
         source_root or prefix,
         methods=methods,
         roots=roots,
+        **invocation_provenance("run", methods=method_ids, workers=workers, format=fmt, exclude=exclude or []),
     )
 
     tmp_output = output_path.with_name(output_path.name + ".tmp")

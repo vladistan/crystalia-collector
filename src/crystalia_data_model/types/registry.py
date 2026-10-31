@@ -124,8 +124,13 @@ class TypeEntry:
         return tuple(s for s in SCALARS if s not in self.forbidden)
 
 
+@cache
 def type_name(ref: str) -> str:
-    """Bare type name from a name, a ``crys:dtype/<name>`` CURIE or the expanded URI."""
+    """Bare type name from a name, a ``crys:dtype/<name>`` CURIE or the expanded URI.
+
+    Cached: pure function of its string argument over fixed module constants, called once per
+    distinct ``ref`` string across a whole validation run (perf: dm-v2-validate-perf).
+    """
     if ref.startswith(CRYS_BASE):
         ref = CRYS_CURIE_PREFIX + ref[len(CRYS_BASE) :]
     if ref.startswith(CRYS_CURIE_PREFIX):
@@ -412,6 +417,14 @@ class Registry:
         for row in by_name.values():
             self._check_row(row, by_name)
         self._by_name: Mapping[str, TypeEntry] = by_name
+        # perf (dm-v2-validate-perf): Registry is immutable after construction, so type_of/
+        # ancestors results are safe to cache for the registry's lifetime, keyed by the resolved
+        # type name. recompute_id's role reconstruction (_assign_roles) calls these ~1M times on
+        # a 600k-descriptor validate() run; type_of alone was 2.4s of that, ancestors (via is_a)
+        # another 3.5s.
+        self._type_of_cache: dict[str, TypeEntry] = {}
+        self._ancestors_cache: dict[str, tuple[TypeEntry, ...]] = {}
+        self._is_a_cache: dict[tuple[str, str], bool] = {}
 
     @staticmethod
     def _check_row(row: TypeEntry, by_name: Mapping[str, TypeEntry]) -> None:
@@ -480,28 +493,48 @@ class Registry:
     def type_of(self, ref: str | Descriptor) -> TypeEntry:
         """The row for a type reference or a descriptor's ``hasType``; raises :class:`UnknownType`."""
         key = ref if isinstance(ref, str) else str(ref.hasType)
-        entry = self._by_name.get(type_name(key))
+        name = type_name(key)
+        entry = self._type_of_cache.get(name)
+        if entry is not None:
+            return entry
+        entry = self._by_name.get(name)
         if entry is None:
             raise UnknownType(key)
+        self._type_of_cache[name] = entry
         return entry
 
     def ancestors(self, ref: str | Descriptor) -> tuple[TypeEntry, ...]:
         """Proper ancestors, nearest first, root (``descriptor``) last."""
+        entry = self.type_of(ref)
+        cached = self._ancestors_cache.get(entry.name)
+        if cached is not None:
+            return cached
         out: list[TypeEntry] = []
-        cur = self.type_of(ref).parent
+        cur = entry.parent
         while cur is not None:
-            entry = self._by_name[cur]
-            out.append(entry)
-            cur = entry.parent
-        return tuple(out)
+            parent = self._by_name[cur]
+            out.append(parent)
+            cur = parent.parent
+        result = tuple(out)
+        self._ancestors_cache[entry.name] = result
+        return result
 
     def is_a(self, ref: str | Descriptor, ancestor: str) -> bool:
-        """True if ``ref`` is ``ancestor`` or descends from it. Unknown ``ancestor`` → False."""
+        """True if ``ref`` is ``ancestor`` or descends from it. Unknown ``ancestor`` → False.
+
+        Result-cached per ``(type name, ancestor name)``: the type universe is small and fixed,
+        so this collapses the hierarchy walk to one dict lookup on every call after the first
+        (perf: dm-v2-validate-perf, called once per role x candidate-child in `_assign_roles`).
+        """
         target = type_name(ancestor)
         entry = self.type_of(ref)
-        if entry.name == target:
-            return True
-        return any(a.name == target for a in self.ancestors(ref))
+        cache_key = (entry.name, target)
+        cached = self._is_a_cache.get(cache_key)
+        if cached is not None:
+            return cached
+        result = entry.name == target or any(a.name == target for a in self.ancestors(ref))
+        self._is_a_cache[cache_key] = result
+        return result
 
     def grade(self, ref: str | Descriptor) -> Grade:
         return self.type_of(ref).grade

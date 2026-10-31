@@ -20,6 +20,7 @@ from crystalia_collector.work import (
     _build_file_items,
     _default_item_id,
     combine_descriptors,
+    invocation_provenance,
     load_listing_manifest,
 )
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
@@ -100,7 +101,15 @@ def merge(
 
     methods = [mint_method(mid, method_by_id(mid).parameters()) for mid in method_ids]
     roots = [item for item in items if item.isPartOf is None]
-    harvest_record = record_harvest(None, None, __version__, root, methods=methods, roots=roots)
+    harvest_record = record_harvest(
+        None,
+        None,
+        __version__,
+        root,
+        methods=methods,
+        roots=roots,
+        **invocation_provenance("merge", methods=method_ids, root=root),
+    )
 
     tmp_output = output_path.with_name(output_path.name + ".tmp")
     try:

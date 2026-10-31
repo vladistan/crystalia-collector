@@ -165,6 +165,12 @@ descriptors and items:
   `crystalia_data_model.types.provenance.record_harvest` and linked to the
   `Method` nodes used and the root `Item`s produced. It carries the run's
   start and end time, the collector version, and the source root scanned.
+  It also records who and where: `operator` (OS user, `getpass.getuser()`),
+  `hostname` (`socket.gethostname()`), and `cliOptions` (a JSON object with
+  sorted keys holding the resolved options after defaults: `command`,
+  `methods`, `workers`, `format`, `exclude` for `run`; `command`, `methods`,
+  `root` for `merge`). `annotate` emits no `HarvestRecord`. All three are
+  optional, so harvests made before they existed stay valid.
   It is emitted exactly once, after the write check succeeds, and only for a
   fully successful harvest — a failed run (`HarvestIncompleteError`) writes
   nothing to the central output, so no `HarvestRecord` for it exists anywhere.

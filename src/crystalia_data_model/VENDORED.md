@@ -1,12 +1,13 @@
 # Vendored package: `crystalia_data_model`
 
-**Source:** `crystalia-data-model` main@`5319a2a`
-(v2.1.1: `cryd:` prefix now resolves under w3id.org too — schema prefix-map
-fix only, no identity change, ids unaffected)
+**Source:** `crystalia-data-model` main@`b74b6ce` (v2.1.1 + 2 commits, untagged)
+(`HarvestRecord` gains optional `operator`, `hostname`, `cliOptions` slots;
+`Registry.type_of`/`ancestors`/`is_a` memoized; `cryd:` prefix resolves under
+w3id.org as of v2.1.1)
 (`src/crystalia_data_model/`, the LinkML-generated Pydantic data model plus
 the `types/` behaviour package, at `../crystalia-data-model`).
 
-**Tree hash:** `32bd7bb7875ae7d46f72d3b08cda9fc8c3154f27e8f7b8f65aaf8b775c16ee9c`
+**Tree hash:** `97fa4702b09e50d68525b7b1b72a7a6a90719119204a86fd5418cf1208b0efc4`
 (`tests/test_vendored_dm.py::vendored_tree_hash`, sorted relative paths and
 file bytes fed into one SHA-256 digest, `__pycache__` excluded).
 

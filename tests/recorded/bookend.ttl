@@ -4,11 +4,14 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://w3id.org/crystalia/data/harvest/00000000-0000-0000-0000-000000000000> a crys:HarvestRecord ;
+    crys:cliOptions "{\"command\": \"run\", \"exclude\": [], \"format\": \"turtle\", \"methods\": [\"bookend\"], \"workers\": 1}" ;
     crys:collectorVersion "1.0.0" ;
     crys:endedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:hasRoot cryd:recorded-item-0001,
         cryd:recorded-item-0002,
         cryd:recorded-item-0003 ;
+    crys:hostname "recorded-host" ;
+    crys:operator "recorded-operator" ;
     crys:sourceRoot "/recorded/fixture/formats" ;
     crys:startedAt "2024-01-01T00:00:00+00:00"^^xsd:dateTime ;
     crys:usesMethod <https://w3id.org/crystalia/data/method/9d7708b253c80c94a232f82a43e36ef7> .

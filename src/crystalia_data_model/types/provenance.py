@@ -49,8 +49,16 @@ def record_harvest(
     source_root: str | None,
     methods: Iterable[Method] = (),
     roots: Iterable[Item] = (),
+    *,
+    operator: str | None = None,
+    hostname: str | None = None,
+    cli_options: str | None = None,
 ) -> HarvestRecord:
-    """A new, uniquely-IRI'd ``HarvestRecord`` linking the methods used and the root items produced (AC-20)."""
+    """A new, uniquely-IRI'd ``HarvestRecord`` linking the methods used and the root items produced (AC-20).
+
+    ``operator``, ``hostname`` and ``cli_options`` are optional (plan 03 Ph11 Step 11.8): old harvests
+    never carried them and need no re-harvest to stay valid.
+    """
     harvest_id = f"{CRYD_CURIE_PREFIX}{_HARVEST_NAMESPACE}{uuid4()}"
     uses_method = [str(m.id) for m in methods]
     has_root = [str(r.id) for r in roots]
@@ -62,6 +70,9 @@ def record_harvest(
         sourceRoot=source_root,
         usesMethod=uses_method or None,
         hasRoot=has_root or None,
+        operator=operator,
+        hostname=hostname,
+        cliOptions=cli_options,
     )
 
 

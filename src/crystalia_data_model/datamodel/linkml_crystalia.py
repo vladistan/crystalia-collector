@@ -117,7 +117,10 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
                                              'collectorVersion',
                                              'sourceRoot',
                                              'usesMethod',
-                                             'hasRoot']},
+                                             'hasRoot',
+                                             'operator',
+                                             'hostname',
+                                             'cliOptions']},
                  'Item': {'class_uri': 'crys:Item',
                           'description': 'An individual item for example a file',
                           'from_schema': 'https://w3id.org/crystalia',
@@ -197,6 +200,17 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
                                     'range': 'float',
                                     'required': False,
                                     'slot_uri': 'crys:assertedCoverage'},
+               'cliOptions': {'description': 'The resolved invocation options the '
+                                             'harvest ran with, after defaults '
+                                             '(e.g. methods, exclude, workers, '
+                                             'format)',
+                              'domain_of': ['HarvestRecord'],
+                              'from_schema': 'https://w3id.org/crystalia',
+                              'multivalued': False,
+                              'name': 'cliOptions',
+                              'range': 'string',
+                              'required': False,
+                              'slot_uri': 'crys:cliOptions'},
                'collectorVersion': {'description': 'The version of the collector '
                                                    'that produced the harvest',
                                     'domain_of': ['HarvestRecord'],
@@ -248,6 +262,14 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
                            'range': 'uriorcurie',
                            'required': True,
                            'slot_uri': 'crys:hasType'},
+               'hostname': {'description': 'The host the harvest ran on',
+                            'domain_of': ['HarvestRecord'],
+                            'from_schema': 'https://w3id.org/crystalia',
+                            'multivalued': False,
+                            'name': 'hostname',
+                            'range': 'string',
+                            'required': False,
+                            'slot_uri': 'crys:hostname'},
                'id': {'description': 'A unique identifier',
                       'domain_of': ['Thing'],
                       'from_schema': 'https://w3id.org/crystalia',
@@ -297,6 +319,15 @@ linkml_meta = LinkMLMeta({'classes': {'DescribableThing': {'class_uri': 'crys:De
                           'required': False,
                           'slot_uri': 'crys:offset',
                           'unit': {'ucum_code': 'byte'}},
+               'operator': {'description': 'The user or service account that ran '
+                                           'the harvest',
+                            'domain_of': ['HarvestRecord'],
+                            'from_schema': 'https://w3id.org/crystalia',
+                            'multivalued': False,
+                            'name': 'operator',
+                            'range': 'string',
+                            'required': False,
+                            'slot_uri': 'crys:operator'},
                'parameters': {'description': 'The canonical parameter string of a '
                                              'method (sorted, length-prefixed '
                                              '`key=len:value` lines). Part of the '
@@ -660,7 +691,10 @@ class HarvestRecord(Thing):
                    'collectorVersion',
                    'sourceRoot',
                    'usesMethod',
-                   'hasRoot']})
+                   'hasRoot',
+                   'operator',
+                   'hostname',
+                   'cliOptions']})
 
     startedAt: Optional[datetime ] = Field(default=None, description="""When the harvest started""", json_schema_extra = { "linkml_meta": {'alias': 'startedAt',
          'description': 'When the harvest started',
@@ -723,6 +757,37 @@ class HarvestRecord(Thing):
          'range': 'Item',
          'required': False,
          'slot_uri': 'crys:hasRoot'} })
+    operator: Optional[str] = Field(default=None, description="""The user or service account that ran the harvest""", json_schema_extra = { "linkml_meta": {'alias': 'operator',
+         'description': 'The user or service account that ran the harvest',
+         'domain_of': ['HarvestRecord'],
+         'from_schema': 'https://w3id.org/crystalia',
+         'multivalued': False,
+         'name': 'operator',
+         'owner': 'HarvestRecord',
+         'range': 'string',
+         'required': False,
+         'slot_uri': 'crys:operator'} })
+    hostname: Optional[str] = Field(default=None, description="""The host the harvest ran on""", json_schema_extra = { "linkml_meta": {'alias': 'hostname',
+         'description': 'The host the harvest ran on',
+         'domain_of': ['HarvestRecord'],
+         'from_schema': 'https://w3id.org/crystalia',
+         'multivalued': False,
+         'name': 'hostname',
+         'owner': 'HarvestRecord',
+         'range': 'string',
+         'required': False,
+         'slot_uri': 'crys:hostname'} })
+    cliOptions: Optional[str] = Field(default=None, description="""The resolved invocation options the harvest ran with, after defaults (e.g. methods, exclude, workers, format)""", json_schema_extra = { "linkml_meta": {'alias': 'cliOptions',
+         'description': 'The resolved invocation options the harvest ran with, after '
+                        'defaults (e.g. methods, exclude, workers, format)',
+         'domain_of': ['HarvestRecord'],
+         'from_schema': 'https://w3id.org/crystalia',
+         'multivalued': False,
+         'name': 'cliOptions',
+         'owner': 'HarvestRecord',
+         'range': 'string',
+         'required': False,
+         'slot_uri': 'crys:cliOptions'} })
     id: str = Field(default=..., description="""A unique identifier""", json_schema_extra = { "linkml_meta": {'alias': 'id',
          'description': 'A unique identifier',
          'domain_of': ['Thing'],
