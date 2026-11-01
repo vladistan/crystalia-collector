@@ -38,7 +38,7 @@ log = structlog.get_logger()
 
 
 class HarvestIncompleteError(Exception):
-    """A harvest ended without every expected byte or file hashed (fail-closed, Ph5)."""
+    """A harvest ended without every expected byte or file hashed (fail-closed)."""
 
 
 # Descriptor type for a file's path relative to the scan root. This is location
@@ -102,7 +102,7 @@ def _process_task_file_traced(
 
 
 def _process_task_file_tolerant(task_file_path: str) -> tuple[list[tuple[str, Descriptor]], list[str]]:
-    """Per-line fault-tolerant task-file processing for ``annotate`` (Ph5).
+    """Per-line fault-tolerant task-file processing for ``annotate``.
 
     One bad line does not lose the rest. Returns (results, raw failed lines) so a
     failure can be reported as a re-feedable patch-up manifest.
@@ -122,7 +122,7 @@ def _process_task_file_tolerant(task_file_path: str) -> tuple[list[tuple[str, De
 
 
 def write_sidecar(sidecar_path: Path, entries: list[tuple[str, Descriptor]]) -> Path:
-    """Write a (dir, name, child IRI) sidecar per annotated entry (Ph9 Step 9.1).
+    """Write a (dir, name, child IRI) sidecar per annotated entry.
 
     RDF carries no rollup (name, child) pairs (DM consumer contract, known deviation
     1), so `merge` reads this to reconstruct directory membership.
@@ -135,7 +135,7 @@ def write_sidecar(sidecar_path: Path, entries: list[tuple[str, Descriptor]]) -> 
 
 
 def _assemble_region_composite(uri: str, parts: list[Descriptor]) -> Descriptor:
-    """Assemble ordered chunk parts into one region composite (Ph5 Step 5.1).
+    """Assemble ordered chunk parts into one region composite.
 
     Requires the parts to cover offsets ``0..size`` exactly once; a gap or
     overlap is a broken harvest, not a publishable descriptor state.
@@ -156,7 +156,7 @@ def write_partials_manifest(
     unhashed_lines: list[str],
     completed: list[Descriptor],
 ) -> Path:
-    """Write a patch-up manifest for MY-NF-PIPELINE-01 (Ph5 Step 5.3).
+    """Write a patch-up manifest for the patch-up job.
 
     ``unhashed_lines`` are task-file lines directly re-feedable to ``annotate``.
     ``completed`` are the descriptors already minted before the harvest failed.
@@ -190,7 +190,7 @@ _LISTING_MANIFEST_NAME = "listing_manifest.json"
 
 
 def write_listing_manifest(task_dir: Path, dir_counts: dict[str, int]) -> Path:
-    """Write, per directory, the expected entry count from a `list` pass (Ph9 Step 9.1).
+    """Write, per directory, the expected entry count from a `list` pass.
 
     `merge` reads this to detect a partition harvest short of what the listing found.
     """
@@ -490,7 +490,7 @@ def combine_descriptors(
 
             for desc in descriptors:
                 # Only types the DM registry knows are checked here; methods not yet
-                # migrated to DM minting (md5-chunk, relpath) mint their own IRIs (Ph1 note).
+                # migrated to DM minting (md5-chunk, relpath) mint their own IRIs.
                 if desc.hasType in _dm_registry:
                     ensure_valid(desc, resolve=resolve)
                 g = rdf_from_model(desc)
@@ -816,6 +816,9 @@ def run_pipeline(
     source_root: str | None = None,
     exclude: list[str] | None = None,
 ) -> RunResult:
+    if not prefix.startswith("s3://") and not Path(prefix).is_dir():
+        msg = f"source is not a directory: {prefix}"
+        raise FileNotFoundError(msg)
     log.info("pipeline_start", prefix=prefix, methods=method_ids, workers=workers, fmt=fmt)
     id_factory = item_id_factory or _default_item_id
     now = clock or (lambda: datetime.now(UTC))

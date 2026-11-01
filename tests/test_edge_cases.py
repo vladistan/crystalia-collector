@@ -70,3 +70,21 @@ def test_run_pipeline_zero_byte_file_glimpse(tmp_path):
     result = run_pipeline(str(data), ["glimpse"], out, workers=1, fmt="turtle")
     assert result.succeeded == 1
     assert out.exists()
+
+
+def test_run_pipeline_missing_source_raises(tmp_path):
+    out = tmp_path / "out.ttl"
+    with pytest.raises(FileNotFoundError):
+        run_pipeline(str(tmp_path / "nonexistent"), ["md5-8gb"], out, workers=1, fmt="turtle")
+    assert not out.exists()
+
+
+def test_run_cli_missing_source_exits_nonzero(tmp_path):
+    from typer.testing import CliRunner
+
+    from crystalia_collector.app import app
+
+    out = tmp_path / "out.ttl"
+    result = CliRunner().invoke(app, ["run", str(tmp_path / "nonexistent"), "-o", str(out)])
+    assert result.exit_code != 0
+    assert not out.exists()

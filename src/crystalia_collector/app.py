@@ -73,7 +73,7 @@ def annotate(
     """Annotate files with metadata from a task file (local or S3 entries).
 
     Writes DM v2 descriptors to `output_file` (Turtle, no Items, no harvest record --
-    partition output is intermediate, Ph9 Step 9.1) and a `(dir, name, child IRI)`
+    partition output is intermediate) and a `(dir, name, child IRI)`
     sidecar to `output_file + ".sidecar"` for `merge` to reconstruct directory
     membership.
     """

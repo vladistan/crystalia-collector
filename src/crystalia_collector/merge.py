@@ -1,4 +1,4 @@
-"""Merge partitioned task-file harvests into one complete, DM-valid output (Ph9).
+"""Merge partitioned task-file harvests into one complete, DM-valid output.
 
 Each partition comes from `annotate`: a Turtle file of DM v2 descriptors plus a
 `(dir, name, child IRI)` sidecar (RDF carries no rollup name/child pairs, DM
