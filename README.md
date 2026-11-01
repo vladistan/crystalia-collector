@@ -28,9 +28,17 @@ crystalia-collector checksum s3://my-bucket/path/to/file.gz --offset 0 --length 
 # Process a task file and generate RDF annotations
 crystalia-collector annotate tasks/task_1 --output-file annotations.rdf
 
-# Combine annotations (placeholder — not yet implemented)
-crystalia-collector combine
+# Combine per-item Turtle files into one catalog
+crystalia-collector combine ./annotations -o catalog.ttl
+
+# Local end-to-end run (list, hash, combine); fail-closed
+crystalia-collector run /abs/path/data -o catalog.ttl --method md5-8gb --partials-dir ./partials
+
+# Merge annotate partitions into one catalog with one harvest record
+crystalia-collector merge tasks/listing_manifest.json out1.ttl out2.ttl -o catalog.ttl --root s3://my-bucket/path
 ```
+
+Operator procedures (failure policy, patch-up, merge): [docs/runbook.md](docs/runbook.md).
 
 ## Checksum Methods
 

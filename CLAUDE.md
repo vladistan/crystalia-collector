@@ -8,9 +8,12 @@ crystalia-collector — CLI tool that generates RDF dataset descriptors from lar
 
 ```
 src/crystalia_collector/
-  app.py            # Typer CLI entry point (list, annotate, checksum, combine, run)
+  app.py            # Typer CLI entry point (list, annotate, checksum, combine, run, merge, test-sentry)
   config.py         # Pydantic Settings (env vars, TOML files)
   work.py           # Core workflow: list dirs, generate tasks, compute annotations, run pipeline
+  merge.py          # merge: combine annotate partitions into one DM-valid catalog + harvest record
+  scan_paths.py     # Path scanning and exclusion helpers
+  bookend_*.py      # bookend / bookend-dir descriptor scanners
   s3_iface.py       # Legacy S3 facade (delegates to source/s3.py)
   rdf.py            # RDF <-> Pydantic model conversion via PydanticRDFDumper/Loader
   glimpse_scanner.py     # Walks a source and scans files/dirs with a Glimpse method
@@ -45,12 +48,18 @@ classes.
 ## CLI Commands
 
 ```bash
-crystalia-collector list <prefix>           # List files at S3 or local prefix
-crystalia-collector annotate <task-file>    # Compute descriptors from task file
-crystalia-collector checksum <uri>          # Compute checksum for a single file
-crystalia-collector combine <dir> -o <out>  # Combine descriptor files into one
-crystalia-collector run <prefix>            # End-to-end pipeline: list -> tasks -> annotate -> combine
+crystalia-collector list <prefix> [--task-dir D] [--method-id M] [--exclude P]  # List files; with --task-dir also writes task files + listing_manifest.json
+crystalia-collector annotate <task-file> [--output-file F] [--partials-dir D]   # Descriptors for one task file; writes F and F.sidecar
+crystalia-collector checksum <uri> [--offset N] [--length N]                    # Checksum of a single file
+crystalia-collector combine <dir> -o <out> [-f turtle|text]                     # Combine per-item Turtle files into one catalog
+crystalia-collector run <source> [-o out] [--method M]... [-w N] [--partials-dir D] [--exclude P]...  # Local end-to-end pipeline; fail-closed
+crystalia-collector merge <listing-manifest> <partition.ttl>... -o <out> [--root R] [--method M]...      # Merge annotate partitions; one harvest record
+crystalia-collector test-sentry                                                 # Send a test event to Sentry
 ```
+
+`run` and `annotate` are fail-closed (no `--fail-fast`). `merge` checks each
+directory's entry count against the listing manifest and aborts on a short
+partition. Operator procedures: `docs/runbook.md`.
 
 ## Development Commands
 
@@ -64,6 +73,7 @@ docker build -t crystalia-collector .  # Build container
 
 ## Key Details
 
+- Version 1.0.0; DM v2 output (breaking vs 0.x; see changelog.md)
 - Python 3.13+, hatchling build backend, uv for dependency management
 - Entry point: `crystalia-collector` -> `crystalia_collector.app:app`
 - Coverage minimum: 80%

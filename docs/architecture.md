@@ -54,14 +54,16 @@ The system runs in two modes:
 
 ### app.py — CLI Entry Point
 
-Typer application with five commands:
+Typer application with seven commands:
 
 | Command | Purpose |
 |---------|---------|
 | `list <prefix>` | List S3 files, optionally generate task files |
 | `checksum <s3_url>` | Compute MD5 of a single S3 object or byte range |
 | `annotate <task_file>` | Process task file lines, output RDF annotations |
-| `combine` | Combine annotation files (placeholder) |
+| `combine` | Combine per-item Turtle files into one catalog |
+| `run <source>` | Local end-to-end pipeline, fail-closed |
+| `merge` | Merge `annotate` partitions into one catalog with one harvest record |
 | `test-sentry` | Send test event to verify Sentry integration |
 
 The `@app.callback()` initializes monitoring and logging on every command invocation.
