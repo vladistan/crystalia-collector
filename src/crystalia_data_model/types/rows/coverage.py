@@ -1,4 +1,4 @@
-"""Lane B rows: ``md5-chunked``, ``asserted`` and the S3 ETag subtypes (model-only in v2)."""
+"""Rows for ``md5-chunked``, ``asserted`` and the S3 ETag subtypes (model-only in v2)."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from crystalia_data_model.types.registry import (
     region_composite,
 )
 
-_PENDING = "robustness: SPARC default, pending spec check"
+_PENDING = "robustness: default value, pending spec check"
 
 ROWS: tuple[TypeEntry, ...] = (
     region_composite(
@@ -34,7 +34,7 @@ ROWS: tuple[TypeEntry, ...] = (
         Grade.COMPARISON,
         Robustness.MODERATE,
         strong=True,
-        doc=f"S3 ETag of a multipart upload; comparable only at equal part size (carrier decided by Lane B); not emitted in v2; {_PENDING}",
+        doc=f"S3 ETag of a multipart upload; comparable only at equal part size; not emitted in v2; {_PENDING}",
     ),
     plain_leaf(
         "etag-sse",

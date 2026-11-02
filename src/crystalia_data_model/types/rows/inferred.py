@@ -1,15 +1,15 @@
-"""Lane D rows: inferred equivalence types and the name-hint type (SPARC D-6).
+"""Inferred equivalence types and the name-hint type.
 
 Each inference rule emits its own named type so that inferred facts never merge with
-harvested ones. Rows here are the v2 data-only set plus the single name-hint type; Lane D
-may refine them.
+harvested ones. Rows here are the v2 data-only set plus the single name-hint type; this file
+may be refined further.
 """
 
 from __future__ import annotations
 
 from crystalia_data_model.types.registry import Grade, Robustness, TypeEntry, inferred
 
-_PENDING = "robustness: SPARC default (weakest link of the inputs), pending Lane D"
+_PENDING = "robustness: default (weakest link of the inputs), pending refinement"
 
 ROWS: tuple[TypeEntry, ...] = (
     inferred(

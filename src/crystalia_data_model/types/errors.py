@@ -1,4 +1,4 @@
-"""Error taxonomy and the :class:`Violation` record (SPARC §Refinement, plan 06 step 2.1).
+"""Error taxonomy and the :class:`Violation` record.
 
 Principle: malformed *data* is never raised on (it degrades to WEAK / OPAQUE);
 a broken *contract* or a missing-by-failure entry raises.
@@ -11,7 +11,7 @@ from enum import StrEnum
 
 
 class ViolationCode(StrEnum):
-    """Stable codes consumers aggregate by (NFR-007)."""
+    """Stable codes consumers aggregate by."""
 
     UNKNOWN_TYPE = "UNKNOWN_TYPE"
     MISSING_REQUIRED = "MISSING_REQUIRED"
@@ -61,7 +61,7 @@ class IncompleteRollup(CrystaliaModelError):
     """A folder rollup was asked for with fewer children than the listing promised.
 
     ``reason`` is always ``INCOMPLETE``: this is a failed harvest, never a
-    publishable descriptor state (ruling C1).
+    publishable descriptor state.
     """
 
     reason: str = ViolationCode.INCOMPLETE.value

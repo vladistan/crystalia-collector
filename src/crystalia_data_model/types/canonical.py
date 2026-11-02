@@ -1,4 +1,4 @@
-"""The canonical encoder: the only IRI factory (FR-009, FR-010; SPARC §Canonical Encoding).
+"""The canonical encoder: the only IRI factory.
 
 Every descriptor IRI is ``cryd:<md5(canonical bytes)>``. The bytes are UTF-8 lines, every value
 length-prefixed as ``<field>=<byte-len>:<bytes>``:

@@ -1,4 +1,4 @@
-"""Generic, registry-driven descriptor validation (FR-018; plan 06 step 2.5).
+"""Generic, registry-driven descriptor validation.
 
 Checks, in order: the type is known (else nothing else is checked), required / forbidden scalars,
 ranges, child-count bounds, present <= total on region composites, a composite's ``value`` equals

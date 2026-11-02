@@ -1,10 +1,10 @@
-"""Additive inference framework + the v2 rule set (FR-019, FR-020; steps 6.3-6.4).
+"""Additive inference framework + the v2 rule set.
 
 Every rule emits its own named, distinct type via :func:`crystalia_data_model.types.canonical.mint_composite`,
 so an inferred fact never merges with a harvested one; provenance runs through ``hasDescriptor`` to the
 rule's sources. Rules never mutate stored descriptors or Items. Rule inputs are built with
-``canonical.mint_*`` directly by the rule's own tests -- this module never imports Lane A/B/C modules
-(``leaves.py``, ``coverage.py``, ``bookend.py``, ``formats.py``).
+``canonical.mint_*`` directly by the rule's own tests -- this module never imports the other type
+modules (``leaves.py``, ``coverage.py``, ``bookend.py``, ``formats.py``).
 
 Rules run in a fixed stage order: ``data`` (stored facts only) before ``name-hint`` (weaker, heuristic)
 before ``re-probe`` (re-reads the source; skipped, never raised on, when unreachable).
@@ -94,7 +94,7 @@ def _bookend_strong_by_name(inputs: Mapping[str, Descriptor], resolve: Resolver,
 
 def cross_algorithm_rule(out_type: str, type_a: str, type_b: str, *, stage: Stage = "data") -> InferenceRule:
     """A hash-equivalence rule keyed on (hash, length) between two hash-leaf types: same bytes hashed by
-    two algorithms carry the same ``length`` (AC-20 does not apply; this is AC-21's cross-algorithm case).
+    two algorithms carry the same ``length``.
     No v2 rule uses this directly (md5-only); exercised via a test-registry ``sha256-region`` fixture.
     The output type's robustness is fixed by its registry row to the weakest of the two inputs.
     """
@@ -165,7 +165,7 @@ def infer(
             try:
                 if not rule.reachable():
                     continue
-            except Exception:  # noqa: BLE001 - a probe failure is "unreachable", never a raise (FR-019)
+            except Exception:  # noqa: BLE001 - a probe failure is "unreachable", never a raise
                 continue
         inputs: dict[str, Descriptor] = {}
         for type_name in rule.in_types:

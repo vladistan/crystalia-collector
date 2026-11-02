@@ -1,8 +1,8 @@
-"""Format registry: rows, loader rules and detection (FR-014; plan 06 Lane C, steps 5.2/5.3).
+"""Format registry: rows, loader rules and detection.
 
-The row *shape* (:class:`FormatEntry`) and the simple ``lookup`` seam were laid down in the
-foundation (Ph2 step 2.4) against an empty :mod:`crystalia_data_model.types.format_rows`. Lane C
-owns the whole file from here: the loader that turns rows into a validated registry
+The row *shape* (:class:`FormatEntry`) and the simple ``lookup`` seam were laid down against an
+empty :mod:`crystalia_data_model.types.format_rows`. This module owns the rest: the loader that
+turns rows into a validated registry
 (``RegistryLoadError`` on a missing detection ``spec_ref``; OPAQUE demotion of a ``strong_rule``
 lacking a verified ``rule_spec_ref``, logged once and exposed via ``unverified_rules()``), and
 ``detect_format`` for the v2 format set (zip family incl. npz, gzip, JPEG, PNG, GIF).
@@ -61,7 +61,7 @@ class Detection:
 
 
 class FormatRegistry:
-    """A validated, demotion-applied set of format rows (loader rules, AC-16)."""
+    """A validated, demotion-applied set of format rows (loader rules)."""
 
     def __init__(self, rows: Iterable[FormatEntry]) -> None:
         by_id: dict[str, FormatEntry] = {}

@@ -1,4 +1,4 @@
-"""Zip central-directory parsing + ``zip-cd`` / ``zip-manifest`` descriptors (FR-014, FR-016; step 5.5).
+"""Zip central-directory parsing + ``zip-cd`` / ``zip-manifest`` descriptors.
 
 Minted only when the caller has already located and read the EOCD + whole Central Directory
 (``detect_format`` / ``formats._detect_zip`` locate the region; this module parses and mints from

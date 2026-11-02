@@ -1,4 +1,4 @@
-"""Lane C rows: bookends, folder bookends, ``zip-cd`` and ``zip-manifest``."""
+"""Rows for bookends, folder bookends, ``zip-cd`` and ``zip-manifest``."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ from crystalia_data_model.types.registry import (
     rollup,
 )
 
-_PENDING = "robustness: SPARC default, pending spec check"
+_PENDING = "robustness: default value, pending spec check"
 _BOOKEND_ROLES = (("head", "md5-region"), ("tail", "md5-region"), ("format", "format"), ("file-size", "file-size"))
 
 ROWS: tuple[TypeEntry, ...] = (

@@ -1,4 +1,4 @@
-"""Coverage and robustness API (FR-011..013, FR-017; plan 06 Phase 4).
+"""Coverage and robustness API.
 
 No consumer computes coverage locally. Three own-subject / object-relative / audit
 functions plus robustness and comparability, all registry-driven:
@@ -19,9 +19,9 @@ functions plus robustness and comparability, all registry-driven:
 
 Region rules for :func:`coverage_of` are registered by name via
 :func:`register_region_rule`; the format registry only carries the rule's
-*name* (``formats.py`` / ``format_rows.py`` are Lane C's). This keeps
+*name* (``formats.py`` / ``format_rows.py`` own the rows). This keeps
 ``coverage.py`` and ``formats.py`` file-disjoint while letting a verified
-format row drive real object-relative coverage once Lane C defines one.
+format row drive real object-relative coverage once one is defined.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ class ObjectContext:
 
     ``format`` is either a format id (looked up via ``formats.lookup``) or a
     :class:`FormatEntry` supplied directly -- the second form lets tests exercise
-    a verified region rule without a Lane C format row.
+    a verified region rule without a format row.
     """
 
     length: int | None = None
@@ -71,7 +71,7 @@ def _resolve_format(fmt: str | FormatEntry | None) -> FormatEntry | None:
 
 
 def get_coverage(d: Descriptor, *, registry: Registry | None = None) -> float:
-    """The descriptor's own-subject coverage (FR-011); never raises."""
+    """The descriptor's own-subject coverage; never raises."""
     reg = default_registry() if registry is None else registry
     entry = reg.type_of(d)
     if entry.coverage_rule is CoverageRule.CONSTANT_ONE:
@@ -86,13 +86,13 @@ def get_coverage(d: Descriptor, *, registry: Registry | None = None) -> float:
 
 
 def get_robustness(d: Descriptor, *, registry: Registry | None = None) -> Robustness:
-    """Robustness from the registry only (FR-013)."""
+    """Robustness from the registry only."""
     reg = default_registry() if registry is None else registry
     return reg.type_of(d).robustness
 
 
 def literal_coverage(d: Descriptor, ctx: ObjectContext, *, registry: Registry | None = None) -> float:
-    """Bytes hashed over object length, for audit or as the unformatted fallback (FR-012).
+    """Bytes hashed over object length, for audit or as the unformatted fallback.
 
     Raises :class:`DegenerateCoverage` when the object length is unknown -- the
     one case :func:`coverage_of` cannot resolve without a format rule.
@@ -107,7 +107,7 @@ def literal_coverage(d: Descriptor, ctx: ObjectContext, *, registry: Registry | 
 
 
 def coverage_of(d: Descriptor, ctx: ObjectContext, *, registry: Registry | None = None) -> float:
-    """Coverage relative to the containing object (FR-012; D-5).
+    """Coverage relative to the containing object.
 
     A known format with a *registered* region rule wins; otherwise falls back to
     :func:`literal_coverage`, which raises when the length is also unknown.
@@ -123,7 +123,7 @@ def coverage_of(d: Descriptor, ctx: ObjectContext, *, registry: Registry | None 
 def asserted(
     d: Descriptor, *, resolve: Resolver | None = None, registry: Registry | None = None
 ) -> tuple[float, float | None]:
-    """The asserted value and, when resolvable, the producer's own computed coverage (FR-017, AC-17).
+    """The asserted value and, when resolvable, the producer's own computed coverage.
 
     Both are returned when both exist; a disagreement is a stale rule or a
     producer bug, never resolved here.
@@ -137,7 +137,7 @@ def asserted(
 
 
 def mint_md5_chunked(total: int, regions: Sequence[Descriptor], *, registry: Registry | None = None) -> Descriptor:
-    """``md5-region`` parts by offset with ``total`` expected (FR-016, AC-08)."""
+    """``md5-region`` parts by offset with ``total`` expected."""
     return mint_composite("md5-chunked", list(regions), total=total, registry=registry)
 
 
@@ -148,7 +148,7 @@ def _etag_part_size(d: Descriptor) -> str | None:
 
 
 def comparable(a: Descriptor, b: Descriptor, *, registry: Registry | None = None) -> bool:
-    """ETag-subtype comparability (FR-013, AC-18): same subtype, then the subtype's rule."""
+    """ETag-subtype comparability: same subtype, then the subtype's rule."""
     reg = default_registry() if registry is None else registry
     ea, eb = reg.type_of(a), reg.type_of(b)
     if ea.name != eb.name:

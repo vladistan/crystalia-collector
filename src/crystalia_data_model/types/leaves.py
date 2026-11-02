@@ -1,4 +1,4 @@
-"""Lane A behaviour: fact leaves, ``md5``, ``md5-region`` and the content/legacy glimpses.
+"""Fact leaves, ``md5``, ``md5-region`` and the content/legacy glimpses.
 
 Thin helpers over :mod:`crystalia_data_model.types.canonical`; no type-specific encoding logic
 lives here — the registry rows (``types/rows/leaves.py``) and the canonical encoder own that.
@@ -14,7 +14,7 @@ ChildRef = "Descriptor | str"
 
 
 def region_length(block: int, size: int, offset: int) -> int:
-    """Chunk length for a region starting at ``offset`` in an object of ``size`` bytes (AC-07)."""
+    """Chunk length for a region starting at ``offset`` in an object of ``size`` bytes."""
     return min(block, size - offset)
 
 
@@ -53,12 +53,12 @@ def mint_ctime(value: str, *, registry: Registry | None = None) -> Descriptor:
 
 
 def mint_md5(value: str, *, length: int | None = None, registry: Registry | None = None) -> Descriptor:
-    """Whole-object md5; ``length`` = bytes hashed, always required (FR-005)."""
+    """Whole-object md5; ``length`` = bytes hashed, always required."""
     return mint_leaf("md5", value, length=length, registry=registry)
 
 
 def mint_md5_region(offset: int, length: int, value: str, *, registry: Registry | None = None) -> Descriptor:
-    """``md5`` of bytes ``[offset, offset+length)``; same bytes at another offset is another IRI (AC-07)."""
+    """``md5`` of bytes ``[offset, offset+length)``; same bytes at another offset is another IRI."""
     return mint_positional("md5-region", offset, length, value, registry=registry)
 
 
@@ -68,7 +68,7 @@ def mint_md5_region(offset: int, length: int, value: str, *, registry: Registry 
 def mint_glimpse_content(
     *, file_size: Descriptor | str, head: Descriptor | str, registry: Registry | None = None
 ) -> Descriptor:
-    """{file-size, md5-region head 2 KB}: comparison-grade, LOW, no filename/ctime/mtime (AC-09)."""
+    """{file-size, md5-region head 2 KB}: comparison-grade, LOW, no filename/ctime/mtime."""
     return mint_composite("glimpse-content", {"file-size": file_size, "head": head}, registry=registry)
 
 

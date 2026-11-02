@@ -1,6 +1,6 @@
 """Crystalia data model: generated LinkML classes plus the v2 behaviour package.
 
-Observability contract (NFR-007): the package logs only through the
+Observability contract: the package logs only through the
 ``crystalia_data_model`` logger, which carries a ``NullHandler`` so importing
 the library never emits anything; consumers attach their own handlers.
 """

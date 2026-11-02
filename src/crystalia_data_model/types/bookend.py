@@ -1,7 +1,7 @@
-"""Bookend judgement + minting: fixed 16 KB head + 16 KB tail (FR-015; step 5.4; D-1).
+"""Bookend judgement + minting: fixed 16 KB head + 16 KB tail.
 
-The judgement is shared by the collector (which type to store) and inference (Phase 6's
-bookend/md5-chunked agreement rule read it too): STRONG when every byte is covered outright
+The judgement is shared by the collector (which type to store) and inference (the
+bookend/md5-chunked agreement rule reads it too): STRONG when every byte is covered outright
 (``size <= 32 KB``) or the captured blocks pin every byte a verified format rule needs (zip with
 its whole Central Directory inside the 16 KB tail); WEAK otherwise, with the failure reason
 carried through unchanged from :func:`crystalia_data_model.types.formats.detect_format`.
@@ -31,7 +31,7 @@ class Verdict:
 
 
 def judge_bookend(size: int, detection: Detection) -> Verdict:
-    """D-1: size <= 32 KB is always STRONG; otherwise STRONG only for a verified, wholly-captured
+    """Size <= 32 KB is always STRONG; otherwise STRONG only for a verified, wholly-captured
     rule (e.g. zip with its Central Directory inside the tail); every other case is WEAK with the
     detector's own reason code, or ``"opaque"`` when the format carries no strong rule at all.
     """
@@ -57,7 +57,7 @@ def mint_bookend(
     registry: Registry | None = None,
 ) -> Descriptor:
     """Mint the head/tail region descriptors, the format + file-size fact leaves, and the resulting
-    ``bookend-strong`` or ``bookend-weak`` field composite (D-1). ``head``/``tail`` are the md5 hex
+    ``bookend-strong`` or ``bookend-weak`` field composite. ``head``/``tail`` are the md5 hex
     digests of the captured blocks (a file <= 16 KB has ``head == tail``: one region IRI, repeated
     by role — a known, RDF-collapsed deviation the caller's ``resolve=`` contract must honour).
     """
@@ -78,13 +78,13 @@ def mint_bookend(
     )
 
 
-# --------------------------------------------------------------------------- bookend-dir (Phase 7)
+# --------------------------------------------------------------------------- bookend-dir
 
 
 @dataclass(frozen=True, slots=True)
 class DirEntry:
-    """One named child of a directory, carrying every D-3 candidate descriptor a harvester may have
-    minted for it. ``choose()`` applies D-3 in fixed priority: a zip with a readable Central
+    """One named child of a directory, carrying every candidate descriptor a harvester may have
+    minted for it. ``choose()`` applies a fixed priority: a zip with a readable Central
     Directory contributes its ``zip-manifest``; a subdirectory contributes its own ``bookend-dir-*``
     (recursive); anything else contributes its ``bookend-strong``/``bookend-weak``.
     """
@@ -98,7 +98,7 @@ class DirEntry:
         for candidate in (self.zip_manifest, self.bookend_dir, self.bookend):
             if candidate is not None:
                 return candidate
-        raise ValueError(f"{self.name}: no D-3 candidate descriptor supplied (zip_manifest/bookend_dir/bookend)")
+        raise ValueError(f"{self.name}: no candidate descriptor supplied (zip_manifest/bookend_dir/bookend)")
 
 
 def mint_bookend_dir(
@@ -107,8 +107,8 @@ def mint_bookend_dir(
     *,
     registry: Registry | None = None,
 ) -> Descriptor:
-    """``bookend-dir-strong`` iff every child (chosen per D-3) is strong, else ``bookend-dir-weak``
-    (D-4); missing children raise :class:`crystalia_data_model.types.errors.IncompleteRollup` via
+    """``bookend-dir-strong`` iff every chosen child is strong, else ``bookend-dir-weak``;
+    missing children raise :class:`crystalia_data_model.types.errors.IncompleteRollup` via
     :func:`crystalia_data_model.types.rollup.rollup_dir` (no ``total`` stored, coverage 1.0 by type).
     """
     reg = registry or default_registry()

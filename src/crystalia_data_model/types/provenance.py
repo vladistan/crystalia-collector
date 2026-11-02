@@ -1,4 +1,4 @@
-"""Content-addressed provenance: ``Method`` and ``HarvestRecord`` construction (FR-006, FR-007; step 6.1-6.2).
+"""Content-addressed provenance: ``Method`` and ``HarvestRecord`` construction.
 
 ``Method`` is content-addressed by (name, canonical parameter set) so one node is reused across every
 harvest that uses the same method with the same parameters. ``HarvestRecord`` gets a fresh, unique IRI
@@ -29,13 +29,13 @@ def _line(key: str, value: str) -> str:
 
 
 def canonical_parameters(parameters: Mapping[str, str] | None) -> str:
-    """The canonical parameter string: sorted, length-prefixed ``key=len:value`` lines (SPARC §6.1)."""
+    """The canonical parameter string: sorted, length-prefixed ``key=len:value`` lines."""
     lines = sorted(_line(key, value) for key, value in (parameters or {}).items())
     return "\n".join(lines)
 
 
 def mint_method(name: str, parameters: Mapping[str, str] | None = None, *, comment: str | None = None) -> Method:
-    """One ``Method`` node per (name, parameters); param order and dict identity are irrelevant (AC-20)."""
+    """One ``Method`` node per (name, parameters); param order and dict identity are irrelevant."""
     params = canonical_parameters(parameters)
     payload = (_line("name", name) + "\n" + _line("parameters", params)).encode()
     method_id = f"{CRYD_CURIE_PREFIX}{_METHOD_NAMESPACE}{_digest(payload)}"
@@ -54,9 +54,9 @@ def record_harvest(
     hostname: str | None = None,
     cli_options: str | None = None,
 ) -> HarvestRecord:
-    """A new, uniquely-IRI'd ``HarvestRecord`` linking the methods used and the root items produced (AC-20).
+    """A new, uniquely-IRI'd ``HarvestRecord`` linking the methods used and the root items produced.
 
-    ``operator``, ``hostname`` and ``cli_options`` are optional (plan 03 Ph11 Step 11.8): old harvests
+    ``operator``, ``hostname`` and ``cli_options`` are optional: old harvests
     never carried them and need no re-harvest to stay valid.
     """
     harvest_id = f"{CRYD_CURIE_PREFIX}{_HARVEST_NAMESPACE}{uuid4()}"

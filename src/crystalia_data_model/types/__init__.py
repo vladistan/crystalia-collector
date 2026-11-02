@@ -1,4 +1,4 @@
-"""Behaviour package for data model v2 (SPARC §7 Interfaces): the single IRI factory and the single
+"""Behaviour package for data model v2: the single IRI factory and the single
 source of coverage, robustness, strength and validity. Runtime deps: stdlib + pydantic.
 """
 

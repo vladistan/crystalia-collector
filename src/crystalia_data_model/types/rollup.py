@@ -1,7 +1,7 @@
-"""Lane A behaviour: pure, name-aware folder rollups (FR-017, AC-04, AC-13, AC-15).
+"""Pure, name-aware folder rollups.
 
 ``rollup_dir`` builds a folder rollup from ``(name, child)`` pairs only; it never touches a
-filesystem or a store. It is pure (mergeable over per-job outputs, ruling C1/AC-15) and raises
+filesystem or a store. It is pure (mergeable over per-job outputs) and raises
 ``IncompleteRollup`` rather than mint an incomplete folder — there are no ``-incomplete`` types.
 """
 
@@ -28,7 +28,7 @@ def rollup_dir(
     ``expected`` is the entry count from the harvest's own listing, never stored (folder rollups
     carry no ``total``). Fewer children than ``expected`` means an entry is missing by failure and
     raises :class:`IncompleteRollup`; more than ``expected`` is a broken contract. Pure over
-    ``children``, so a rollup built from per-job outputs equals one built in a single pass (AC-15).
+    ``children``, so a rollup built from per-job outputs equals one built in a single pass.
     """
     named = list(children)
     present = len(named)
@@ -52,7 +52,7 @@ def rollup_dir(
 def mint_glimpse_dir_content(
     expected: int, children: Iterable[NamedChild], *, registry: Registry | None = None
 ) -> Descriptor:
-    """Mtime-free folder rollup over ``glimpse-content`` children (AC-09)."""
+    """Mtime-free folder rollup over ``glimpse-content`` children."""
     return rollup_dir("glimpse-dir-content", expected, children, registry=registry)
 
 

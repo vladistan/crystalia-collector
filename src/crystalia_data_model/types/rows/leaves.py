@@ -1,8 +1,8 @@
-"""Lane A rows: fact leaves, ``md5``, ``md5-region``, content glimpses and legacy ``glimpse*`` / ``glimpse-dir*``.
+"""Rows for fact leaves, ``md5``, ``md5-region``, content glimpses and legacy ``glimpse*`` / ``glimpse-dir*``.
 
 Legacy role orders mirror the collector's v1 composites (filename, size, md5-head, ctime, mtime ...)
 so that the v2 encoding keeps the same field semantics under the new, unambiguous byte layout.
-Robustness values are SPARC defaults pending spec check.
+Robustness values are defaults pending spec check.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ from crystalia_data_model.types.registry import (
     rollup,
 )
 
-_PENDING = "robustness: SPARC default, pending spec check"
+_PENDING = "robustness: default value, pending spec check"
 
 _FACTS: tuple[TypeEntry, ...] = (
     fact_leaf("filename", Grade.LOCATION, doc=f"the object's base name; {_PENDING}"),

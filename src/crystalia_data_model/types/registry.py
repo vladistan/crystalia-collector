@@ -1,4 +1,4 @@
-"""Type registry: the hierarchy and per-type semantics keyed by ``hasType`` (FR-008).
+"""Type registry: the hierarchy and per-type semantics keyed by ``hasType``.
 
 The stored model knows only ``Descriptor.hasType``; everything a type *means*
 (kind, grade, robustness, strength, coverage rule, which fields it requires or
@@ -27,7 +27,7 @@ CRYS_CURIE_PREFIX = "crys:"
 CRYS_BASE = "https://w3id.org/crystalia/"
 TYPE_NAMESPACE = "dtype/"
 
-#: Scalar slots that can carry identity, in canonical encoding order (SPARC §Canonical Encoding).
+#: Scalar slots that can carry identity, in canonical encoding order.
 SCALARS: tuple[str, ...] = ("offset", "length", "value", "total", "assertedCoverage")
 
 
@@ -385,7 +385,7 @@ def inferred(
     )
 
 
-#: The hierarchy's structural nodes (SPARC §Type hierarchy). Concrete rows hang off these.
+#: The hierarchy's structural nodes. Concrete rows hang off these.
 STRUCTURAL_ROWS: tuple[TypeEntry, ...] = (
     abstract_row("descriptor", None, Kind.LEAF, "root of the hierarchy"),
     abstract_row("leaf", "descriptor", Kind.LEAF, "single-valued descriptors"),
@@ -450,19 +450,19 @@ class Registry:
         if set(row.identity_fields) & row.forbidden:
             raise RegistryLoadError(f"{row.name}: identity field is forbidden")
         if row.name.endswith("-incomplete"):
-            raise RegistryLoadError(f"{row.name}: no incomplete types exist (ruling C1)")
+            raise RegistryLoadError(f"{row.name}: no incomplete types exist")
         if row.abstract:
             return
         if row.kind is Kind.REGION_COMPOSITE and row.coverage_rule is not CoverageRule.PRESENT_OVER_TOTAL:
             raise RegistryLoadError(f"{row.name}: region composites use PRESENT_OVER_TOTAL")
         if row.kind is not Kind.REGION_COMPOSITE and "total" not in row.forbidden:
-            raise RegistryLoadError(f"{row.name}: only region composites carry total (ruling C1)")
+            raise RegistryLoadError(f"{row.name}: only region composites carry total")
         if row.kind is Kind.ASSERTED and row.coverage_rule is not CoverageRule.ASSERTED:
             raise RegistryLoadError(f"{row.name}: asserted types use the ASSERTED rule")
         if row.kind is not Kind.ASSERTED and "assertedCoverage" not in row.forbidden:
             raise RegistryLoadError(f"{row.name}: only asserted types carry assertedCoverage")
         if row.kind is not Kind.POSITIONAL and "offset" not in row.forbidden:
-            raise RegistryLoadError(f"{row.name}: only positional types carry offset (FR-003)")
+            raise RegistryLoadError(f"{row.name}: only positional types carry offset")
         for role in row.children.roles:
             if role.child not in by_name:
                 raise RegistryLoadError(f"{row.name}: role {role.name!r} names unknown type {role.child!r}")

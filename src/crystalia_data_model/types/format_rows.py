@@ -1,6 +1,6 @@
-"""Format registry rows (Lane C; step 5.1/5.2). Every row's ``spec_ref`` is verified in
+"""Format registry rows. Every row's ``spec_ref`` is verified in
 ``tests/fixtures/formats/SPEC-REFS.md``; a row's ``strong_rule`` is verified there too, or the
-loader (:mod:`crystalia_data_model.types.formats`) demotes it to OPAQUE at load time (AC-16).
+loader (:mod:`crystalia_data_model.types.formats`) demotes it to OPAQUE at load time.
 """
 
 from __future__ import annotations
