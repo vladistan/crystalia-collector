@@ -6,6 +6,15 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Known limitations
+- Verification (plan 03 step 11.1): `combine_descriptors` (`work.py`) calls
+  `ensure_valid()` only for `hasType` values the DM registry knows. Methods
+  not yet migrated to DM minting (`md5-chunk`, `relpath`) mint their own
+  IRIs, so the check skips them. A descriptor with a genuinely unknown
+  `hasType` therefore passes through unvalidated and does not fail the run.
+  This is the one case that escapes the fail-closed guarantee. Not fixed in
+  1.0.0.
+
 ## [1.0.0] - 2026-10-29
 
 Breaking release: the collector emits crystalia-data-model (DM) v2. Every
