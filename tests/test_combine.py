@@ -88,14 +88,8 @@ def test_combine_descriptors_empty_items_text(tmp_path):
 
 
 def test_combine_descriptors_with_descriptor_objects(tmp_path):
-    desc = Descriptor(
-        id="cryd:abc123",
-        hasType="cryd:md5-8gb",
-        value="abc123def456",  # pragma: allowlist secret
-        offset=0,
-        length=8589934592,
-    )
-    items = [Item(id="crys:test.txt", label="test.txt", hasDescriptor=["cryd:abc123"])]
+    desc = mint_md5("abc123def456abc123def456abc123de", length=1024)  # pragma: allowlist secret
+    items = [Item(id="crys:test.txt", label="test.txt", hasDescriptor=[desc.id])]
     output = tmp_path / "catalog.ttl"
     combine_descriptors(items, output, "turtle", descriptors=[desc])
 
@@ -107,7 +101,7 @@ def test_combine_descriptors_with_descriptor_objects(tmp_path):
     # Should have both Item and Descriptor triples
     subjects = {str(s) for s in g.subjects()}
     assert any("test.txt" in s for s in subjects)
-    assert any("abc123" in s for s in subjects)
+    assert any(desc.id in s or str(desc.id).split(":")[-1] in s for s in subjects)
 
 
 def test_combine_descriptors_rejects_wrong_role_child_only_with_resolve(tmp_path):
@@ -147,3 +141,11 @@ def test_ensure_valid_without_resolve_misses_wrong_role_child():
     top = mint_glimpse(filename=filename, file_size=file_size, head=wrong_head, ctime=ctime, mtime=mtime)
 
     assert ensure_valid(top) is top
+
+
+def test_combine_descriptors_rejects_unknown_has_type(tmp_path):
+    desc = Descriptor(id="cryd:bogus1", hasType="crys:dtype/not-a-type", value="x", length=1)
+    output = tmp_path / "catalog.ttl"
+    with pytest.raises(InvalidDescriptor, match="UNKNOWN_TYPE"):
+        combine_descriptors([], output, "turtle", descriptors=[desc])
+    assert not output.exists()

@@ -29,10 +29,7 @@ from crystalia_data_model.datamodel.linkml_crystalia import Descriptor, HarvestR
 from crystalia_data_model.types.coverage import mint_md5_chunked
 from crystalia_data_model.types.leaves import mint_md5, mint_md5_region, mint_relpath
 from crystalia_data_model.types.provenance import mint_method, record_harvest
-from crystalia_data_model.types.registry import default_registry
 from crystalia_data_model.types.validate import ensure_valid
-
-_dm_registry = default_registry()
 
 log = structlog.get_logger()
 
@@ -489,10 +486,8 @@ def combine_descriptors(
                 return by_id[iri]
 
             for desc in descriptors:
-                # Only types the DM registry knows are checked here; methods not yet
-                # migrated to DM minting (md5-chunk, relpath) mint their own IRIs.
-                if desc.hasType in _dm_registry:
-                    ensure_valid(desc, resolve=resolve)
+                # Fail closed: an unregistered hasType raises UnknownType.
+                ensure_valid(desc, resolve=resolve)
                 g = rdf_from_model(desc)
                 for prefix, ns in g.namespaces():
                     combined.bind(prefix, ns)
