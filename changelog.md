@@ -6,8 +6,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-07
+
 ### Fixed
-- Verification (plan 03 step 11.1): `combine_descriptors` (`work.py`) now calls
+- `combine_descriptors` (`work.py`) now calls
   `ensure_valid()` on every descriptor. Before, it skipped any `hasType` the
   DM registry did not know, so a genuinely unknown type passed through
   unvalidated and the run did not fail. An unknown `hasType` now raises
