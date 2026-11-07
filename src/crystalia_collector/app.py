@@ -38,7 +38,7 @@ class ExitCode(IntEnum):
 def main() -> None:
     """Crystalia Collector CLI."""
     settings = get_settings()
-    init_monitoring(dsn=settings.sentry_dsn)
+    init_monitoring(dsn=settings.sentry_dsn, traces_sample_rate=settings.sentry_traces_sample_rate)
     configure_logging(json_output=settings.log_json)
 
 
@@ -249,7 +249,7 @@ def test_sentry() -> None:
     if not settings.sentry_dsn:
         typer.echo("SENTRY_DSN is not configured. Set it via CRYSTALIA_SENTRY_DSN or SENTRY_DSN env var.")
         raise typer.Exit(code=ExitCode.ERROR)
-    init_monitoring(dsn=settings.sentry_dsn)
+    init_monitoring(dsn=settings.sentry_dsn, traces_sample_rate=settings.sentry_traces_sample_rate)
     try:
         raise RuntimeError("Sentry test exception from crystalia-collector")
     except RuntimeError:

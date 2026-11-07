@@ -10,15 +10,17 @@ from sentry_sdk.tracing import Span
 from crystalia_collector import __version__
 
 
-def init_monitoring(dsn: str | None = None) -> None:
-    """Initialize Sentry SDK for crash reporting and performance monitoring."""
+def init_monitoring(dsn: str | None = None, traces_sample_rate: float | None = None) -> None:
+    """No-op without a DSN; env vars SENTRY_DSN/SENTRY_TRACES_SAMPLE_RATE fill unset args."""
     if dsn is None:
         dsn = os.environ.get("SENTRY_DSN")
     if not dsn:
         return
+    if traces_sample_rate is None:
+        traces_sample_rate = float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.03"))
     sentry_sdk.init(
         dsn=dsn,
-        traces_sample_rate=float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "0.03")),
+        traces_sample_rate=traces_sample_rate,
         environment=os.environ.get("SENTRY_ENVIRONMENT", "development"),
         release=__version__,
         attach_stacktrace=True,

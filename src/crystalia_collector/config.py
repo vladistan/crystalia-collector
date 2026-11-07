@@ -45,6 +45,7 @@ class CollectorSettings(BaseSettings):
     enable_telemetry: bool = False
     sentry_dsn: str | None = None
     sentry_environment: str = "development"
+    sentry_traces_sample_rate: float = 0.03
 
     # Logging
     log_json: bool = True
