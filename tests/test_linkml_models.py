@@ -270,6 +270,66 @@ def test_dict_from_pairs_handles_mostly_unique_iris_well():
     assert per_call_us < 10, f"{per_call_us:.2f}us/call with all-unique IRIs, expected well under 10us"
 
 
+def test_dict_from_pairs_iri_to_id_overrides_default_conversion():
+    """``iri_to_id``, when given, replaces the internal CURIE conversion entirely --
+    a caller with its own cached IRI folder (e.g. viz's IdFolder) gets to fold once
+    instead of dict_from_pairs re-folding the same IRI a second time."""
+    subject = "https://w3id.org/crystalia/data/top1"
+    pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]
+
+    result = dict_from_pairs(
+        Descriptor,
+        subject=subject,
+        pairs=pairs,
+        subject_expanded=True,
+        iri_to_id=lambda uri: f"folded:{uri}",
+    )
+
+    assert result["id"] == f"folded:{subject}"
+    assert result["hasType"] == "folded:https://w3id.org/crystalia/dtype/glimpse"
+
+
+def test_dict_from_pairs_default_output_unchanged_by_new_params():
+    """Omitting the new opt-in params keeps output byte-identical to the
+    pre-existing default path."""
+    subject = "cryd:top1"
+    pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]
+
+    assert dict_from_pairs(Descriptor, subject=subject, pairs=pairs) == dict_from_pairs(
+        Descriptor,
+        subject=subject,
+        pairs=pairs,
+        subject_expanded=False,
+        iri_to_id=None,
+    )
+
+
+def test_dict_from_pairs_subject_expanded_skips_curie_expansion():
+    """``subject_expanded=True`` treats ``subject`` as already a full IRI -- no
+    ``get_schema().expand_curie`` round-trip, so a non-CURIE-shaped string (that
+    would otherwise fail to expand) still resolves correctly via the loader's own
+    CURIE folding."""
+    full_subject = "https://w3id.org/crystalia/data/top1"
+
+    result = dict_from_pairs(Descriptor, subject=full_subject, pairs=[], subject_expanded=True)
+
+    assert result["id"] == "cryd:top1"
+
+
+def test_loader_dict_from_pairs_iri_to_id_default_matches_indexed_path():
+    """Loader-level: omitting ``iri_to_id`` reproduces the same output as before
+    the parameter existed (the internal ``_uri_to_curie_indexed`` fast path)."""
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader = PydanticRDFLoader()
+    pairs = [("https://w3id.org/crystalia/hasDescriptor", "https://w3id.org/crystalia/data/child1")]
+
+    without_param = loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs)
+    with_none = loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs, iri_to_id=None)
+
+    assert without_param == with_none == {"id": "cryd:top1", "hasDescriptor": ["cryd:child1"]}
+
+
 def test_dict_from_pairs_warm_loader_is_fast(short_file_single_descriptor):
     """Amortized per-subject cost on a warm (reused) loader instance stays well
     under the naive per-call implementation's ~61us/subject. Threshold is

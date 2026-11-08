@@ -6,7 +6,7 @@
 # LinkML monorepo fork, not in public PyPI `linkml-runtime` (see
 # _vendor/VENDORED.md for provenance and the upstreaming TODO). SchemaView and the
 # vendored classes' base classes are all provided by public `linkml-runtime`.
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from functools import lru_cache
 from importlib.resources import as_file, files
 from typing import Any
@@ -83,6 +83,9 @@ def dict_from_pairs(
     type_class: type[Thing],
     subject: str,
     pairs: Iterable[tuple[str, str | tuple[str, str | None, str | None]]],
+    *,
+    subject_expanded: bool = False,
+    iri_to_id: Callable[[str], str] | None = None,
 ) -> dict[str, Any]:
     """Graph-free counterpart to dict_from_subject: same field mapping, literal
     coercion, and list-handling, but takes one subject's (predicate_iri, object)
@@ -90,10 +93,17 @@ def dict_from_pairs(
     per-subject triples from a non-rdflib store (e.g. pyoxigraph) and has no graph
     to hand the loader. A literal object is a (lexical, datatype, lang) tuple, not
     an rdflib Literal -- the caller never constructs one.
+
+    ``subject_expanded=True`` treats ``subject`` as already a full IRI, skipping
+    this wrapper's own ``get_schema().expand_curie(subject)`` call -- for a caller
+    that already resolved it. ``iri_to_id``, when given, is forwarded to the
+    loader's ``dict_from_pairs`` fast path (see its docstring). Both are opt-in;
+    omitting them keeps output byte-identical to the previous behavior.
     """
-    expanded_subject = get_schema().expand_curie(subject)
+    expanded_subject = subject if subject_expanded else get_schema().expand_curie(subject)
     return _pairs_loader().dict_from_pairs(  # type: ignore[no-any-return]
         target_class=type_class,
         subject=expanded_subject,
         pairs=pairs,
+        iri_to_id=iri_to_id,
     )

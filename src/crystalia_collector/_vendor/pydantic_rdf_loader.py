@@ -512,6 +512,8 @@ class PydanticRDFLoader(Loader):
         subject: str,
         pairs: Iterable[tuple[str, str | tuple[str, str | None, str | None]]],
         prefix_map: dict[str, str] | None = None,
+        *,
+        iri_to_id: Callable[[str], str] | None = None,
     ) -> dict[str, Any]:
         """Graph-free counterpart to ``dict_from_subject_triples``: same field-name
         resolution, literal coercion, and list-handling, but takes (predicate,
@@ -536,24 +538,30 @@ class PydanticRDFLoader(Loader):
         ``_pairs_profile``. Reuse one loader instance across many calls (e.g. a
         module-level singleton) to actually get the benefit; a fresh instance per
         call starts the cache over every time.
+
+        ``iri_to_id``, when given, replaces the internal CURIE conversion for every
+        IRI (subject and object values) -- an opt-in fast path for a caller that
+        already folds IRIs through its own cache (e.g. an ``IdFolder``) and would
+        otherwise redo that work a second time here. Omitting it keeps output
+        byte-identical to the default ``_uri_to_curie_indexed`` path.
         """
         profile = self._pairs_profile(target_class, prefix_map)
         prefixes = profile["prefixes"]
         prefix_index = profile["prefix_index"]
         predicate_to_field = profile["predicate_to_field"]
 
-        model_data: dict[str, Any] = {"id": self._uri_to_curie_indexed(subject, prefixes, prefix_index)}
+        convert: Callable[[str], str] = (
+            iri_to_id if iri_to_id is not None else lambda uri: self._uri_to_curie_indexed(uri, prefixes, prefix_index)
+        )
+
+        model_data: dict[str, Any] = {"id": convert(subject)}
 
         for predicate, obj in pairs:
             field_name = predicate_to_field.get(predicate)
             if not field_name:
                 continue
 
-            field_value = (
-                self._convert_literal_tuple(*obj)
-                if isinstance(obj, tuple)
-                else self._uri_to_curie_indexed(obj, prefixes, prefix_index)
-            )
+            field_value = self._convert_literal_tuple(*obj) if isinstance(obj, tuple) else convert(obj)
 
             if field_name in model_data:
                 if not isinstance(model_data[field_name], list):
