@@ -883,41 +883,43 @@ def run_pipeline(
         raise HarvestIncompleteError(msg)
 
     # Build directory Items first so file Items can reference them via isPartOf
-    relpath_fallbacks = [0]
-    dir_items, dir_item_ids, dir_relpath_descriptors = _build_directory_items(
-        merged_dirs,
-        id_factory,
-        prefix,
-        relpath_fallbacks,
-    )
-    file_items, relpath_descriptors = _build_file_items(
-        merged_files,
-        dir_item_ids,
-        prefix,
-        id_factory,
-        relpath_fallbacks,
-    )
-    items = dir_items + file_items
-    all_descriptors.extend(dir_relpath_descriptors)
-    all_descriptors.extend(relpath_descriptors)
-    roots = [item for item in items if item.isPartOf is None]
-    harvest_record = record_harvest(
-        started,
-        now(),
-        __version__,
-        source_root or prefix,
-        methods=methods,
-        roots=roots,
-        **invocation_provenance("run", methods=method_ids, workers=workers, format=fmt, exclude=exclude or []),
-    )
+    with sentry_sdk.start_span(op="build_items", name="build_items"):
+        relpath_fallbacks = [0]
+        dir_items, dir_item_ids, dir_relpath_descriptors = _build_directory_items(
+            merged_dirs,
+            id_factory,
+            prefix,
+            relpath_fallbacks,
+        )
+        file_items, relpath_descriptors = _build_file_items(
+            merged_files,
+            dir_item_ids,
+            prefix,
+            id_factory,
+            relpath_fallbacks,
+        )
+        items = dir_items + file_items
+        all_descriptors.extend(dir_relpath_descriptors)
+        all_descriptors.extend(relpath_descriptors)
+        roots = [item for item in items if item.isPartOf is None]
+        harvest_record = record_harvest(
+            started,
+            now(),
+            __version__,
+            source_root or prefix,
+            methods=methods,
+            roots=roots,
+            **invocation_provenance("run", methods=method_ids, workers=workers, format=fmt, exclude=exclude or []),
+        )
 
     tmp_output = output_path.with_name(output_path.name + ".tmp")
-    try:
-        combine_descriptors(items, tmp_output, fmt, all_descriptors, harvest_record, methods)
-    except Exception:
-        tmp_output.unlink(missing_ok=True)
-        raise
-    os.replace(tmp_output, output_path)
+    with sentry_sdk.start_span(op="combine", name=fmt):
+        try:
+            combine_descriptors(items, tmp_output, fmt, all_descriptors, harvest_record, methods)
+        except Exception:
+            tmp_output.unlink(missing_ok=True)
+            raise
+        os.replace(tmp_output, output_path)
 
     if relpath_fallbacks[0]:
         log.warning("relpath_fallback_total", count=relpath_fallbacks[0], prefix=prefix)
