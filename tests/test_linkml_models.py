@@ -245,26 +245,29 @@ def test_dict_from_pairs_caches_profile_per_type_class():
 
 
 def test_dict_from_pairs_handles_mostly_unique_iris_well():
-    """Regression: an earlier version memoized URI->CURIE conversion on every
-    call. Measured in isolation that made each call ~3x SLOWER (0.98 vs 0.33
-    us/call) for the dominant real-world case -- hasDescriptor/isPartOf targets
-    are almost always unique ids, so the cache's near-zero hit rate turned a
-    cheap direct computation into a dict-lookup-plus-tuple-key-construction
-    overhead for no benefit. Guards against re-adding that cache: a large batch
-    of distinct subjects/targets must stay fast on a warm loader.
+    """Regression guard, now exercised against the opt-out ``cached=False`` path:
+    an earlier version memoized URI->CURIE conversion unconditionally and made
+    each call ~3x SLOWER (0.98 vs 0.33us/call) for the dominant real-world case
+    -- hasDescriptor/isPartOf targets are almost always unique ids, so the
+    cache's near-zero hit rate turned a cheap direct computation into a
+    lookup+insert for no benefit. ``cached=False`` exists precisely so a caller
+    with this field shape can still get the uncached path; the *default* path
+    (cached=True) now pays a bounded lookup+insert cost by design -- see
+    ``test_dict_from_pairs_curie_cache_hit_rate_on_repeated_values`` for why that
+    trade is worth it on fields whose values repeat.
     """
     import time
 
     from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
 
     loader = PydanticRDFLoader()
-    loader.dict_from_pairs(Descriptor, subject="cryd:warmup", pairs=[])
+    loader.dict_from_pairs(Descriptor, subject="cryd:warmup", pairs=[], cached=False)
 
     n = 20000
     started = time.perf_counter()
     for i in range(n):
         pairs = [("https://w3id.org/crystalia/hasDescriptor", f"cryd:unique-{i}")]
-        loader.dict_from_pairs(Descriptor, subject=f"cryd:s{i}", pairs=pairs)
+        loader.dict_from_pairs(Descriptor, subject=f"cryd:s{i}", pairs=pairs, cached=False)
     per_call_us = ((time.perf_counter() - started) / n) * 1_000_000
 
     assert per_call_us < 10, f"{per_call_us:.2f}us/call with all-unique IRIs, expected well under 10us"
@@ -317,8 +320,9 @@ def test_dict_from_pairs_subject_expanded_skips_curie_expansion():
 
 
 def test_loader_dict_from_pairs_iri_to_id_default_matches_indexed_path():
-    """Loader-level: omitting ``iri_to_id`` reproduces the same output as before
-    the parameter existed (the internal ``_uri_to_curie_indexed`` fast path)."""
+    """Loader-level: omitting ``iri_to_id`` (default ``cached=True``) and the
+    legacy ``cached=False`` path both reproduce the same output as before these
+    parameters existed (the internal ``_uri_to_curie_indexed`` conversion)."""
     from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
 
     loader = PydanticRDFLoader()
@@ -326,8 +330,70 @@ def test_loader_dict_from_pairs_iri_to_id_default_matches_indexed_path():
 
     without_param = loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs)
     with_none = loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs, iri_to_id=None)
+    uncached = loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs, cached=False)
 
-    assert without_param == with_none == {"id": "cryd:top1", "hasDescriptor": ["cryd:child1"]}
+    expected = {"id": "cryd:top1", "hasDescriptor": ["cryd:child1"]}
+    assert without_param == with_none == uncached == expected
+
+
+def test_dict_from_pairs_curie_cache_is_populated_by_default():
+    """Default ``cached=True`` path: the per-profile CURIE cache actually gets
+    used, and ``cached=False`` leaves it empty -- confirms the two paths are
+    wired to different code, not just accepting-and-ignoring the parameter."""
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader = PydanticRDFLoader()
+    pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]
+
+    loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs, cached=False)
+    assert loader._pairs_profile_cache[Descriptor]["curie_cache"] == {}
+
+    loader.dict_from_pairs(Descriptor, subject="cryd:top1", pairs=pairs)
+    assert loader._pairs_profile_cache[Descriptor]["curie_cache"]
+
+
+def test_dict_from_pairs_curie_cache_hit_rate_on_repeated_values():
+    """Default cache gives a real speedup for a value repeated across many
+    subjects (e.g. a shared ``hasType``), the case it was added for."""
+    import time
+
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader_cached = PydanticRDFLoader()
+    loader_uncached = PydanticRDFLoader()
+    pairs = [("https://w3id.org/crystalia/hasType", "https://w3id.org/crystalia/dtype/glimpse")]
+    n = 5000
+
+    for loader, cached in ((loader_cached, True), (loader_uncached, False)):
+        loader.dict_from_pairs(Descriptor, subject="cryd:warmup", pairs=pairs, cached=cached)
+
+    started = time.perf_counter()
+    for i in range(n):
+        loader_uncached.dict_from_pairs(Descriptor, subject=f"cryd:s{i}", pairs=pairs, cached=False)
+    uncached_elapsed = time.perf_counter() - started
+
+    started = time.perf_counter()
+    for i in range(n):
+        loader_cached.dict_from_pairs(Descriptor, subject=f"cryd:s{i}", pairs=pairs, cached=True)
+    cached_elapsed = time.perf_counter() - started
+
+    assert cached_elapsed < uncached_elapsed
+
+
+def test_dict_from_pairs_curie_cache_caps_and_self_clears():
+    """The per-profile cache does not grow without bound on a long-running
+    harvest over many unique IRIs -- it clears itself at ``_CURIE_CACHE_MAX``
+    rather than accumulating forever."""
+    from crystalia_collector._vendor.pydantic_rdf_loader import PydanticRDFLoader
+
+    loader = PydanticRDFLoader()
+    loader._CURIE_CACHE_MAX = 10
+
+    for i in range(25):
+        pairs = [("https://w3id.org/crystalia/hasDescriptor", f"https://w3id.org/crystalia/data/u{i}")]
+        loader.dict_from_pairs(Descriptor, subject=f"cryd:s{i}", pairs=pairs)
+
+    assert len(loader._pairs_profile_cache[Descriptor]["curie_cache"]) <= 10
 
 
 def test_dict_from_pairs_warm_loader_is_fast(short_file_single_descriptor):

@@ -59,6 +59,11 @@ class PydanticRDFLoader(Loader):
     - Complex object instantiation from URI references
     """
 
+    _CURIE_CACHE_MAX = 50_000
+    """Per-profile IRI->CURIE cache size cap (see ``dict_from_pairs``'s ``cached``
+    param): bounds memory on a long-running harvest over many unique subjects
+    rather than growing the cache forever."""
+
     def __init__(
         self,
         preferred_languages: list[str] | None = None,
@@ -514,6 +519,7 @@ class PydanticRDFLoader(Loader):
         prefix_map: dict[str, str] | None = None,
         *,
         iri_to_id: Callable[[str], str] | None = None,
+        cached: bool = True,
     ) -> dict[str, Any]:
         """Graph-free counterpart to ``dict_from_subject_triples``: same field-name
         resolution, literal coercion, and list-handling, but takes (predicate,
@@ -542,17 +548,43 @@ class PydanticRDFLoader(Loader):
         ``iri_to_id``, when given, replaces the internal CURIE conversion for every
         IRI (subject and object values) -- an opt-in fast path for a caller that
         already folds IRIs through its own cache (e.g. an ``IdFolder``) and would
-        otherwise redo that work a second time here. Omitting it keeps output
-        byte-identical to the default ``_uri_to_curie_indexed`` path.
+        otherwise redo that work a second time here.
+
+        ``cached`` (default ``True``, ignored when ``iri_to_id`` is given) picks
+        between two internal paths with identical output: a per-profile IRI->CURIE
+        cache (wins big on fields whose values repeat across subjects, e.g. a
+        ``hasType``/``format`` value shared by thousands of items) versus the
+        uncached ``_uri_to_curie_indexed`` call every time (set ``cached=False`` to
+        get this -- it was the only path before this parameter existed, and is
+        cheaper on fields whose values are almost always unique per subject, e.g.
+        ``hasDescriptor``/``isPartOf`` child refs, where a near-zero cache hit rate
+        just adds a lookup+insert for nothing). The cache is capped at
+        ``_CURIE_CACHE_MAX`` entries per profile and clears itself on overflow
+        rather than growing unbounded across a long-running harvest over many
+        unique subjects.
         """
         profile = self._pairs_profile(target_class, prefix_map)
         prefixes = profile["prefixes"]
         prefix_index = profile["prefix_index"]
         predicate_to_field = profile["predicate_to_field"]
 
-        convert: Callable[[str], str] = (
-            iri_to_id if iri_to_id is not None else lambda uri: self._uri_to_curie_indexed(uri, prefixes, prefix_index)
-        )
+        convert: Callable[[str], str]
+        if iri_to_id is not None:
+            convert = iri_to_id
+        elif cached:
+            curie_cache: dict[str, str] = profile["curie_cache"]
+
+            def convert(uri: str) -> str:
+                hit = curie_cache.get(uri)
+                if hit is not None:
+                    return hit
+                if len(curie_cache) >= self._CURIE_CACHE_MAX:
+                    curie_cache.clear()
+                value = self._uri_to_curie_indexed(uri, prefixes, prefix_index)
+                curie_cache[uri] = value
+                return value
+        else:
+            convert = lambda uri: self._uri_to_curie_indexed(uri, prefixes, prefix_index)  # noqa: E731
 
         model_data: dict[str, Any] = {"id": convert(subject)}
 
@@ -628,6 +660,7 @@ class PydanticRDFLoader(Loader):
         profile = {
             "prefixes": prefixes,
             "prefix_index": self._build_prefix_index(prefixes),
+            "curie_cache": {},
             "predicate_to_field": predicate_to_field,
             "lang_field_kinds": lang_field_kinds,
             "list_fields": list_fields,

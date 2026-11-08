@@ -86,6 +86,7 @@ def dict_from_pairs(
     *,
     subject_expanded: bool = False,
     iri_to_id: Callable[[str], str] | None = None,
+    cached: bool = True,
 ) -> dict[str, Any]:
     """Graph-free counterpart to dict_from_subject: same field mapping, literal
     coercion, and list-handling, but takes one subject's (predicate_iri, object)
@@ -97,8 +98,11 @@ def dict_from_pairs(
     ``subject_expanded=True`` treats ``subject`` as already a full IRI, skipping
     this wrapper's own ``get_schema().expand_curie(subject)`` call -- for a caller
     that already resolved it. ``iri_to_id``, when given, is forwarded to the
-    loader's ``dict_from_pairs`` fast path (see its docstring). Both are opt-in;
-    omitting them keeps output byte-identical to the previous behavior.
+    loader's ``dict_from_pairs`` fast path (see its docstring). ``cached``
+    (default ``True``) selects the loader's internal per-profile IRI->CURIE cache
+    instead of its uncached conversion path -- pass ``cached=False`` for the
+    original uncached behavior. All three are opt-in; omitting them keeps output
+    byte-identical to the previous behavior.
     """
     expanded_subject = subject if subject_expanded else get_schema().expand_curie(subject)
     return _pairs_loader().dict_from_pairs(  # type: ignore[no-any-return]
@@ -106,4 +110,5 @@ def dict_from_pairs(
         subject=expanded_subject,
         pairs=pairs,
         iri_to_id=iri_to_id,
+        cached=cached,
     )
