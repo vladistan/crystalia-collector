@@ -77,7 +77,10 @@ def annotate(
     sidecar to `output_file + ".sidecar"` for `merge` to reconstruct directory
     membership.
     """
-    with cli_transaction("annotate"):
+    with cli_transaction("annotate") as txn:
+        txn.set_tag("task_file", task_file)
+        txn.set_tag("output_file", output_file)
+        txn.set_tag("partials_dir", str(partials_dir) if partials_dir else None)
         try:
             results, failed_lines = _process_task_file_tolerant(task_file)
             if failed_lines:
@@ -175,7 +178,12 @@ def run(
 
     method_ids = method if method else [get_settings().default_method_id]
 
-    with cli_transaction("run"):
+    with cli_transaction("run") as txn:
+        txn.set_tag("source", source)
+        txn.set_tag("methods", ",".join(method_ids))
+        txn.set_tag("workers", workers)
+        txn.set_tag("format", fmt)
+        txn.set_tag("output", str(output))
         try:
             # local imports: lazy-load the optional rich progress UI so it is only
             # imported when the run command needs it.

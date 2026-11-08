@@ -4,6 +4,8 @@ import os
 from collections import defaultdict
 from datetime import UTC, datetime
 
+import sentry_sdk
+
 from crystalia_collector.glimpse_compute import build_file_descriptor
 from crystalia_collector.glimpse_dir_compute import build_dir_descriptor
 from crystalia_collector.method.glimpse import GlimpseBase
@@ -34,10 +36,17 @@ def scan_files(
     exclude: list[str] | None = None,
 ) -> list[tuple[FileObject, Descriptor, list[Descriptor]]]:
     """Compute Glimpse file descriptors for all files under prefix."""
+    with sentry_sdk.start_span(op="list_files", name=prefix) as span:
+        file_objs = list(source.list_files(prefix, exclude))
+        span.set_data("num_files", len(file_objs))
+
     results: list[tuple[FileObject, Descriptor, list[Descriptor]]] = []
-    for file_obj in source.list_files(prefix, exclude):
-        top, children = build_file_descriptor(file_obj, file_method, source)
-        results.append((file_obj, top, children))
+    with sentry_sdk.start_span(op="build_file_descriptors", name=file_method.id or "") as span:
+        span.set_data("num_files", len(file_objs))
+        for file_obj in file_objs:
+            with sentry_sdk.start_span(op="build_file_descriptor", name=file_obj.basename):
+                top, children = build_file_descriptor(file_obj, file_method, source)
+            results.append((file_obj, top, children))
     return results
 
 

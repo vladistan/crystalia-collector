@@ -1,5 +1,7 @@
 """Build Glimpse file descriptors from a FileObject and a Source, via the DM leaf/composite mints."""
 
+import sentry_sdk
+
 from crystalia_collector.method.glimpse import GlimpseBase
 from crystalia_collector.source import FileObject, Source
 from crystalia_data_model.datamodel.linkml_crystalia import Descriptor
@@ -49,7 +51,13 @@ def build_file_descriptor(
     block_size = method.block_size
 
     # Read first block_size bytes only if the variant includes md5
-    md5_hex = source.compute_checksum(file_obj.uri, 0, block_size) if method.has_md5 else ""
+    if method.has_md5:
+        with sentry_sdk.start_span(op="checksum", name=file_obj.basename) as span:
+            span.set_data("block_size", block_size)
+            span.set_data("file_size", file_size)
+            md5_hex = source.compute_checksum(file_obj.uri, 0, block_size)
+    else:
+        md5_hex = ""
     md5_length = min(block_size, file_size)
 
     mtime_str = file_obj.mtime.isoformat()

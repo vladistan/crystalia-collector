@@ -464,48 +464,58 @@ def combine_descriptors(
 ) -> None:
     # local imports: defer the heavy RDF stack (rdflib + linkml_runtime) until
     # turtle output is actually requested, keeping CLI startup fast.
-    from rdflib import Graph
+    with sentry_sdk.start_span(op="import_rdf_stack", name="import_rdf_stack"):
+        from rdflib import Graph
 
-    from crystalia_collector.rdf import rdf_from_model
+        from crystalia_collector.rdf import rdf_from_model
 
     sorted_items = sorted(items, key=lambda item: str(item.id))
     log.info("combining_descriptors", num_items=len(items), output=str(output_path), fmt=fmt)
 
     if fmt == "turtle":
         combined = Graph()
-        for item in sorted_items:
-            g = rdf_from_model(item)
-            for prefix, ns in g.namespaces():
-                combined.bind(prefix, ns)
-            for triple in g:
-                combined.add(triple)
+        with sentry_sdk.start_span(op="rdf_items", name="rdf_items") as span:
+            span.set_data("num_items", len(sorted_items))
+            for item in sorted_items:
+                g = rdf_from_model(item)
+                for prefix, ns in g.namespaces():
+                    combined.bind(prefix, ns)
+                for triple in g:
+                    combined.add(triple)
         if descriptors:
             by_id = {str(d.id): d for d in descriptors}
 
             def resolve(iri: str) -> Descriptor:
                 return by_id[iri]
 
-            for desc in descriptors:
-                # Fail closed: an unregistered hasType raises UnknownType.
-                ensure_valid(desc, resolve=resolve)
-                g = rdf_from_model(desc)
+            with sentry_sdk.start_span(op="rdf_descriptors", name="rdf_descriptors") as span:
+                span.set_data("num_descriptors", len(descriptors))
+                for desc in descriptors:
+                    # Fail closed: an unregistered hasType raises UnknownType.
+                    ensure_valid(desc, resolve=resolve)
+                    g = rdf_from_model(desc)
+                    for prefix, ns in g.namespaces():
+                        combined.bind(prefix, ns)
+                    for triple in g:
+                        combined.add(triple)
+        with sentry_sdk.start_span(op="rdf_methods_and_harvest_record", name="rdf_methods_and_harvest_record"):
+            for method in methods or []:
+                g = rdf_from_model(method)
                 for prefix, ns in g.namespaces():
                     combined.bind(prefix, ns)
                 for triple in g:
                     combined.add(triple)
-        for method in methods or []:
-            g = rdf_from_model(method)
-            for prefix, ns in g.namespaces():
-                combined.bind(prefix, ns)
-            for triple in g:
-                combined.add(triple)
-        if harvest_record is not None:
-            g = rdf_from_model(harvest_record)
-            for prefix, ns in g.namespaces():
-                combined.bind(prefix, ns)
-            for triple in g:
-                combined.add(triple)
-        output_path.write_text(combined.serialize(format="turtle"))
+            if harvest_record is not None:
+                g = rdf_from_model(harvest_record)
+                for prefix, ns in g.namespaces():
+                    combined.bind(prefix, ns)
+                for triple in g:
+                    combined.add(triple)
+        with sentry_sdk.start_span(op="rdf_serialize", name="turtle") as span:
+            serialized = combined.serialize(format="turtle")
+        with sentry_sdk.start_span(op="write_output", name=str(output_path)) as span:
+            span.set_data("bytes", len(serialized))
+            output_path.write_text(serialized)
     elif fmt == "text":
         with open(output_path, "w") as f:
             for item in sorted_items:

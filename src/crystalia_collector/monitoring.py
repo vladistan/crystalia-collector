@@ -1,7 +1,6 @@
 """Monitoring and structured logging configuration."""
 
 import os
-from contextlib import AbstractContextManager
 
 import sentry_sdk
 import structlog
@@ -28,7 +27,7 @@ def init_monitoring(dsn: str | None = None, traces_sample_rate: float | None = N
     )
 
 
-def cli_transaction(command: str) -> AbstractContextManager[object]:
+def cli_transaction(command: str) -> Span:
     """Open the root transaction for one CLI invocation."""
     return sentry_sdk.start_transaction(op="cli", name=command)
 
